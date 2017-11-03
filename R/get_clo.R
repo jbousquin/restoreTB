@@ -45,7 +45,7 @@ get_clo <- function(restdat, reststat, wqstat, resgrp = 'top', mtch = 10){
         
       })
     ) %>% 
-    select(-data) %>% 
+    dplyr::select(-data) %>% 
     unnest
   
   return(wqmtch)

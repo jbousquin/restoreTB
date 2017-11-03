@@ -7,7 +7,7 @@ get_brk <- function(wqcdt, qts = c(0.25, 0.5, 0.75), ...){
   
   # get quantile levels, interpolate to cdf values, relabel
   brk <- wqcdt %>% 
-    select(-data, -crv) %>% 
+    dplyr::select(-data, -crv) %>% 
     unnest %>% 
     group_by_(...) %>% 
     nest %>% 
@@ -32,7 +32,7 @@ get_brk <- function(wqcdt, qts = c(0.25, 0.5, 0.75), ...){
         
       })
     ) %>% 
-    select(-data) %>% 
+    dplyr::select(-data) %>% 
     unnest
   
   return(brk)

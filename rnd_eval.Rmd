@@ -1,0 +1,351 @@
+---
+output:
+  html_document:
+  keep_md: yes
+toc: no
+self_contained: no
+pdf_document:
+  toc: yes
+---
+  
+# Random restoration projects
+  
+```{r globals, echo = F, message = F, warning = F}
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+library(ggmap)
+library(lubridate)
+library(geosphere)
+library(stringi)
+library(tibble)
+library(raster)
+library(sp)
+library(rgdal)
+
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+data(tbpoly)
+
+# source R files
+source('R/get_chg.R')
+source('R/get_clo.R')
+source('R/get_cdt.R')
+source('R/get_brk.R')
+
+# Set parameters, yr half-window for matching, mtch is number of closest matches
+yrdf <- 5
+mtch <- 10
+```
+
+## Summary plots
+
+```{r fig.width = 7, fig.height = 8, eval = T}
+
+# total random sites to create
+tot <- nrow(restdat)
+
+id <- stri_rand_strings(tot, 4)
+dts <- range(restdat$date)
+
+# rnorm(10 * tot, mean(reststat$lon), sd(reststat$lon))
+# rnorm(10 * tot, mean(reststat$lat), sd(reststat$lat))
+ext <- bbox(tbpoly)
+
+lon <- runif(10 * tot, ext[1, 1], ext[1, 2])
+lat <- runif(10 * tot, ext[2, 1], ext[2, 2])
+tmp <- SpatialPoints(cbind(lon, lat), 
+                     proj4string = crs(tbpoly)
+) %>% 
+  .[tbpoly, ] %>% 
+  .[sample(1:nrow(.@coords), tot, replace = F), ]
+
+restdat_rnd <- tibble(id) %>% 
+  mutate(
+    date = sample(seq(dts[1], dts[2]), tot, replace = T),
+    top = sample(c('hab', 'wtr'), tot, replace = T)    
+  )
+
+reststat_rnd <- tibble(id) %>% 
+  mutate(
+    lat = tmp$lat, 
+    lon = tmp$lon
+  )
+
+resgrp <- 'top'
+restall_rnd <- left_join(restdat_rnd, reststat_rnd, by = 'id')
+names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
+
+# base map
+ext <- make_bbox(reststat_rnd$lon, reststat_rnd$lat, f = 0.1)
+map <- get_stamenmap(ext, zoom = 10, maptype = "toner-lite")
+pbase <- ggmap(map) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+# map by restoration type
+pbase +
+  geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+
+# map by date
+pbase +
+  geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+
+# barplot of date counts
+toplo <- restall_rnd %>% 
+  group_by(date)
+ggplot(restall_rnd, aes(x = factor(date))) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(
+    axis.title.y = element_blank()
+  ) +
+  scale_y_discrete(expand = c(0, 0))
+
+```
+
+## Distance to restoration sites {.tabset}
+
+```{r}
+wqmtch_rnd <- get_clo(restdat_rnd, reststat_rnd, wqstat, resgrp = 'top', mtch = mtch)
+save(wqmtch_rnd, file = 'data/wqmtch_rnd.RData', compress = 'xz')
+
+head(wqmtch_rnd)
+```
+
+### Closest 
+```{r message = F, warning = F, fig.width = 7, fig.height = 8, eval = T}
+## 
+# plots
+
+# combine lat/lon for the plot
+toplo <- wqmtch_rnd %>% 
+  left_join(wqstat, by = 'stat') %>% 
+  left_join(reststat_rnd, by = 'id') %>% 
+  rename(
+    `Restoration\ngroup` = resgrp,
+    `Distance (dd)` = dist
+  )
+    
+# restoration project grouping column
+resgrp <- 'top'
+restall_rnd <- left_join(restdat_rnd, reststat_rnd, by = 'id')
+names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
+
+# extent
+ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.1)
+map <- get_stamenmap(ext, zoom = 12, maptype = "toner-lite")
+
+# base map
+pbase <- ggmap(map) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21) +
+  geom_point(data = wqstat, aes(x = lon, y = lat), size = 2)
+
+# closest
+toplo1 <- filter(toplo, rnk %in% 1)
+
+pbase + 
+  geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ngroup`), size = 1)
+```
+
+### Closest twenty percent
+```{r message = F, warning = F, fig.width = 7, fig.height = 8, eval = T}
+# closest five percent
+fvper <- max(toplo$rnk) %>% 
+  `*`(0.2) %>% 
+  ceiling
+toplo2 <- filter(toplo, rnk %in% c(1:fvper))
+
+pbase + 
+  geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ngroup`), size = 1)
+```
+
+### Closest all combinations
+```{r message = F, warning = F, fig.width = 7, fig.height = 8, eval = T}
+# closest all combo
+toplo3 <- toplo
+
+pbase + 
+  geom_segment(data = toplo3, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ngroup`), size = 1)
+```
+
+## Summarizing effects of restoration projects
+
+Get weighted average of project type, treatment (before, after) of salinity for all wq station, restoration site combinations.
+```{r}
+salchgout_rnd <- get_chg(wqdat, wqmtch_rnd, statdat, restdat_rnd, wqvar = 'sal', yrdf = yrdf, chgout = TRUE)
+salchg_rnd <- get_chg(wqdat, wqmtch_rnd, statdat, restdat_rnd, wqvar = 'sal', yrdf = yrdf)
+save(salchgout_rnd, file = 'data/salchgout_rnd.RData')
+save(salchg_rnd, file = 'data/salchg_rnd.RData')
+head(salchgout_rnd)
+head(salchg_rnd)
+```
+
+Get conditional probability distributions for the restoration type, treatment effects, **salinity** as first child node in network. 
+```{r}
+wqcdt_rnd <- get_cdt(salchg_rnd, 'hab', 'wtr')
+head(wqcdt_rnd)
+```
+
+Discretization of salinity conditional probability distributions: 
+```{r fig.height = 5, fig.width = 7, message = F, warning = F}
+salbrk_rnd <- get_brk(wqcdt_rnd, qts = c(0.33, 0.66), 'hab', 'wtr')
+salbrk_rnd
+```
+
+A plot showing the breaks:
+```{r fig.height = 5, fig.width = 7, message = F, warning = F}
+toplo <- dplyr::select(wqcdt_rnd, -data, -crv) %>% 
+  unnest
+ggplot(toplo, aes(x = cval, y = cumest)) + 
+  geom_line() + 
+  geom_segment(data = salbrk_rnd, aes(x = qts, y = 0, xend = qts, yend = brk)) +
+  geom_segment(data = salbrk_rnd, aes(x = min(toplo$cval), y = brk, xend = qts, yend = brk)) +
+  facet_grid(hab ~ wtr) +
+  theme_bw()
+```
+
+Get conditional probability distributions for the restoration type, treatment effects, salinity levels, **chlorophyll** as second child node in network. 
+```{r eval = T, fig.height = 4, fig.width = 8, message = F, warning = F}
+# get chlorophyll changes
+chlchgout_rnd <- get_chg(wqdat, wqmtch_rnd, statdat, restdat_rnd, wqvar = 'chla', yrdf = yrdf, chgout = TRUE)
+chlchg_rnd <- get_chg(wqdat, wqmtch_rnd, statdat, restdat_rnd, wqvar = 'chla', yrdf = yrdf)
+save(chlchgout_rnd, file = 'data/chlchgout_rnd.RData')
+save(chlchg_rnd, file = 'data/chlchg_rnd.RData')
+
+# merge with salinity, bet salinity levels
+salbrk_rnd <- salbrk_rnd %>% 
+  group_by(hab, wtr) %>% 
+  nest(.key = 'levs')
+allchg_rnd <- full_join(chlchg_rnd, salchg_rnd, by = c('hab', 'wtr', 'stat')) %>% 
+  rename(
+    salev = cval.y, 
+    cval = cval.x
+  ) %>% 
+  group_by(hab, wtr) %>% 
+  nest %>% 
+  left_join(salbrk_rnd, by = c('hab', 'wtr')) %>% 
+  mutate(
+    sallev = pmap(list(data, levs), function(data, levs){
+      # browser()
+      out <- data %>% 
+        mutate(
+          saval = salev,
+          salev = cut(salev, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
+          salev = as.character(salev)
+        )
+      
+      return(out)
+      
+    })
+  ) %>% 
+  dplyr::select(-data, -levs) %>% 
+  unnest
+salchg_rnd <- dplyr::select(allchg_rnd, stat, hab, wtr, salev, saval)
+save(salchg_rnd, file = 'data/salchg_rnd.RData', compress = 'xz')
+
+chlcdt_rnd <- get_cdt(allchg_rnd, 'hab', 'wtr', 'salev')
+save(chlcdt_rnd, file = 'data/chlcdt_rnd.RData', compress = 'xz')
+
+chlbrk_rnd <- get_brk(chlcdt_rnd, c(0.33, 0.66), 'hab', 'wtr', 'salev')
+chlbrk_rnd %>% 
+  print(n = nrow(.))
+```
+
+Final combinations long format:
+```{r}
+chlbar_rnd <- chlbrk_rnd %>% 
+  group_by(hab, wtr, salev) %>% 
+  nest %>% 
+  mutate(
+    data = map(data, function(x){
+      
+      brk <- x$brk
+      out <- data.frame(
+        lo = brk[1], md = brk[2] - brk[1], hi = 1 - brk[2]
+      )
+      
+      return(out)
+      
+    })
+  ) %>% 
+  unnest %>% 
+  gather('chllev', 'chlval', lo:hi) %>% 
+  mutate(
+    salev = factor(salev, levels = c('lo', 'md', 'hi')),
+    chllev = factor(chllev, levels = c('lo', 'md', 'hi'))
+  )
+save(chlbar_rnd, file = 'data/chlbar_rnd.RData', compress = 'xz')
+
+chlbar_rnd %>% 
+  print(n = nrow(.))
+```
+
+Discretesize chlorophyll data, all stations:
+```{r}
+# discretize all chl data by breaks 
+chlbrk_rnd <- chlbrk_rnd %>% 
+  group_by(hab, wtr, salev) %>% 
+  nest(.key = 'levs')
+allchg_rnd <- allchg_rnd %>% 
+  group_by(hab, wtr, salev) %>% 
+  nest %>% 
+  full_join(chlbrk_rnd, by = c('hab', 'wtr', 'salev')) %>% 
+  mutate(
+    lev = pmap(list(data, levs), function(data, levs){
+      
+      out <- data %>% 
+        mutate(
+          lev = cut(cval, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
+          lev = as.character(lev)
+        )
+
+      return(out)
+      
+    })
+  ) %>% 
+  dplyr::select(-data, -levs) %>% 
+  unnest %>% 
+  rename(
+    chlev = lev, 
+    chval = cval
+    )
+
+save(allchg_rnd, file = 'data/allchg_rnd.RData', compress = 'xz')
+
+```
+
+A bar plot of splits:
+```{r fig.width = 8, fig.height = 7}
+ggplot(chlbar_rnd, aes(x = chllev, y = chlval, group = salev, fill = salev)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  facet_grid(hab ~ wtr) +
+  theme_bw()
+```
+
+A plot showing the breaks:
+```{r fig.height = 7, fig.width = 8, message = F, warning = F}
+toplo <- dplyr::select(chlcdt_rnd, -data, -crv) %>% 
+  unnest %>%
+  mutate(
+    salev = factor(salev, levels = c('lo', 'md', 'hi'))
+  )
+chlbrk_rnd <- unnest(chlbrk_rnd)
+ggplot(toplo, aes(x = cval, y = cumest, group = salev, colour = salev)) + 
+  geom_line() + 
+  geom_segment(data = chlbrk_rnd, aes(x = qts, y = 0, xend = qts, yend = brk)) +
+  geom_segment(data = chlbrk_rnd, aes(x = min(toplo$cval), y = brk, xend = qts, yend = brk)) +
+  facet_grid(hab ~ wtr, scales = 'free_x') +
+  theme_bw()
+```

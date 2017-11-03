@@ -7,12 +7,12 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
   # get only date, station, relevant wq variable
   names(wqdat)[names(wqdat) %in% wqvar] <- 'wqvar'
   wqdat <- wqdat %>%
-    select(datetime, stat, wqvar)
+    dplyr::select(datetime, stat, wqvar)
 
   # get weighted means of water quality value for restoration treatments, types
   chg <- wqmtch %>%
     left_join(restdat, by = 'id') %>%
-    select(-tech, -type, -acre) %>% 
+    .[, !names(.) %in% c('tech', 'type', 'acre')] %>% 
     mutate(
       date = paste0(date, '-07-01'),
       date = as.Date(date, format = '%Y-%m-%d'), 
@@ -79,7 +79,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     }) %>%
     do.call('rbind', .) %>%
     remove_rownames() %>% 
-    select(stat, rnk, resgrp, wts, bef, aft) %>%
+    dplyr::select(stat, rnk, resgrp, wts, bef, aft) %>%
     gather('trt', 'val', bef:aft) %>%
     group_by(stat, resgrp, trt) %>%
     summarise(
@@ -122,7 +122,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
            
         })
       ) %>% 
-      select(-data) %>% 
+      dplyr::select(-data) %>% 
       unnest
     
     # remove combined categories with the same restoration type
