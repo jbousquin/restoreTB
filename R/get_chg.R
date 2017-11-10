@@ -22,6 +22,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     split(.$stat) %>%
     map(., function(x){
 
+      # cat(unique(x$stat), '\t')
       # iterate through the restoration sites closest to each wq station
       bysta <- x %>%
         group_by(rnk, resgrp) %>%
