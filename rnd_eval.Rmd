@@ -47,7 +47,7 @@ mtch <- 10
 # total random sites to create
 tot <- nrow(restdat)
 
-id <- stri_rand_strings(tot, 4)
+id <- stri_rand_strings(tot, 5)
 dts <- range(restdat$date)
 
 ext <- bbox(tbpoly)
@@ -62,7 +62,8 @@ tmp <- SpatialPoints(cbind(lon, lat),
 
 restdat_rnd <- tibble(id) %>% 
   mutate(
-    date = sample(seq(dts[1], dts[2]), tot, replace = T),
+    date = rnorm(tot, mean(restdat$date), sd(restdat$date)),
+    date = round(date, 0),
     top = sample(c('hab', 'wtr'), tot, replace = T)    
   )
 
