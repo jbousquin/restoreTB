@@ -50,12 +50,10 @@ tot <- nrow(restdat)
 id <- stri_rand_strings(tot, 4)
 dts <- range(restdat$date)
 
-# rnorm(10 * tot, mean(reststat$lon), sd(reststat$lon))
-# rnorm(10 * tot, mean(reststat$lat), sd(reststat$lat))
 ext <- bbox(tbpoly)
 
-lon <- runif(10 * tot, ext[1, 1], ext[1, 2])
-lat <- runif(10 * tot, ext[2, 1], ext[2, 2])
+lon <- rnorm(10 * tot, mean(reststat$lon), sd(reststat$lon))
+lat <- rnorm(10 * tot, mean(reststat$lat), sd(reststat$lat))
 tmp <- SpatialPoints(cbind(lon, lat), 
                      proj4string = crs(tbpoly)
 ) %>% 
