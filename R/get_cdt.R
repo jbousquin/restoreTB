@@ -1,7 +1,7 @@
 #' Get conditional distribution estimates for change values
 #'
 #' @param wqchng 
-#' @param grps Grouping variables
+#' @param ... additional arguments as chr strings for grouping variables
 #'
 get_cdt <- function(wqchg, ...){
 

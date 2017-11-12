@@ -240,22 +240,9 @@ pbase +
 <div id="summarizing-effects-of-restoration-projects" class="section level2">
 <h2>Summarizing effects of restoration projects</h2>
 <p>Get weighted average of project type, treatment (before, after) of salinity for all wq station, restoration site combinations.</p>
-<pre class="r"><code>salchgout &lt;- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = &#39;sal&#39;, yrdf = yrdf, chgout = TRUE)
-salchg &lt;- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = &#39;sal&#39;, yrdf = yrdf)
-save(salchgout, file = &#39;data/salchgout.RData&#39;)
+<pre class="r"><code>salchg &lt;- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = &#39;sal&#39;, yrdf = yrdf)
 save(salchg, file = &#39;data/salchg.RData&#39;)
-head(salchgout)</code></pre>
-<pre><code>## # A tibble: 6 x 3
-## # Groups:   stat [2]
-##    stat     cmb     cval
-##   &lt;int&gt;   &lt;chr&gt;    &lt;dbl&gt;
-## 1     6 hab_aft 24.67069
-## 2     6 hab_bef 24.90016
-## 3     6 wtr_aft 25.27052
-## 4     6 wtr_bef 24.92134
-## 5     7 hab_aft 25.92751
-## 6     7 hab_bef 25.25877</code></pre>
-<pre class="r"><code>head(salchg)</code></pre>
+head(salchg)</code></pre>
 <pre><code>## # A tibble: 6 x 4
 ##    stat     hab     wtr     cval
 ##   &lt;int&gt;  &lt;fctr&gt;  &lt;fctr&gt;    &lt;dbl&gt;
@@ -301,39 +288,12 @@ ggplot(toplo, aes(x = cval, y = cumest)) +
 <p><img src="obs_eval_files/figure-html/unnamed-chunk-9-1.png" /><!-- --></p>
 <p>Get conditional probability distributions for the restoration type, treatment effects, salinity levels, <strong>chlorophyll</strong> as second child node in network.</p>
 <pre class="r"><code># get chlorophyll changes
-chlchgout &lt;- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = &#39;chla&#39;, yrdf = yrdf, chgout = TRUE)
 chlchg &lt;- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = &#39;chla&#39;, yrdf = yrdf)
-save(chlchgout, file = &#39;data/chlchgout.RData&#39;)
 save(chlchg, file = &#39;data/chlchg.RData&#39;)
 
-# merge with salinity, bet salinity levels
-salbrk &lt;- salbrk %&gt;% 
-  group_by(hab, wtr) %&gt;% 
-  nest(.key = &#39;levs&#39;)
-allchg &lt;- full_join(chlchg, salchg, by = c(&#39;hab&#39;, &#39;wtr&#39;, &#39;stat&#39;)) %&gt;% 
-  rename(
-    salev = cval.y, 
-    cval = cval.x
-  ) %&gt;% 
-  group_by(hab, wtr) %&gt;% 
-  nest %&gt;% 
-  left_join(salbrk, by = c(&#39;hab&#39;, &#39;wtr&#39;)) %&gt;% 
-  mutate(
-    sallev = pmap(list(data, levs), function(data, levs){
-      # browser()
-      out &lt;- data %&gt;% 
-        mutate(
-          saval = salev,
-          salev = cut(salev, breaks = c(-Inf, levs$qts, Inf), labels = c(&#39;lo&#39;, &#39;md&#39;, &#39;hi&#39;)),
-          salev = as.character(salev)
-        )
-      
-      return(out)
-      
-    })
-  ) %&gt;% 
-  dplyr::select(-data, -levs) %&gt;% 
-  unnest
+# get final conditional probabilities for last child node
+allchg &lt;- get_fin(chlchg, salbrk, salchg, lbs = c(&#39;lo&#39;, &#39;md&#39;, &#39;hi&#39;), &#39;hab&#39;, &#39;wtr&#39;)
+
 salchg &lt;- dplyr::select(allchg, stat, hab, wtr, salev, saval)
 save(salchg, file = &#39;data/salchg.RData&#39;, compress = &#39;xz&#39;)
 
@@ -452,7 +412,7 @@ allchg &lt;- allchg %&gt;%
           lev = cut(cval, breaks = c(-Inf, levs$qts, Inf), labels = c(&#39;lo&#39;, &#39;md&#39;, &#39;hi&#39;)),
           lev = as.character(lev)
         )
-      browser()
+
       return(out)
       
     })
@@ -462,32 +422,9 @@ allchg &lt;- allchg %&gt;%
   rename(
     chlev = lev, 
     chval = cval
-    )</code></pre>
-<pre><code>## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at &lt;text&gt;#18: return(out)</code></pre>
-<pre class="r"><code>save(allchg, file = &#39;data/allchg.RData&#39;, compress = &#39;xz&#39;)</code></pre>
+    )
+
+save(allchg, file = &#39;data/allchg.RData&#39;, compress = &#39;xz&#39;)</code></pre>
 <p>A bar plot of splits:</p>
 <pre class="r"><code>ggplot(chlbar, aes(x = chllev, y = chlval, group = salev, fill = salev)) +
   geom_bar(stat = &#39;identity&#39;, position = &#39;dodge&#39;) +

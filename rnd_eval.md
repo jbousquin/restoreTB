@@ -1,72 +1,12 @@
----
-output:
-  html_document:
-    keep_md: yes
-    code_folding: hide
-toc: no
-self_contained: no
----
   
 # Evaluation of randomized data {.tabset}
 
-```{r globals, echo = F, message = F, warning = F}
-knitr::opts_chunk$set(message = F, warning = F)
 
-library(tidyverse)
-library(ggmap)
-library(lubridate)
-library(geosphere)
-library(stringi)
-library(tibble)
-library(raster)
-library(sp)
-library(rgdal)
-library(foreach)
-library(doParallel)
-
-data(restdat)
-data(reststat)
-data(wqdat)
-data(wqstat)
-data(tbpoly)
-data(allchg)
-data(allchg_r1)
-data(allchg_r2)
-data(allchg_r3)
-data(allchg_r4)
-
-# source R files
-source('R/get_chg.R')
-source('R/get_clo.R')
-source('R/get_cdt.R')
-source('R/get_brk.R')
-source('R/get_fin.R')
-source('R/get_all.R')
-
-# Set parameters, yr half-window for matching, mtch is number of closest matches
-yrdf <- 5
-mtch <- 10
-
-# number of random iterations
-n <- 100
-
-# total random sites to create
-tot <- nrow(restdat)
-
-# base map
-ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
-map <- get_stamenmap(ext, zoom = 10, maptype = "toner-lite")
-pbase <- ggmap(map) +
-  theme_bw() +
-  theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank()
-  )
-```
 
 ## Actual data
 
-```{r fig.height= 7, fig.width = 8}
+
+```r
 # summarize observed
 toplo <- allchg %>% 
   group_by(hab, wtr, salev) %>% 
@@ -94,7 +34,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-```{r fig.width = 7, fig.height = 8, eval = T}
+![](rnd_eval_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+
+```r
 # combine restoration locations, date, type
 resgrp <- 'top'
 restall <- left_join(restdat, reststat, by = 'id')
@@ -103,11 +46,19 @@ names(restall)[names(restall) %in% resgrp] <- 'Restoration\ngroup'
 # map by restoration type
 pbase +
   geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
 # map by date
 pbase +
   geom_point(data = restall, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
+
+```r
 # barplot of date counts
 toplo <- restall %>% 
   group_by(date)
@@ -121,9 +72,12 @@ ggplot(restall, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-2-3.png)<!-- -->
+
 ## Same locations, same dates, random project types
 
-```{r eval = F}
+
+```r
 # setup parallel
 ncores <- detectCores() - 1
 registerDoParallel(cores = ncores)
@@ -170,8 +124,8 @@ allchg_r1 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r1, file = 'data/allchg_r1.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
 
+```r
 data(allchg_r1)
 
 # summarize random
@@ -203,7 +157,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-```{r fig.width = 7, fig.height = 8, eval = T}
+![](rnd_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+
+```r
 # random identifier
 id <- stri_rand_strings(tot, 5)
 
@@ -229,11 +186,19 @@ names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
 # map by restoration type
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
 # map by date
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+
+```r
 # barplot of date counts
 toplo <- restall_rnd %>% 
   group_by(date)
@@ -247,9 +212,12 @@ ggplot(restall_rnd, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-5-3.png)<!-- -->
+
 ## Same locations, random dates, random project types
 
-```{r eval = F}
+
+```r
 # setup parallel
 ncores <- detectCores() - 1
 registerDoParallel(cores = ncores)
@@ -297,8 +265,8 @@ allchg_r2 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r2, file = 'data/allchg_r2.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
 
+```r
 data(allchg_r2)
 
 # summarize random
@@ -330,7 +298,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-```{r fig.width = 7, fig.height = 8, eval = T}
+![](rnd_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+
+```r
 # random identifier, date range
 id <- stri_rand_strings(tot, 5)
 dts <- range(restdat$date)
@@ -357,11 +328,19 @@ names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
 # map by restoration type
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
 # map by date
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+
+```r
 # barplot of date counts
 toplo <- restall_rnd %>% 
   group_by(date)
@@ -375,9 +354,12 @@ ggplot(restall_rnd, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-8-3.png)<!-- -->
+
 ## Random locations, same dates, random project types
 
-```{r eval = F}
+
+```r
 # setup parallel
 ncores <- detectCores() - 1
 registerDoParallel(cores = ncores)
@@ -435,8 +417,8 @@ allchg_r3 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r3, file = 'data/allchg_r3.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
 
+```r
 data(allchg_r3)
 
 # summarize random
@@ -468,7 +450,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-```{r fig.width = 7, fig.height = 8, eval = T}
+![](rnd_eval_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+
+```r
 # random identifier
 id <- stri_rand_strings(tot, 5)
 
@@ -505,11 +490,19 @@ names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
 # map by restoration type
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+```r
 # map by date
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-11-2.png)<!-- -->
+
+```r
 # barplot of date counts
 toplo <- restall_rnd %>% 
   group_by(date)
@@ -523,9 +516,12 @@ ggplot(restall_rnd, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-11-3.png)<!-- -->
+
 ## Random locations, random dates, random project types
 
-```{r eval = F}
+
+```r
 # setup parallel
 ncores <- detectCores() - 1
 registerDoParallel(cores = ncores)
@@ -579,8 +575,8 @@ allchg_r4 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r4, file = 'data/allchg_r4.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
 
+```r
 data(allchg_r4)
 
 # summarize random
@@ -612,7 +608,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-```{r fig.width = 7, fig.height = 8, eval = T}
+![](rnd_eval_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+
+```r
 id <- stri_rand_strings(tot, 5)
 dts <- range(restdat$date)
 
@@ -645,11 +644,19 @@ names(restall_rnd)[names(restall_rnd) %in% resgrp] <- 'Restoration\ngroup'
 # map by restoration type
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+
+```r
 # map by date
 pbase +
   geom_point(data = restall_rnd, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
 
+![](rnd_eval_files/figure-html/unnamed-chunk-14-2.png)<!-- -->
+
+```r
 # barplot of date counts
 toplo <- restall_rnd %>% 
   group_by(date)
@@ -661,6 +668,7 @@ ggplot(restall_rnd, aes(x = factor(date))) +
     axis.title.y = element_blank()
   ) +
   scale_y_discrete(expand = c(0, 0))
-
 ```
+
+![](rnd_eval_files/figure-html/unnamed-chunk-14-3.png)<!-- -->
 

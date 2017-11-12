@@ -34,6 +34,7 @@ source('R/get_chg.R')
 source('R/get_clo.R')
 source('R/get_cdt.R')
 source('R/get_brk.R')
+source('R/get_fin.R')
 
 # Set parameters, yr half-window for matching, mtch is number of closest matches
 yrdf <- 5
@@ -155,11 +156,8 @@ pbase +
 
 Get weighted average of project type, treatment (before, after) of salinity for all wq station, restoration site combinations.
 ```{r}
-salchgout <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf, chgout = TRUE)
 salchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf)
-save(salchgout, file = 'data/salchgout.RData')
 save(salchg, file = 'data/salchg.RData')
-head(salchgout)
 head(salchg)
 ```
 
@@ -190,39 +188,12 @@ ggplot(toplo, aes(x = cval, y = cumest)) +
 Get conditional probability distributions for the restoration type, treatment effects, salinity levels, **chlorophyll** as second child node in network. 
 ```{r eval = T, fig.height = 4, fig.width = 8, message = F, warning = F}
 # get chlorophyll changes
-chlchgout <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf, chgout = TRUE)
 chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf)
-save(chlchgout, file = 'data/chlchgout.RData')
 save(chlchg, file = 'data/chlchg.RData')
 
-# merge with salinity, bet salinity levels
-salbrk <- salbrk %>% 
-  group_by(hab, wtr) %>% 
-  nest(.key = 'levs')
-allchg <- full_join(chlchg, salchg, by = c('hab', 'wtr', 'stat')) %>% 
-  rename(
-    salev = cval.y, 
-    cval = cval.x
-  ) %>% 
-  group_by(hab, wtr) %>% 
-  nest %>% 
-  left_join(salbrk, by = c('hab', 'wtr')) %>% 
-  mutate(
-    sallev = pmap(list(data, levs), function(data, levs){
-      # browser()
-      out <- data %>% 
-        mutate(
-          saval = salev,
-          salev = cut(salev, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
-          salev = as.character(salev)
-        )
-      
-      return(out)
-      
-    })
-  ) %>% 
-  dplyr::select(-data, -levs) %>% 
-  unnest
+# get final conditional probabilities for last child node
+allchg <- get_fin(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
+
 salchg <- dplyr::select(allchg, stat, hab, wtr, salev, saval)
 save(salchg, file = 'data/salchg.RData', compress = 'xz')
 
@@ -281,7 +252,7 @@ allchg <- allchg %>%
           lev = cut(cval, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
           lev = as.character(lev)
         )
-      browser()
+
       return(out)
       
     })

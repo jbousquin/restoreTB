@@ -2,6 +2,7 @@
 #'
 #' @param wqcdt
 #' @param qts quantile levels to split variable
+#' @param ... additional arguments as chr strings for grouping variables
 #'
 get_brk <- function(wqcdt, qts = c(0.25, 0.5, 0.75), ...){
   

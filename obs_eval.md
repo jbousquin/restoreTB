@@ -151,27 +151,8 @@ pbase +
 Get weighted average of project type, treatment (before, after) of salinity for all wq station, restoration site combinations.
 
 ```r
-salchgout <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf, chgout = TRUE)
 salchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf)
-save(salchgout, file = 'data/salchgout.RData')
 save(salchg, file = 'data/salchg.RData')
-head(salchgout)
-```
-
-```
-## # A tibble: 6 x 3
-## # Groups:   stat [2]
-##    stat     cmb     cval
-##   <int>   <chr>    <dbl>
-## 1     6 hab_aft 24.67069
-## 2     6 hab_bef 24.90016
-## 3     6 wtr_aft 25.27052
-## 4     6 wtr_bef 24.92134
-## 5     7 hab_aft 25.92751
-## 6     7 hab_bef 25.25877
-```
-
-```r
 head(salchg)
 ```
 
@@ -244,39 +225,12 @@ Get conditional probability distributions for the restoration type, treatment ef
 
 ```r
 # get chlorophyll changes
-chlchgout <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf, chgout = TRUE)
 chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf)
-save(chlchgout, file = 'data/chlchgout.RData')
 save(chlchg, file = 'data/chlchg.RData')
 
-# merge with salinity, bet salinity levels
-salbrk <- salbrk %>% 
-  group_by(hab, wtr) %>% 
-  nest(.key = 'levs')
-allchg <- full_join(chlchg, salchg, by = c('hab', 'wtr', 'stat')) %>% 
-  rename(
-    salev = cval.y, 
-    cval = cval.x
-  ) %>% 
-  group_by(hab, wtr) %>% 
-  nest %>% 
-  left_join(salbrk, by = c('hab', 'wtr')) %>% 
-  mutate(
-    sallev = pmap(list(data, levs), function(data, levs){
-      # browser()
-      out <- data %>% 
-        mutate(
-          saval = salev,
-          salev = cut(salev, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
-          salev = as.character(salev)
-        )
-      
-      return(out)
-      
-    })
-  ) %>% 
-  dplyr::select(-data, -levs) %>% 
-  unnest
+# get final conditional probabilities for last child node
+allchg <- get_fin(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
+
 salchg <- dplyr::select(allchg, stat, hab, wtr, salev, saval)
 save(salchg, file = 'data/salchg.RData', compress = 'xz')
 
@@ -409,7 +363,7 @@ allchg <- allchg %>%
           lev = cut(cval, breaks = c(-Inf, levs$qts, Inf), labels = c('lo', 'md', 'hi')),
           lev = as.character(lev)
         )
-      browser()
+
       return(out)
       
     })
@@ -420,36 +374,7 @@ allchg <- allchg %>%
     chlev = lev, 
     chval = cval
     )
-```
 
-```
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-## Called from: .f(.l[[c(1L, i)]], .l[[c(2L, i)]], ...)
-## debug at <text>#18: return(out)
-```
-
-```r
 save(allchg, file = 'data/allchg.RData', compress = 'xz')
 ```
 
