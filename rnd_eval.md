@@ -2,6 +2,60 @@
 # Evaluation of randomized data {.tabset}
 
 
+```r
+knitr::opts_chunk$set(message = F, warning = F)
+
+library(tidyverse)
+library(ggmap)
+library(lubridate)
+library(geosphere)
+library(stringi)
+library(tibble)
+library(raster)
+library(sp)
+library(rgdal)
+library(foreach)
+library(doParallel)
+
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+data(tbpoly)
+data(allchg)
+data(allchg_r1)
+data(allchg_r2)
+data(allchg_r3)
+data(allchg_r4)
+
+# source R files
+source('R/get_chg.R')
+source('R/get_clo.R')
+source('R/get_cdt.R')
+source('R/get_brk.R')
+source('R/get_fin.R')
+source('R/get_all.R')
+
+# Set parameters, yr half-window for matching, mtch is number of closest matches
+yrdf <- 5
+mtch <- 10
+
+# number of random iterations
+n <- 100
+
+# total random sites to create
+tot <- nrow(restdat)
+
+# base map
+ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
+map <- get_stamenmap(ext, zoom = 10, maptype = "toner-lite")
+pbase <- ggmap(map) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+```
 
 ## Actual data
 

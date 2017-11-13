@@ -9,7 +9,7 @@ self_contained: no
   
 # Evaluation of randomized data {.tabset}
 
-```{r globals, echo = F, message = F, warning = F}
+```{r globals, echo = T, message = F, warning = F}
 knitr::opts_chunk$set(message = F, warning = F)
 
 library(tidyverse)
