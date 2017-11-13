@@ -35,6 +35,7 @@ source('R/get_cdt.R')
 source('R/get_brk.R')
 source('R/get_fin.R')
 source('R/get_all.R')
+source('R/rnd_dat.R')
 
 # Set parameters, yr half-window for matching, mtch is number of closest matches
 yrdf <- 5
@@ -146,22 +147,10 @@ allchg_r1 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
   print(Sys.time() - strt)
   sink()
   
-  # random identifier
-  id <- stri_rand_strings(tot, 5)
-  
-  # random dates, project types
-  restdat_rnd <- tibble(id) %>% 
-    mutate(
-      date = restdat$date,
-      top = sample(c('hab', 'wtr'), tot, replace = T)    
-    )
-  
-  # same locations
-  reststat_rnd <- tibble(id) %>% 
-    mutate(
-      lat = reststat$lat, 
-      lon = reststat$lon
-    )
+  # get random data
+  rnd <- rnd_dat(restdat, reststat, tbpoly, loc = F, dts = F, prj = T)
+  restdat_rnd <- rnd$restdat_rnd
+  reststat_rnd <- rnd$reststat_rnd
   
   # run all conditional prob functions
   allchg <- get_all(restdat_rnd, reststat_rnd, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
@@ -215,22 +204,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
 
 
 ```r
-# random identifier
-id <- stri_rand_strings(tot, 5)
-
-# random dates, project types
-restdat_rnd <- tibble(id) %>% 
-  mutate(
-    date = restdat$date,
-    top = sample(c('hab', 'wtr'), tot, replace = T)    
-  )
-
-# same locations
-reststat_rnd <- tibble(id) %>% 
-  mutate(
-    lat = reststat$lat, 
-    lon = reststat$lon
-  )
+# get random data
+rnd <- rnd_dat(restdat, reststat, tbpoly, loc = F, dts = F, prj = T)
+restdat_rnd <- rnd$restdat_rnd
+reststat_rnd <- rnd$reststat_rnd
 
 # combine restoration locations, date, type
 resgrp <- 'top'
