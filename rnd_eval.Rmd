@@ -66,7 +66,7 @@ pbase <- ggmap(map) +
 
 ## Actual data
 
-```{r fig.height= 7, fig.width = 8}
+```{r fig.height = 4, fig.width = 8}
 # summarize observed
 toplo <- allchg %>% 
   group_by(hab, wtr, salev) %>% 
@@ -170,7 +170,7 @@ allchg_r1 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r1, file = 'data/allchg_r1.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
+```{r fig.height = 4, fig.width = 8}
 
 data(allchg_r1)
 
@@ -297,7 +297,7 @@ allchg_r2 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r2, file = 'data/allchg_r2.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
+```{r fig.height = 4, fig.width = 8}
 
 data(allchg_r2)
 
@@ -435,7 +435,7 @@ allchg_r3 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r3, file = 'data/allchg_r3.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
+```{r fig.height = 4, fig.width = 8}
 
 data(allchg_r3)
 
@@ -579,7 +579,7 @@ allchg_r4 <- foreach(i = 1:n, .packages = c('stringi', 'tidyr', 'dplyr', 'raster
 save(allchg_r4, file = 'data/allchg_r4.RData', compress = 'xz')
 ```
 
-```{r fig.height= 7, fig.width = 8}
+```{r fig.height = 4, fig.width = 8}
 
 data(allchg_r4)
 
