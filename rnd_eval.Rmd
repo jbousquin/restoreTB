@@ -30,10 +30,6 @@ data(wqdat)
 data(wqstat)
 data(tbpoly)
 data(allchg)
-data(allchg_r1)
-data(allchg_r2)
-data(allchg_r3)
-data(allchg_r4)
 
 # source R files
 source('R/get_chg.R')
