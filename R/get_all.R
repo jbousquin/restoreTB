@@ -28,7 +28,7 @@ get_all <- function(restdat, reststat, wqdat, wqstat, mtch = 10, yrdf = 5, resgr
   
   ## Summarizing effects of restoration projects on chlorophyll
   chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf)
-  
+
   # Get conditional probability distributions for the restoration type on salinity 
   wqcdt <- get_cdt(salchg, ...)
   

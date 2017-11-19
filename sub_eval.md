@@ -35,7 +35,7 @@ source('R/rnd_dat.R')
 
 # Set parameters, yr half-window for matching, mtch is number of closest matches
 yrdf <- 5
-mtch <- 10
+mtch <- 2
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -55,15 +55,12 @@ pbase <- ggmap(map) +
 # summarize observed
 toplo <- allchg %>% 
   group_by(hab, wtr, salev) %>% 
-  summarise(
-    chvalmd = median(chval, na.rm = T),
-    chvallo = chvalmd, 
-    chvalhi = chvalmd
-  ) %>% 
+  summarize(
+    chvalmd = mean(chval, na.rm = T)
+    )  %>% 
   unite('rest', hab, wtr, sep = ', ') %>% 
   mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
-    dat = 'Observed'
+    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
   )
 
 # plot
@@ -72,8 +69,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   theme(
     axis.title.y = element_blank()
   ) +
-  geom_bar(stat = 'identity') + 
-  geom_errorbar(aes(ymin = chvallo, ymax = chvalhi)) + 
+  geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
@@ -123,32 +119,27 @@ ggplot(restall, aes(x = factor(date))) +
 
 
 ```r
-# get sub data
+# get sub data, restoration sites
 restdat_sub <- restdat %>% 
   filter(date < 1994)
 reststat_sub <- reststat %>% 
   filter(id %in% restdat_sub$id)
 
 # run all conditional prob functions
-allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = 2, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'), 'hab', 'wtr') %>% 
-  group_by(hab, wtr, salev) %>% 
-  summarize(chval = mean(cval, na.rm = T)) %>% 
-  na.omit
+allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', 
+                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
 
-# summarize observed
 toplo <- allchg_pre %>% 
   group_by(hab, wtr, salev) %>% 
-  summarise(
-    chvalmd = median(chval, na.rm = T),
-    chvallo = chvalmd, 
-    chvalhi = chvalmd
-  ) %>% 
+  summarize(
+    chvalmd = mean(cval, na.rm = T)
+    ) %>% 
+  na.omit %>% 
   unite('rest', hab, wtr, sep = ', ') %>% 
   mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
-    dat = 'Observed'
+    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
   )
+
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -156,11 +147,10 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   theme(
     axis.title.y = element_blank()
   ) +
-  geom_bar(stat = 'identity') + 
-  geom_errorbar(aes(ymin = chvallo, ymax = chvalhi)) + 
+  geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
+  scale_y_continuous('chlorophyll', limits = c(0,15))
 ```
 
 ![](sub_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -207,7 +197,7 @@ ggplot(restall_sub, aes(x = factor(date))) +
 
 
 ```r
-# get sub data
+# get sub data, restoration sites
 restdat_sub <- restdat %>% 
   filter(date >= 1994)
 reststat_sub <- reststat %>% 
@@ -215,18 +205,14 @@ reststat_sub <- reststat %>%
 
 # run all conditional prob functions
 allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'), 'hab', 'wtr') %>% 
-  group_by(hab, wtr, salev) %>% 
-  summarize(chval = mean(cval, na.rm = T))
+                  lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
 
-# summarize observed
+# summarize
 toplo <- allchg_pst %>% 
   group_by(hab, wtr, salev) %>% 
-  summarise(
-    chvalmd = median(chval, na.rm = T),
-    chvallo = chvalmd, 
-    chvalhi = chvalmd
-  ) %>% 
+  summarize(
+    chvalmd = mean(cval, na.rm = T)
+    ) %>% 
   unite('rest', hab, wtr, sep = ', ') %>% 
   mutate(
     salev = factor(salev, levels = c('lo', 'md', 'hi')), 
@@ -239,8 +225,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   theme(
     axis.title.y = element_blank()
   ) +
-  geom_bar(stat = 'identity') + 
-  geom_errorbar(aes(ymin = chvallo, ymax = chvalhi)) + 
+  geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
