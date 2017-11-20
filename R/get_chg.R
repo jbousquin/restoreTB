@@ -81,62 +81,57 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     do.call('rbind', .) %>%
     remove_rownames() %>% 
     dplyr::select(stat, rnk, resgrp, wts, bef, aft) %>%
-    gather('trt', 'val', bef:aft) %>%
-    group_by(stat, resgrp, trt) %>%
+    group_by(stat, resgrp) %>%
     summarise(
-      cval = weighted.mean(val, w = wts, na.rm = TRUE)
-    ) %>%
-    unite('cmb', resgrp, trt)
+      bef = weighted.mean(bef, w = wts, na.rm = TRUE),
+      aft = weighted.mean(aft, w = wts, na.rm = TRUE)
+    )
   
     # return temporary chg object if T
     if(chgout) return(chg)
   
-    # get combinations
-    
-    # combine temporal categories by restoration typ
-    chgcmb <- chg %>% 
-      group_by(stat) %>% 
-      nest %>% 
-      mutate(
-        cmb = map(data, function(x){
-          
-          nms <- x$cmb
-          x <- as.list(x$cval)
-          names(x) <- nms
-          
-          x <- combn(x, 2, simplify = FALSE) %>% 
-            lapply(function(x){
-              
-              nms <- names(x)
-              cval <- x %>% 
-                unlist %>% 
-                mean
-              
-              out <- data.frame(nms[1], nms[2], cval)
-              
-              return(out)
-              
-            }) %>% 
-            do.call('rbind', .)
+    # get combinations of restoration types
+    bef <- unique(chg$resgrp) %>% 
+      paste0(., '_bef')
+    aft <- gsub('bef', 'aft', bef)
+    tosel <- cbind(bef, aft) %>% 
+      t %>%
+      data.frame %>% 
+      as.list %>% 
+      expand.grid  
+  
+  # average wq values by each restoration combination
+  chgcmb <- chg %>% 
+    gather('tmp', 'cval', bef, aft) %>% 
+    unite('resgrp', resgrp, tmp, sep = '_') %>% 
+    group_by(stat) %>% 
+    nest %>% 
+    mutate(
+      cmb = map(data, function(x){
         
-          return(x)
-           
+        # average each combo for the station
+        out <- apply(tosel, 1, function(sel){
+          
+          sel <- as.character(sel)
+          sub <- x[x$resgrp %in% sel, ] %>% 
+            .$cval %>% 
+            mean
+          
+          c(sel, sub)
+          
         })
-      ) %>% 
-      dplyr::select(-data) %>% 
-      unnest
-    
-    # remove combined categories with the same restoration type
-    torm <- with(chgcmb,  
-      which(
-        gsub('_.*$', '', nms.1.) == gsub('_.*$', '', nms.2.)
-      )
-    )
-    chgcmb <- chgcmb[-torm, ] %>% 
-      rename(
-        hab = nms.1.,
-        wtr = nms.2.
-      )
+        
+        return(out)
+        
+      }), 
+      cmb = map(cmb, ~ t(.x) %>% data.frame(., stringsAsFactors = FALSE))
+    ) %>%
+    dplyr::select(-data) %>%
+    unnest
+
+  # add column names
+  names(chgchmb) <- c('stat', unique(chg$resgrp), 'cval')
+  chgcmb$cval <- as.numeric(chgcmb$cval)
 
   return(chgcmb)
 
