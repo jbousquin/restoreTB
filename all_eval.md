@@ -1,5 +1,5 @@
   
-# Evaluation of restoration project types
+# Evaluation of full model
 
 
 ```r
@@ -46,26 +46,75 @@ pbase <- ggmap(map) +
     axis.title.x = element_blank(),
     axis.title.y = element_blank()
   )
-```
 
-## Habitat and water restoration projects by types
+## run conditional probability functions
+wqvar1 <- 'sal'
+wqvar2 <- 'tn'
+wqvar3 <- 'chla'
+mtch <- 10
+yrdf <- 5
+resgrp <- 'type' 
+qts <- c(0.33, 0.66)
+lbs1 <- c('sal_lo', 'sal_md', 'sal_hi')
+lbs2 <- c('tn_lo', 'tn_md', 'tn_hi')
 
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+data(tbpoly)
+data(allchg)
 
-```r
 # get sub data, restoration sites
 restdat <- restdat %>% 
   mutate(
     type = factor(type, 
-      levels = c('HABITAT_ENHANCEMENT', 'HABITAT_ESTABLISHMENT', 'HABITAT_PROTECTION', 'NONPOINT_SOURCE', 'POINT_SOURCE'),
-      labels = c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
-      )
+                  levels = c('HABITAT_ENHANCEMENT', 'HABITAT_ESTABLISHMENT', 'HABITAT_PROTECTION', 'NONPOINT_SOURCE', 'POINT_SOURCE'),
+                  labels = c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
+    )
   )
 
-# run all conditional prob functions
-allchg <- get_all(restdat, reststat, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'type', 
-                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'))
+ 
+## Distance to restoration sites
+wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
 
-toplo <- allchg %>% 
+## Summarizing effects of restoration projects on salinity
+salchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = wqvar1, yrdf = yrdf)
+
+## Summarizing effects of restoration projects on tn
+tnchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = wqvar2, yrdf = yrdf)
+
+# Get conditional probability distributions for the restoration type on salinity 
+salcdt <- get_cdt(salchg)
+
+# Discretization of salinity conditional probability distributions: 
+salbrk <- get_brk(salcdt, qts = qts)
+
+# get final conditional probability for last child node:
+tnallchg <- get_fin(tnchg, salbrk, salchg, lbs = lbs1)
+
+## Summarizing effects of restoration projects on chlorophyll
+chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = wqvar3, yrdf = yrdf)
+
+# Get conditional probability distributions for the restoration type on tn
+tncdt<- tnallchg %>% 
+  dplyr::select(stat, hab_enh, hab_est, hab_pro, non_src, pnt_src, cval) %>% 
+  get_cdt
+
+# Discretization of tn conditional probability distributions: 
+tnbrk <- get_brk(tncdt, qts = qts)
+
+# get final conditional probability for last child node:
+chlallchg <- get_fin(chlchg, tnbrk, tnchg, lbs = lbs2)
+```
+
+## Habitat and water projects by type {.tabset}
+
+### salinity and nitrogen
+
+
+```r
+toplo <- tnallchg %>% 
   group_by(hab_enh, hab_est, hab_pro, non_src, pnt_src, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -73,7 +122,7 @@ toplo <- allchg %>%
   na.omit %>% 
   unite('rest', hab_enh, hab_est, hab_pro, non_src, pnt_src, sep = ', ') %>% 
   mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
+    salev = factor(salev, levels = c('sal_lo', 'sal_md', 'sal_hi')) 
   )
 
 # plot
@@ -85,10 +134,39 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
-  scale_y_continuous('chlorophyll')
+  scale_y_continuous('TN')
 ```
 
-![](typ_eval_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+### nitrogen and chlorophyll
+
+
+```r
+toplo <- chlallchg %>% 
+  group_by(hab_enh, hab_est, hab_pro, non_src, pnt_src, salev) %>% 
+  summarize(
+    chvalmd = mean(cval, na.rm = T)
+    ) %>% 
+  na.omit %>% 
+  unite('rest', hab_enh, hab_est, hab_pro, non_src, pnt_src, sep = ', ') %>% 
+  mutate(
+    salev = factor(salev, levels = c('tn_lo', 'tn_md', 'tn_hi')) 
+  )
+
+# plot
+ggplot(toplo, aes(x = rest, y = chvalmd)) + 
+  theme_bw() + 
+  theme(
+    axis.title.y = element_blank()
+  ) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ salev, ncol = 1) + 
+  coord_flip() +
+  scale_y_continuous('Chlorophyll')
+```
+
+![](all_eval_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
 ## Distance to restoration sites {.tabset}
 
@@ -138,7 +216,7 @@ pbase +
   geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](typ_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ### Closest three
 
@@ -153,7 +231,7 @@ pbase +
   geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](typ_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ### Closest all
 
@@ -165,5 +243,5 @@ pbase +
   geom_segment(data = toplo3, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](typ_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
