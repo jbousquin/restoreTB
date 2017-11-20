@@ -87,18 +87,18 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
       aft = weighted.mean(aft, w = wts, na.rm = TRUE)
     )
   
-    # return temporary chg object if T
-    if(chgout) return(chg)
-  
-    # get combinations of restoration types
-    bef <- unique(chg$resgrp) %>% 
-      paste0(., '_bef')
-    aft <- gsub('bef', 'aft', bef)
-    tosel <- cbind(bef, aft) %>% 
-      t %>%
-      data.frame %>% 
-      as.list %>% 
-      expand.grid  
+  # return temporary chg object if T
+  if(chgout) return(chg)
+
+  # get combinations of restoration types
+  bef <- unique(chg$resgrp) %>% 
+    paste0(., '_bef')
+  aft <- gsub('bef', 'aft', bef)
+  tosel <- cbind(bef, aft) %>% 
+    t %>%
+    data.frame %>% 
+    as.list %>% 
+    expand.grid  
   
   # average wq values by each restoration combination
   chgcmb <- chg %>% 
@@ -130,7 +130,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     unnest
 
   # add column names
-  names(chgchmb) <- c('stat', unique(chg$resgrp), 'cval')
+  names(chgcmb) <- c('stat', as.character(unique(chg$resgrp)), 'cval')
   chgcmb$cval <- as.numeric(chgcmb$cval)
 
   return(chgcmb)

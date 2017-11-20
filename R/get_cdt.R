@@ -3,11 +3,11 @@
 #' @param wqchng 
 #' @param ... additional arguments as chr strings for grouping variables
 #'
-get_cdt <- function(wqchg, ...){
+get_cdt <- function(wqchg){
 
   # fit conditional distributions
   wqcdt <- wqchg %>% 
-    group_by_(...) %>% 
+    group_by_(.dots = names(wqchg)[-grep('^stat$|^cval$', names(wqchg))]) %>% 
     nest %>% 
     mutate(
       crv = map(data, function(x){

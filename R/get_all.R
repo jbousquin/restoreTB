@@ -11,14 +11,13 @@
 #' @param resgrp chr string for grouping variable of restoration project types
 #' @param qts numeric vector of quantile values for conditional probabilities
 #' @param lbs labels for defining quantile values in \code{qts}
-#' @param ... additional arguments as chr strings for grouping variables
 #'
 #' @return
 #' @export
 #'
 #' @examples
 get_all <- function(restdat, reststat, wqdat, wqstat, mtch = 10, yrdf = 5, resgrp = 'top', qts = c(0.33, 0.66), 
-                    lbs = c('lo', 'md', 'hi'), ...){
+                    lbs = c('lo', 'md', 'hi')){
  
   ## Distance to restoration sites
   wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
@@ -30,13 +29,13 @@ get_all <- function(restdat, reststat, wqdat, wqstat, mtch = 10, yrdf = 5, resgr
   chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf)
 
   # Get conditional probability distributions for the restoration type on salinity 
-  wqcdt <- get_cdt(salchg, ...)
+  wqcdt <- get_cdt(salchg)
   
   # Discretization of salinity conditional probability distributions: 
-  salbrk <- get_brk(wqcdt, qts = qts, ...)
+  salbrk <- get_brk(wqcdt, qts = qts)
   
   # get final conditional probabiliyt for last child node:
-  allchg <- get_fin(chlchg, salbrk, salchg, lbs = lbs, ...)
+  allchg <- get_fin(chlchg, salbrk, salchg, lbs = lbs)
   
   return(allchg)
    

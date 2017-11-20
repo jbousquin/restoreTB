@@ -241,7 +241,7 @@ reststat_sub &lt;- reststat %&gt;%
 
 # run all conditional prob functions
 allchg_pre &lt;- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', 
-                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
+                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'))
 
 toplo &lt;- allchg_pre %&gt;% 
   group_by(hab, wtr, salev) %&gt;% 
@@ -302,7 +302,7 @@ reststat_sub &lt;- reststat %&gt;%
 
 # run all conditional prob functions
 allchg_pst &lt;- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'), 'hab', 'wtr')
+                  lbs = c('lo', 'md', 'hi'))
 
 # summarize
 toplo &lt;- allchg_pst %&gt;% 

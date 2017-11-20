@@ -10,20 +10,23 @@
 #' @export
 #'
 #' @examples
-get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), ...){
+get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi')){
+
+  # grouping variables
+  grps <- names(salbrk)[-grep('^qts$|^brk$|^clev$', names(salbrk))]
   
   # merge with salinity, bet salinity levels
   salbrk <- salbrk %>% 
-    group_by_(...) %>% 
+    group_by_(.dots = grps) %>% 
     nest(.key = 'levs')
-  allchg <- full_join(chlchg, salchg, by = c('hab', 'wtr', 'stat')) %>% 
+  allchg <- full_join(chlchg, salchg, by = c(grps, 'stat')) %>% 
     rename(
       salev = cval.y, 
       cval = cval.x
     ) %>% 
-    group_by_(...) %>% 
+    group_by_(.dots = grps) %>% 
     nest %>% 
-    left_join(salbrk, by = c('hab', 'wtr')) %>% 
+    left_join(salbrk, by = grps) %>% 
     mutate(
       sallev = pmap(list(data, levs), function(data, levs){
         
