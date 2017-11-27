@@ -15,7 +15,7 @@ Evaluation of simple model, restoration project types: [link](https://fawda123.g
 
 Evaluation of complete model, restoration project types: [link](https://fawda123.github.io/restorebayes/all_eval)
 
-Evaluation of complete model, restoratoin project types, pre/post 1994: [link](https://fawda123.github.io/restorebayes/allsub_eval)
+Evaluation of complete model, restoratoin project types, pre/post 1994: [link](https://fawda123.github.io/restorebayes/suball_eval)
 
 # From Ed
 

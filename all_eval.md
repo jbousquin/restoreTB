@@ -1,6 +1,7 @@
   
 # Evaluation of full model
 
+Matched to nearest ten sites in each category, +/- five years
 
 ```r
 knitr::opts_chunk$set(message = F, warning = F)
@@ -32,10 +33,6 @@ source('R/get_brk.R')
 source('R/get_fin.R')
 source('R/get_all.R')
 source('R/rnd_dat.R')
-
-# Set parameters, yr half-window for matching, mtch is number of closest matches
-yrdf <- 5
-mtch <- 10
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)

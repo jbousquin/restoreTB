@@ -1,6 +1,8 @@
   
 # Evaluation of full model {.tabset}
 
+Matched to nearest site in each category, +/- five years. 
+
 
 ```r
 knitr::opts_chunk$set(message = F, warning = F)
@@ -342,14 +344,13 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
 
 ![](suball_eval_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
-### Distance to restoration sites {.tabset}
+### Distance to restoration sites
 
 
 ```r
 wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = 'type', mtch = mtch)
 ```
 
-#### Closest 
 
 ```r
 ## 
@@ -391,33 +392,3 @@ pbase +
 ```
 
 ![](suball_eval_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
-
-#### Closest three
-
-```r
-# closest five percent
-# fvper <- max(toplo$rnk) %>% 
-#   `*`(0.2) %>% 
-#   ceiling
-toplo2 <- filter(toplo, rnk %in% c(1:3))
-
-pbase + 
-  geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
-```
-
-![](suball_eval_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
-
-#### Closest all
-
-```r
-# closest all combo
-toplo3 <- toplo
-
-pbase + 
-  geom_segment(data = toplo3, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
-```
-
-![](suball_eval_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
-
-
-

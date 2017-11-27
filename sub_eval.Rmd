@@ -9,6 +9,7 @@ self_contained: no
   
 # Evaluation of subset data{.tabset}
 
+Matched to nearest two sites in each category, +/- five years.
 ```{r globals, echo = T, message = F, warning = F}
 knitr::opts_chunk$set(message = F, warning = F)
 
