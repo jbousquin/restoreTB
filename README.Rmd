@@ -12,25 +12,19 @@ output:
 
 Materials for the evaluation of restoration projects using Bayes Decision Networks.
 
-# Questions
+# Content
 
-* What time periods, spatial scales, or cumulative impacts (number of sites) do we want to evaluate?
+Evaluation of simple model, all time periods: [link](https://fawda123.github.io/restorebayes/obs_eval) 
 
-* Can we scale up our simple model?  If so, what links do we want to include?
+Evaluation of simple model, randomizations: [link](https://fawda123.github.io/restorebayes/rnd_eval)
 
-# Novelty
+Evaluation of simple model, pre/post 1994: [link](https://fawda123.github.io/restorebayes/sub_eval)
 
-* We are using an empirical approach driven solely by data/conditional distributions
+Evaluation of simple model, restoration project types: [link](https://fawda123.github.io/restorebayes/typ_eval)
 
-* We can identify effects of time, spatial scale, and cumulative impacts on water quality
+Evaluation of complete model, restoration project types: [link](https://fawda123.github.io/restorebayes/all_eval)
 
-# To do 
-
-* Try expansion from the top level only, i.e., restoration project types
-
-* Add nutrients as a variable
-
-* Identify beneficial uses links - what can we link back to chlorophyll?
+Evaluation of complete model, restoratoin project types, pre/post 1994: [link](https://fawda123.github.io/restorebayes/allsub_eval)
 
 # From Ed
 
