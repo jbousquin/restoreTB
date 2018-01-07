@@ -1,7 +1,7 @@
 
 # README
 
-Materials for the evaluation of restoration projects using Bayes Decision Networks.
+*cmbeval* This branch includes all empirical combinations of water quality and restoration project evaluations prior to building the Bayesian network.  It is kept here for quick switching between branches if needed. 
 
 # Content
 
@@ -15,17 +15,6 @@ Evaluation of simple model, restoration project types: [link](https://fawda123.g
 
 Evaluation of complete model, restoration project types: [link](https://fawda123.github.io/restorebayes/all_eval)
 
-Evaluation of complete model, restoratoin project types, pre/post 1994: [link](https://fawda123.github.io/restorebayes/suball_eval)
+Evaluation of complete model, restoration project types, pre/post 1994: [link](https://fawda123.github.io/restorebayes/suball_eval)
 
-# From Ed
-
-As was mentioned, I think the approach of subsetting the data by TRT and time may make the most sense in terms of what hypotheses/modeling techniques we’re trying to develop to inform other restoration activities. So, reframing some of the thoughts thus far, below are the basic tenets I think we’re trying to establish in our modeling/analysis framework :
-
-Ho1:       Do softer restoration techniques (e.g. habitat creation, etc.) produce similar improvements in WQ conditions in comparison to harder-infrastructure restoration techniques (e.g. stromwater BMPs, etc.)? 
-
-Ho2:       Will implementing either (or both) of these techniques significantly improve WQ conditions in comparison to doing nothing at all (I think this is where we create value in utilizing the TB datasets in developing expected outcomes for other regions)? 
-
-Ho3:       If the restoration techniques have inherent WQ improvement benefits (as developed in TB), to what degree are benefits accumulated through time?
-
-Ultimate Goal: Can we utilize the evidence garnered from the questions above to assign a probabilistic expectation for WQ benefits derived from certain restoration activity investments?
 
