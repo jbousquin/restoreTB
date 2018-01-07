@@ -56,59 +56,6 @@ pbase <- ggmap(map) +
   )
 ```
 
-## Complete data
-
-```{r fig.height = 4, fig.width = 8}
-# summarize observed
-toplo <- allchg %>% 
-  group_by(hab, wtr, salev) %>% 
-  summarize(
-    chvalmd = mean(chval, na.rm = T)
-    )  %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
-  )
-
-# plot
-ggplot(toplo, aes(x = rest, y = chvalmd)) + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  geom_bar(stat = 'identity') +
-  facet_wrap(~ salev, ncol = 1) + 
-  coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
-```
-
-```{r fig.width = 7, fig.height = 8, eval = T}
-# combine restoration locations, date, type
-resgrp <- 'top'
-restall <- left_join(restdat, reststat, by = 'id')
-names(restall)[names(restall) %in% resgrp] <- 'Restoration\ngroup'
-
-# map by restoration type
-pbase +
-  geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
-
-# map by date
-pbase +
-  geom_point(data = restall, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
-
-# barplot of date counts
-toplo <- restall %>% 
-  group_by(date)
-ggplot(restall, aes(x = factor(date))) + 
-  geom_bar() + 
-  coord_flip() + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  scale_y_discrete(expand = c(0, 0))
-```
-
 ## Pre-1994 data
 
 ```{r fig.height = 4, fig.width = 8, eval = T}

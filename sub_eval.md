@@ -49,73 +49,6 @@ pbase <- ggmap(map) +
   )
 ```
 
-## Complete data
-
-
-```r
-# summarize observed
-toplo <- allchg %>% 
-  group_by(hab, wtr, salev) %>% 
-  summarize(
-    chvalmd = mean(chval, na.rm = T)
-    )  %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
-  )
-
-# plot
-ggplot(toplo, aes(x = rest, y = chvalmd)) + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  geom_bar(stat = 'identity') +
-  facet_wrap(~ salev, ncol = 1) + 
-  coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
-
-
-```r
-# combine restoration locations, date, type
-resgrp <- 'top'
-restall <- left_join(restdat, reststat, by = 'id')
-names(restall)[names(restall) %in% resgrp] <- 'Restoration\ngroup'
-
-# map by restoration type
-pbase +
-  geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
-
-```r
-# map by date
-pbase +
-  geom_point(data = restall, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
-
-```r
-# barplot of date counts
-toplo <- restall %>% 
-  group_by(date)
-ggplot(restall, aes(x = factor(date))) + 
-  geom_bar() + 
-  coord_flip() + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  scale_y_discrete(expand = c(0, 0))
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-2-3.png)<!-- -->
-
 ## Pre-1994 data
 
 
@@ -152,6 +85,84 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
   scale_y_continuous('chlorophyll', limits = c(0,15))
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+
+```r
+# combine restoration locations, date, type
+resgrp <- 'top'
+restall_sub <- left_join(restdat_sub, reststat_sub, by = 'id')
+names(restall_sub)[names(restall_sub) %in% resgrp] <- 'Restoration\ngroup'
+
+# map by restoration type
+pbase +
+  geom_point(data = restall_sub, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
+# map by date
+pbase +
+  geom_point(data = restall_sub, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
+
+```r
+# barplot of date counts
+toplo <- restall_sub %>% 
+  group_by(date)
+ggplot(restall_sub, aes(x = factor(date))) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_bw() + 
+  theme(
+    axis.title.y = element_blank()
+  ) +
+  scale_y_discrete(expand = c(0, 0))
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-2-3.png)<!-- -->
+
+## Post-1994 data
+
+
+```r
+# get sub data, restoration sites
+restdat_sub <- restdat %>% 
+  filter(date >= 1994)
+reststat_sub <- reststat %>% 
+  filter(id %in% restdat_sub$id)
+
+# run all conditional prob functions
+allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
+                  lbs = c('lo', 'md', 'hi'))
+
+# summarize
+toplo <- allchg_pst %>% 
+  group_by(hab, wtr, salev) %>% 
+  summarize(
+    chvalmd = mean(cval, na.rm = T)
+    ) %>% 
+  unite('rest', hab, wtr, sep = ', ') %>% 
+  mutate(
+    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
+    dat = 'Observed'
+  )
+
+# plot
+ggplot(toplo, aes(x = rest, y = chvalmd)) + 
+  theme_bw() + 
+  theme(
+    axis.title.y = element_blank()
+  ) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ salev, ncol = 1) + 
+  coord_flip() +
+  scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
 ![](sub_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -193,81 +204,3 @@ ggplot(restall_sub, aes(x = factor(date))) +
 ```
 
 ![](sub_eval_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
-
-## Post-1994 data
-
-
-```r
-# get sub data, restoration sites
-restdat_sub <- restdat %>% 
-  filter(date >= 1994)
-reststat_sub <- reststat %>% 
-  filter(id %in% restdat_sub$id)
-
-# run all conditional prob functions
-allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'))
-
-# summarize
-toplo <- allchg_pst %>% 
-  group_by(hab, wtr, salev) %>% 
-  summarize(
-    chvalmd = mean(cval, na.rm = T)
-    ) %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
-    dat = 'Observed'
-  )
-
-# plot
-ggplot(toplo, aes(x = rest, y = chvalmd)) + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  geom_bar(stat = 'identity') +
-  facet_wrap(~ salev, ncol = 1) + 
-  coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
-
-
-```r
-# combine restoration locations, date, type
-resgrp <- 'top'
-restall_sub <- left_join(restdat_sub, reststat_sub, by = 'id')
-names(restall_sub)[names(restall_sub) %in% resgrp] <- 'Restoration\ngroup'
-
-# map by restoration type
-pbase +
-  geom_point(data = restall_sub, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
-
-```r
-# map by date
-pbase +
-  geom_point(data = restall_sub, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
-
-```r
-# barplot of date counts
-toplo <- restall_sub %>% 
-  group_by(date)
-ggplot(restall_sub, aes(x = factor(date))) + 
-  geom_bar() + 
-  coord_flip() + 
-  theme_bw() + 
-  theme(
-    axis.title.y = element_blank()
-  ) +
-  scale_y_discrete(expand = c(0, 0))
-```
-
-![](sub_eval_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
