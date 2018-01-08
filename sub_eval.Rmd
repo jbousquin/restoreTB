@@ -19,18 +19,12 @@ library(lubridate)
 library(geosphere)
 library(stringi)
 library(tibble)
-library(raster)
-library(sp)
-library(rgdal)
-library(foreach)
-library(doParallel)
+library(bnlearn)
 
 data(restdat)
 data(reststat)
 data(wqdat)
 data(wqstat)
-data(tbpoly)
-data(allchg)
 
 # source R files
 source('R/get_chg.R')
@@ -41,9 +35,10 @@ source('R/get_fin.R')
 source('R/get_all.R')
 source('R/rnd_dat.R')
 
-# Set parameters, yr half-window for matching, mtch is number of closest matches
-yrdf <- 5
+# globals
 mtch <- 2
+yrdf <- 5
+resgrp <- 'top' 
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -65,11 +60,11 @@ restdat_sub <- restdat %>%
 reststat_sub <- reststat %>% 
   filter(id %in% restdat_sub$id)
 
-# run all conditional prob functions
-allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', 
-                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'))
+# get conditional probability tables
+allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
 
-toplo <- allchg_pre %>% 
+toplo <- allchg_pre[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -79,7 +74,6 @@ toplo <- allchg_pre %>%
   mutate(
     salev = factor(salev, levels = c('lo', 'md', 'hi')) 
   )
-
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -120,6 +114,28 @@ ggplot(restall_sub, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
+```{r}
+cdat <- allchg_pre[[2]] %>% 
+  select_if(is.character) %>% 
+  na.omit %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+# create Network
+net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+plot(net)
+
+#Creating CPTs from data
+fittedBN <- bn.fit(net, data = cdat)
+fittedBN$chlev
+
+# #Get inferences
+# cpquery(fittedBN, 
+#         event = (chlev == "hi"), 
+#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
+#         )
+```
+
 ## Post-1994 data
 
 ```{r fig.height = 4, fig.width = 8}
@@ -129,12 +145,12 @@ restdat_sub <- restdat %>%
 reststat_sub <- reststat %>% 
   filter(id %in% restdat_sub$id)
 
-# run all conditional prob functions
-allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'))
+# get conditional probability tables
+allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
 
 # summarize
-toplo <- allchg_pst %>% 
+toplo <- allchg_pst[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -182,4 +198,26 @@ ggplot(restall_sub, aes(x = factor(date))) +
     axis.title.y = element_blank()
   ) +
   scale_y_discrete(expand = c(0, 0))
+```
+
+```{r}
+cdat <- allchg_pst[[2]] %>% 
+  select_if(is.character) %>% 
+  na.omit %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+# create Network
+net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+plot(net)
+
+#Creating CPTs from data
+fittedBN <- bn.fit(net, data = cdat)
+fittedBN$chlev
+
+# #Get inferences
+# cpquery(fittedBN,
+#         event = (chlev == "hi"),
+#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
+#         )
 ```

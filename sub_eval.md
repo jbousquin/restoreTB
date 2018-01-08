@@ -12,18 +12,12 @@ library(lubridate)
 library(geosphere)
 library(stringi)
 library(tibble)
-library(raster)
-library(sp)
-library(rgdal)
-library(foreach)
-library(doParallel)
+library(bnlearn)
 
 data(restdat)
 data(reststat)
 data(wqdat)
 data(wqstat)
-data(tbpoly)
-data(allchg)
 
 # source R files
 source('R/get_chg.R')
@@ -34,9 +28,10 @@ source('R/get_fin.R')
 source('R/get_all.R')
 source('R/rnd_dat.R')
 
-# Set parameters, yr half-window for matching, mtch is number of closest matches
-yrdf <- 5
+# globals
 mtch <- 2
+yrdf <- 5
+resgrp <- 'top' 
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -59,11 +54,11 @@ restdat_sub <- restdat %>%
 reststat_sub <- reststat %>% 
   filter(id %in% restdat_sub$id)
 
-# run all conditional prob functions
-allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', 
-                      qts = c(0.33, 0.66), lbs = c('lo', 'md', 'hi'))
+# get conditional probability tables
+allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
 
-toplo <- allchg_pre %>% 
+toplo <- allchg_pre[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -73,7 +68,6 @@ toplo <- allchg_pre %>%
   mutate(
     salev = factor(salev, levels = c('lo', 'md', 'hi')) 
   )
-
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -127,6 +121,90 @@ ggplot(restall_sub, aes(x = factor(date))) +
 
 ![](sub_eval_files/figure-html/unnamed-chunk-2-3.png)<!-- -->
 
+
+```r
+cdat <- allchg_pre[[2]] %>% 
+  select_if(is.character) %>% 
+  na.omit %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+# create Network
+net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+plot(net)
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+#Creating CPTs from data
+fittedBN <- bn.fit(net, data = cdat)
+fittedBN$chlev
+```
+
+```
+## 
+##   Parameters of node chlev (multinomial distribution)
+## 
+## Conditional probability table:
+##  
+## , , salev = hi, wtr = wtr_aft
+## 
+##      hab
+## chlev hab_aft hab_bef
+##    hi                
+##    lo                
+##    md                
+## 
+## , , salev = lo, wtr = wtr_aft
+## 
+##      hab
+## chlev    hab_aft hab_bef
+##    hi 0.50000000        
+##    lo 0.25000000        
+##    md 0.25000000        
+## 
+## , , salev = md, wtr = wtr_aft
+## 
+##      hab
+## chlev hab_aft    hab_bef
+##    hi         0.50000000
+##    lo         0.25000000
+##    md         0.25000000
+## 
+## , , salev = hi, wtr = wtr_bef
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.12500000 0.25000000
+##    lo 0.75000000 0.50000000
+##    md 0.12500000 0.25000000
+## 
+## , , salev = lo, wtr = wtr_bef
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.13043478 0.20000000
+##    lo 0.47826087 0.40000000
+##    md 0.39130435 0.40000000
+## 
+## , , salev = md, wtr = wtr_bef
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.25000000 0.08333333
+##    lo 0.50000000 0.66666667
+##    md 0.25000000 0.25000000
+```
+
+```r
+# #Get inferences
+# cpquery(fittedBN, 
+#         event = (chlev == "hi"), 
+#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
+#         )
+```
+
 ## Post-1994 data
 
 
@@ -137,12 +215,12 @@ restdat_sub <- restdat %>%
 reststat_sub <- reststat %>% 
   filter(id %in% restdat_sub$id)
 
-# run all conditional prob functions
-allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat, mtch = mtch, yrdf = yrdf, resgrp = 'top', qts = c(0.33, 0.66), 
-                  lbs = c('lo', 'md', 'hi'))
+# get conditional probability tables
+allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
 
 # summarize
-toplo <- allchg_pst %>% 
+toplo <- allchg_pst[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -165,7 +243,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 
 ```r
@@ -179,7 +257,7 @@ pbase +
   geom_point(data = restall_sub, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ```r
 # map by date
@@ -187,7 +265,7 @@ pbase +
   geom_point(data = restall_sub, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
 
 ```r
 # barplot of date counts
@@ -203,4 +281,88 @@ ggplot(restall_sub, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-5-3.png)<!-- -->
+
+
+```r
+cdat <- allchg_pst[[2]] %>% 
+  select_if(is.character) %>% 
+  na.omit %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+# create Network
+net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+plot(net)
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+#Creating CPTs from data
+fittedBN <- bn.fit(net, data = cdat)
+fittedBN$chlev
+```
+
+```
+## 
+##   Parameters of node chlev (multinomial distribution)
+## 
+## Conditional probability table:
+##  
+## , , salev = hi, wtr = wtr_aft
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.28571429 0.20000000
+##    lo 0.57142857 0.60000000
+##    md 0.14285714 0.20000000
+## 
+## , , salev = lo, wtr = wtr_aft
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.23809524 0.38461538
+##    lo 0.47619048 0.30769231
+##    md 0.28571429 0.30769231
+## 
+## , , salev = md, wtr = wtr_aft
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.23076923 0.28571429
+##    lo 0.53846154 0.42857143
+##    md 0.23076923 0.28571429
+## 
+## , , salev = hi, wtr = wtr_bef
+## 
+##      hab
+## chlev hab_aft hab_bef
+##    hi                
+##    lo                
+##    md                
+## 
+## , , salev = lo, wtr = wtr_bef
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.05555556 0.33333333
+##    lo 0.72222222 0.44444444
+##    md 0.22222222 0.22222222
+## 
+## , , salev = md, wtr = wtr_bef
+## 
+##      hab
+## chlev    hab_aft    hab_bef
+##    hi 0.25000000 0.27777778
+##    lo 0.31250000 0.44444444
+##    md 0.43750000 0.27777778
+```
+
+```r
+# #Get inferences
+# cpquery(fittedBN, 
+#         event = (chlev == "hi"), 
+#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
+#         )
+```

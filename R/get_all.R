@@ -35,9 +35,9 @@ get_all <- function(restdat, reststat, wqdat, wqstat, wqvar1 = 'sal', wqvar2 = '
   
   # Discretization of salinity conditional probability distributions: 
   salbrk <- get_brk(wqcdt, qts = qts)
-  
+
   # get final conditional probabiliyt for last child node:
-  allchg <- get_fin(wq2chg, salbrk, wq1chg, lbs = lbs)
+  allchg <- get_fin(wq2chg, salbrk, wq1chg, lbs = lbs, qts = qts)
   
   return(allchg)
    

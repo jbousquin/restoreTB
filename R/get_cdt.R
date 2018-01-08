@@ -7,7 +7,8 @@ get_cdt <- function(wqchg){
 
   # fit conditional distributions
   wqcdt <- wqchg %>% 
-    group_by_(.dots = names(wqchg)[-grep('^stat$|^cval$', names(wqchg))]) %>% 
+    mutate_if(is.factor, as.character) %>% 
+    group_by_if(is.character) %>%
     nest %>% 
     mutate(
       crv = map(data, function(x){

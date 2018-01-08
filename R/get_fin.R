@@ -4,13 +4,13 @@
 #' @param salbrk 
 #' @param salchg
 #' @param lbs
-#' @param ... additional arguments as chr strings for grouping variables
+#' @qts 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi')){
+get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0.33, 0.66)){
 
   # grouping variables
   grps <- names(salbrk)[-grep('^qts$|^brk$|^clev$', names(salbrk))]
@@ -44,6 +44,54 @@ get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi')){
     dplyr::select(-data, -levs) %>% 
     unnest
   
-  return(allchg)
+  # numeric values
+  emp <- allchg
+
+  # get conditional probs only where estimable
+  cdt <- allchg %>% 
+    filter(!is.na(salev)) %>% 
+    get_cdt %>% 
+    mutate(
+      chk = map(crv, ~ .x %>% is.na %>% any),
+      chk = unlist(chk)
+    ) %>% 
+    filter(!chk) %>% 
+    dplyr::select(-chk)
+  brk <- get_brk(cdt, qts = qts) %>% 
+    group_by_if(is.character) %>% 
+    nest(.key = 'levs')
+  
+  # get final cond probs
+  allchg <- allchg %>% 
+    group_by_if(is.character) %>% 
+    nest %>% 
+    inner_join(brk) %>% 
+    mutate(
+      lev = pmap(list(data, levs), function(data, levs){
+    
+        out <- data %>% 
+          mutate(
+            lev = cut(cval, breaks = c(-Inf, levs$qts, Inf), labels = lbs),
+            lev = as.character(lev)
+          )
+        
+        return(out)
+        
+      })
+    ) %>% 
+    dplyr::select(-data, -levs) %>% 
+    unnest %>% 
+    rename(
+      chlev = lev, 
+      chval = cval
+    ) 
+  
+  # output list
+  out <- list(
+    emp = emp, 
+    dsc = allchg
+  )
+  
+  return(out)
   
 }
