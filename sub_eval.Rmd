@@ -129,12 +129,38 @@ plot(net)
 fittedBN <- bn.fit(net, data = cdat)
 fittedBN$chlev
 
-# #Get inferences
-# cpquery(fittedBN, 
-#         event = (chlev == "hi"), 
-#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
-#         )
+#Get inferences
+cpquery(fittedBN,
+        event = (chlev == "hi"),
+        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
+        )
 ```
+
+```{r}
+# 
+# toeval <- allchg_pre[[2]] %>% 
+#   dplyr::select(hab, wtr, chlev) %>% 
+#   unique %>% 
+#   na.omit %>% 
+#   mutate(
+#     ave = NA, 
+#     std = NA
+#   )
+# 
+# for(rw in 1:nrow(toeval)){
+#   
+#   
+#   cpdist(fittedBN,
+#         nodes = 'chlev',
+#         evidence= (hab == toeval[rw, 'hab'][[1]] & wtr == toeval[rw, 'wtr'][[1]])
+#         ) %>% 
+#     table
+#   
+# }
+#Get inferences
+
+```
+
 
 ## Post-1994 data
 
