@@ -1,0 +1,47 @@
+---
+title: "Using Prior Knowledge to Inform Future Restoration Activities in the Gulf of Mexico"
+output: pdf_document
+bibliography: refs.bib
+---
+
+```{r echo = F}
+refs <- httr::GET('https://raw.githubusercontent.com/fawda123/refs/master/refs.bib')
+refs <- rawToChar(refs$content)
+writeLines(refs, con = file('refs.bib'))
+```
+
+# Introduction
+
+Despite considerable investments over the last four decades in cCoastal and estuarine ecosystem restoration (Diefenderfer et a. 2016), these  efforts continue to face many challenges that threaten to impede their success. In the Gulf of Mexico, chronic and discrete drivers contribute to the difficulty in restoring and managing coastal ecosystems. For example, the synergistic effects of widespreadchronic coastal urbanization and climate change impacts may limit habitat management effectiveness in the future (Enwright et al. 2016). Competing management and policy directives for flood protection, national commerce and energy development complicate and prolong efforts to abate coastal hypoxia and other water quality issues (Rabotyagov et al. 2014; OTHERS). Disputes surrounding fair and equitable natural resource allocation often result in contentious implementation plans for the long-term sustainability of coastal resources (GMFMC 2017). And, discrete tropical storm (Greening et al. 2006; MORE RECENT?) and large-scale pollution events (Beyer et al. 2016) often reset, reverse or delay progress in restoring coastal ecosystems. These factors create a complex environment for successful implementation of ecosystem restoration activities along the Gulf Coast.
+
+Notwithstanding these challenges, the difficulty in rigorously monitoring and understanding an ecosystem’s condition and restoration trajectory at various spatial and temporal scales further constrain a recognition of restoration success (Hobbs and Harris 2001). The lack of long-term environmental monitoring is a primary impediment to understanding pre- versus post- restoration change (Schiff et al. 2015) -- let alone identifying whether prolonged management, policy and restoration activities have led to actual improvements in coastal ecosystems. Where long-term coastal monitoring programs have been implemented, a broader sense of how management, policy and restoration activities affect coastal ecosystem quality can be attained (Borja et al. 2015). New frameworks are starting to emerge to better understand and facilitate the implementation of society’s practice of coastal restoration ecology from a more informed perspective, utilizing lessons-learned from environmental monitoring programs  (Bayraktarov et al. 2016; Diefenderfer et al. 2016).
+
+A very large, comprehensive and concerted effort to restore Gulf of Mexico coastal ecosystems is currently underway (GCERC 2013, 2016). Primary funding for this effort stems from the legal settlements resulting from the 2010 Deepwater Horizon oil spill. Funding sources include: early restoration investments that were made immediately following the spill, resource damage assessments resulting from the spill’s impact (NRDA, 2016)), a record legal settlement of civil and criminal penalties negotiated between the responsible parties and the US government with strict US congressional oversight (RESTORE Act), and matching funds from research, monitoring and restoration practitioners worldwide. These funds, equating to >$20B US, present the Gulf of Mexico community an unprecedented opportunity to revitalize regional restoration efforts that will span multiple generations (GCERC 2013, 2016). Consequently, the restoration investments being made with these funds will be highly scrutinized to achieve successful outcomes.  Better understanding the environmental outcomes of past investments will facilitate where and when future resources are implemented to have the highest likelihood of achieving intended outcomes.
+ 
+Because of the difficulties in demonstrating restoration success, new tools are needed to help guide and support the implementation of Gulf of Mexico restoration activities.  Here, we present an empirical framework for evaluating the success of investments in water quality improvement activities to assign a probabilistic expectation of water quality benefits. The framework synthesizes monitoring data across spatiotemporal scales to demonstrate how the cumulative effects of coastal restoration activities could improve water quality in an estuary.  Data on water quality and restoration projects in the Tampa Bay area (Florida, USA) were used to demonstrate application of the analysis framework.  Tampa Bay is the second largest estuary in the Gulf of Mexico and has been intensively monitored since the mid-1970s.  The ecological context of water quality changes in the Bay is well-described and a comprehensive history of restoration projects occurring in the watershed is available, making Tampa Bay an ideal test case for demonstrating the evaluation framework.  The water quality and restoration data were evaluated to identify 1) types of restoration projects that produce the greatest improvements in water quality, and 2) which time frames and synergistic effects of projects are most relevant for having the largest perceived benefits.  Changes in chlorophyll concentrations as a proxy of eutrophication were used to develop expectations of water quality changes from restoration activities.  The final product is a decision support tool to evaluate alternative scenarios of implementation strategies.
+
+# Methods
+
+## Study area
+
+Tampa Bay is located on the western coast of Florida and its watershed is one of the most highly developed regions in Florida.  More than 60 percent of land within 15 km of the Bay shoreline is a mix of urban and suburban uses (SWFWD 2011).  The Bay has been a focal point of economic activity since the 1950s and currently supports a mix of industrial, domestic, and recreational activities.  The watershed includes one of the largest phosphate production regions in the country, which is supported by port operations primarily in the northeast portion of the Bay [@Greening06].  Water quality data have been collected since the 1970s when environmental conditions were highly degraded.  Nitrogen loads into the Bay in the mid-1970s have been estimated as 8.2 x 106 kg year-1, most of which came from untreated wastewater effluent.  In addition to reduced aesthetics, environmental conditions associated with hyper-eutrophy were common and included elevated chlorophyll concentrations, increased occurrence of harmful algal species, low concentrations of bottom water dissolved oxygen, low water clarity, reduced seagrass coverage, and declines in fishery yields for both sport and recreational species.  Advanced wastewater treatment operations were implemented at municipal plants by the early 1980s.  These efforts were successful in reducing nutrients loads to the Bay by 90%. 
+ 
+Current water quality in Tampa Bay is dramatically improved from historical conditions.  Most notably, seagrass coverage … chlorophyll, water clarity…. Although much of these improvements can be attributed to point source controls of nutrient pollution, the cumulative impacts of hundreds of additional management activities have likely contributed to improvements in water quality over time. 
+ 
+## Data synthesis
+
+In addition to legacy improvements at wastewater treatment plants, over 500 restoration projects have been documented in the Tampa Bay area since 1971.  Two databases of restoration projects were synthesized…
+ 
+Water quality data….
+ 
+Restoration and water quality data were combined…
+
+## Analysis framework
+
+Bayesian network, simple models pre/post, large model whole record.
+
+# Results
+
+# Discussion
+
+# References
