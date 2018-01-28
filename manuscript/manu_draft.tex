@@ -1,0 +1,396 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
+\hypersetup{unicode=true,
+            pdftitle={Using Prior Knowledge to Inform Future Restoration Activities in the Gulf of Mexico},
+            colorlinks=true,
+            linkcolor=Maroon,
+            citecolor=Blue,
+            urlcolor=blue,
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{Using Prior Knowledge to Inform Future Restoration Activities in the
+Gulf of Mexico}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{}
+  \preauthor{}\postauthor{}
+  \date{}
+  \predate{}\postdate{}
+
+\usepackage{lineno}
+\linenumbers
+\usepackage{setspace}
+\linespread{2}
+\usepackage{acronym}
+\acrodef{tbep}[TBEP]{Tampa Bay Estuary Program}
+\acrodef{chla}[chl-\textit{a}]{chlorophyll \textit{a}}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}\label{introduction}
+
+Despite considerable investments over the last four decades in cCoastal
+and estuarine ecosystem restoration (Diefenderfer et al.
+\protect\hyperlink{ref-Diefenderfer16}{2016}) these efforts continue to
+face many challenges that threaten to impede their success. In the Gulf
+of Mexico, chronic and discrete drivers contribute to the difficulty in
+restoring and managing coastal ecosystems. For example, the synergistic
+effects of widespreadchronic coastal urbanization and climate change
+impacts may limit habitat management effectiveness in the future
+(Enwright et al. 2016). Competing management and policy directives for
+flood protection, national commerce and energy development complicate
+and prolong efforts to abate coastal hypoxia and other water quality
+issues (Rabotyagov et al. 2014; OTHERS). Disputes surrounding fair and
+equitable natural resource allocation often result in contentious
+implementation plans for the long-term sustainability of coastal
+resources (GMFMC 2017). And, discrete tropical storm (Greening et al.
+2006; MORE RECENT?) and large-scale pollution events (Beyer et al. 2016)
+often reset, reverse or delay progress in restoring coastal ecosystems.
+These factors create a complex environment for successful implementation
+of ecosystem restoration activities along the Gulf Coast.
+
+Notwithstanding these challenges, the difficulty in rigorously
+monitoring and understanding an ecosystem's condition and restoration
+trajectory at various spatial and temporal scales further constrain a
+recognition of restoration success (Hobbs and Harris 2001). The lack of
+long-term environmental monitoring is a primary impediment to
+understanding pre- versus post- restoration change (Schiff et al.
+\protect\hyperlink{ref-Schiff16}{2016}) -- let alone identifying whether
+prolonged management, policy and restoration activities have led to
+actual improvements in coastal ecosystems. Where long-term coastal
+monitoring programs have been implemented, a broader sense of how
+management, policy and restoration activities affect coastal ecosystem
+quality can be attained (Borja et al. 2015). New frameworks are starting
+to emerge to better understand and facilitate the implementation of
+society's practice of coastal restoration ecology from a more informed
+perspective, utilizing lessons-learned from environmental monitoring
+programs (Bayraktarov et al. 2016; Diefenderfer et al. 2016).
+
+A very large, comprehensive and concerted effort to restore Gulf of
+Mexico coastal ecosystems is currently underway (GCERC 2013, 2016).
+Primary funding for this effort stems from the legal settlements
+resulting from the 2010 Deepwater Horizon oil spill. Funding sources
+include: early restoration investments that were made immediately
+following the spill, resource damage assessments resulting from the
+spill's impact (NRDA, 2016)), a record legal settlement of civil and
+criminal penalties negotiated between the responsible parties and the US
+government with strict US congressional oversight (RESTORE Act), and
+matching funds from research, monitoring and restoration practitioners
+worldwide. These funds, equating to \textgreater{}\$20B US, present the
+Gulf of Mexico community an unprecedented opportunity to revitalize
+regional restoration efforts that will span multiple generations (GCERC
+2013, 2016). Consequently, the restoration investments being made with
+these funds will be highly scrutinized to achieve successful outcomes.
+Better understanding the environmental outcomes of past investments will
+facilitate where and when future resources are implemented to have the
+highest likelihood of achieving intended outcomes.
+
+Because of the difficulties in demonstrating restoration success, new
+tools are needed to help guide and support the implementation of Gulf of
+Mexico restoration activities. Here, we present an empirical framework
+for evaluating the success of investments in water quality improvement
+activities to assign a probabilistic expectation of water quality
+benefits. The framework synthesizes monitoring data across
+spatiotemporal scales to demonstrate how the cumulative effects of
+coastal restoration activities could improve water quality in an
+estuary. Data on water quality and restoration projects in the Tampa Bay
+area (Florida, USA) were used to demonstrate application of the analysis
+framework. Tampa Bay is the second largest estuary in the Gulf of Mexico
+and has been intensively monitored since the mid-1970s. The ecological
+context of water quality changes in the Bay is well-described and a
+comprehensive history of restoration projects occurring in the watershed
+is available, making Tampa Bay an ideal test case for demonstrating the
+evaluation framework. The water quality and restoration data were
+evaluated to identify 1) types of restoration projects that produce the
+greatest improvements in water quality, and 2) which time frames and
+synergistic effects of projects are most relevant for having the largest
+perceived benefits. Changes in chlorophyll concentrations as a proxy of
+eutrophication were used to develop expectations of water quality
+changes from restoration activities. The final product is a decision
+support tool to evaluate alternative scenarios of implementation
+strategies.
+
+\section{Methods}\label{methods}
+
+\subsection{Study area}\label{study-area}
+
+Tampa Bay is located on the western coast of Florida and its watershed
+is one of the most highly developed regions in Florida. More than 60
+percent of land within 15 km of the Bay shoreline is a mix of urban and
+suburban uses (SWFWD 2011). The Bay has been a focal point of economic
+activity since the 1950s and currently supports a mix of industrial,
+domestic, and recreational activities. The watershed includes one of the
+largest phosphate production regions in the country, which is supported
+by port operations primarily in the northeast portion of the Bay (H.
+Greening and Janicki \protect\hyperlink{ref-Greening06}{2006}). Water
+quality data have been collected since the 1970s when environmental
+conditions were highly degraded. Nitrogen loads into the Bay in the
+mid-1970s have been estimated as 8.2 x 106 kg year-1, most of which came
+from untreated wastewater effluent. In addition to reduced aesthetics,
+environmental conditions associated with hyper-eutrophy were common and
+included elevated chlorophyll concentrations, increased occurrence of
+harmful algal species, low concentrations of bottom water dissolved
+oxygen, low water clarity, reduced seagrass coverage, and declines in
+fishery yields for both sport and recreational species. Advanced
+wastewater treatment operations were implemented at municipal plants by
+the early 1980s. These efforts were successful in reducing nutrients
+loads to the Bay by 90\%.
+
+Current water quality in Tampa Bay is dramatically improved from
+historical conditions. Most notably, seagrass coverage in 2016 was
+reported as 16,785 hectares baywide, surpassing the restoration goal of
+coverage in the 1950s (E. T. Sherwood et al.
+\protect\hyperlink{ref-Sherwood17}{2017}). These changes have occured in
+parallel with reductions in nutrient loading (Poe et al.
+\protect\hyperlink{ref-Poe05}{2005}; H. Greening and Janicki
+\protect\hyperlink{ref-Greening06}{2006}), chlorophyll concentrations
+(Wang, Martin, and Morrison \protect\hyperlink{ref-Wang99}{1999}; Beck
+and Hagy III \protect\hyperlink{ref-Beck15}{2015}), and improvements in
+water clarity (Morrison et al. \protect\hyperlink{ref-Morrison06}{2006};
+Beck, Hagy III, and Le \protect\hyperlink{ref-Beck17c}{2017}). Most of
+these positive changes have resulted from management efforts to reduct
+point source controls on nutrient pollution in the highly developed
+areas of Hillsborough Bay (Johansson
+\protect\hyperlink{ref-Johansson91}{1991}; Johansson and Lewis III
+\protect\hyperlink{ref-Johansson92}{1992}). However, the cumulative
+impacts of over 500 additional management activities have likely
+contributed to improvements in water quality over time. Projects from
+both public and private entities have been completed since the 1980s.
+These projects represent numerous voluntary (e.g., habitat acquisition,
+restoration, watershed retention, etc.) and compliance-driven (e.g.,
+site-level permitting, power plant scrubber upgrades, etc.) activities.
+Although it is generally recognized that these projects have contributed
+to overall Bay improvements, the cumulative and contributory effects
+relative to large-scale management efforts are not well understood.
+Understanding the impacts within relevant spatial boundaries and how
+these projects have jointly contributed to changes over time will
+provide an improved understanding of the link between Bay improvements
+and restoration activities.
+
+\subsection{Data synthesis}\label{data-synthesis}
+
+In addition to legacy improvements at wastewater treatment plants, over
+500 restoration projects have been documented in the Tampa Bay area
+since 1971. Two databases were synthesized to provide a comprehensive
+history of projects that have occurred in Tampa Bay and its watershed.
+The first dataset was obtained from the Tampa Bay Water Atlas (version
+2.3, \url{http://maps.wateratlas.usf.edu/tampabay/}, TBEP (Tampa Bay
+Estuary Program) (\protect\hyperlink{ref-TBEP17}{2017})) maintained as a
+joint resource by the University of South Florida and the \ac{tbep}.
+This database included 253 projects from 1971 to 2007 that were
+primarily focused on habitat establishment, restoration, or protection
+in the nearshore areas of the Bay or the larger watershed (e.g.,
+planting of \emph{Spartina alterniflora}, exotic vegetation control,
+etc.). The database was limited to basic information, such as year of
+completion, geographic coordinates, general activities, and areal
+coverage. The second database was obtained from the \ac{tbep} Action
+Plan Database Portal (\url{https://apdb.tbeptech.org/index.php}) to
+describe locations of infrastructure improvement projects. This database
+included 334 projects from 1992 to 2016 for county or municipal
+activities, such as implementation of best management practices at
+treatment plants, creation of stormwater retention or treatment
+controls, or site-specific controls of point sources.
+
+Both data sources were combined to provide a single dataset describing
+the location, year of completion, and project classification. The
+project classifications were described in two nested categories. The
+first described a high-level classification for each project as habitat
+or water infrastructure. The second was a lower-level classification for
+habitat projects as enhancement, establishment, and protection and water
+infrastructure projects as non-point source or point source controls.
+These categories were used to provide a broad characterization of
+restoration activites that were considered relevant for the perceived
+improvements in water quality over time. The nested categories were used
+to develop separate probabilistic models describing the likelihood of
+changes in water quality (described below). The final dataset included
+571 projects from 1971 to 2016. Projects with incomplete information
+(i.e., missing date) were not included in the final dataset.
+
+Water quality data in Tampa Bay have been consistently collected since
+1974 by the Hillsborough County Environmental Protection Commission
+(TBEP (Tampa Bay Estuary Program) \protect\hyperlink{ref-TBEP17}{2017}).
+Data were collected monthly at forty-five stations using a water sample
+from mid-depth or a monitoring sonde depending on the parameter.
+Monitoring stations are fixed in a grid covering the entire bay from the
+northern oligohaline sections to the opening with the Gulf of Mexico.
+Water samples at each station are processed immediately after
+collection. Measurements at each site include temperature (C), secchi
+depth (m), dissolved oyxgen (mg/L), conductivity (\(\mu\)Ohms/cm), pH,
+salinity (psu), turbidity (Nephalometric Turbidy Units), \ac{chla}
+(\(\mu\)g/L), total nitrogen (mg/L), and total phosphorus (mg/L). For
+the probabilistic models, all measurements of salinity, total nitrogen,
+and \ac{chla} were combind for a total of 515 monthly observations of
+each parameter at each station.
+
+Combining the restoration and water quality datasets was a critical part
+of developing the analysis framework. A simple matching of restoration
+projects and water quality data was not possible because each dataset
+described events or sampling activities with unique dates and locations.
+To address this challenge, observations in each dataset were spatially
+and temporally matched following a specific rulset that was developed to
+maximize the potential of identifying a unique effect of the restoration
+projects on changes in water quality. The matching between the two
+datasets began with a spatial join where the Euclidean distances between
+each water quality station and each restoration project were quantified.
+The distances from each station to each project site were ranked from
+closest to farthest. The temporal matches between water quality stations
+and restoration projects were obtained by subsetting the water quality
+data within a window before and after the completion date of each
+spatially-matched restoration project. The combined spatial and temporal
+matching between the water quality sites and restoration proejcts were
+used as input for developing the probabilistic models.
+
+\subsection{Analysis framework}\label{analysis-framework}
+
+Bayesian network, simple models pre/post, large model whole record.
+
+\section{Results}\label{results}
+
+\section{Discussion}\label{discussion}
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-Beck15}{}
+Beck, M. W., and J. D. Hagy III. 2015. ``Adaptation of a Weighted
+Regression Approach to Evaluate Water Quality Trends in an Estuary.''
+\emph{Environmental Modelling and Assessment} 20 (6): 637--55.
+doi:\href{https://doi.org/10.1007/s10666-015-9452-8}{10.1007/s10666-015-9452-8}.
+
+\hypertarget{ref-Beck17c}{}
+Beck, M. W., J. D. Hagy III, and C. Le. 2017. ``Quantifying Seagrass
+Light Requirements Using an Algorithm to Spatially Resolve Depth of
+Colonization.'' \emph{Estuaries and Coasts}, 1--17.
+
+\hypertarget{ref-Diefenderfer16}{}
+Diefenderfer, Heida L., Gary E. Johnson, Ronald M. Thom, Kate E. Buenau,
+Laurie A. Weitkamp, Christa M. Woodley, Amy B. Borde, and Roy K. Kropp.
+2016. ``Evidence-Based Evaluation of the Cumulative Effects of Ecosystem
+Restoration.'' \emph{Ecosphere} 7 (3): e01242.
+\url{http://dx.doi.org/10.1002/ecs2.1242}.
+
+\hypertarget{ref-Greening06}{}
+Greening, H., and A. Janicki. 2006. ``Toward Reversal of Eutrophic
+Conditions in a Subtrophical Estuary: Water Quality and Seagrass
+Response to Nitrogen Loading Reductions in Tampa Bay, Florida, USA.''
+\emph{Environmental Management} 38 (2): 163--78.
+
+\hypertarget{ref-Johansson91}{}
+Johansson, J. O. R. 1991. ``Long-Term Trends of Nitrogen Loading, Water
+Quality and Biological Indicators in Hillsborough Bay, Florida.'' Edited
+by S. F. Treat and P. A. Clark. Tampa, Florida, USA: Tampa Bay Area
+Study Group Project at Scholar Commons, 157--76.
+
+\hypertarget{ref-Johansson92}{}
+Johansson, J. O. R., and R. R. Lewis III. 1992. ``Recent Improvements in
+Water Quality and Biological Indicators in Hillsborough Bay, a Highly
+Impacted Subdivision of Tampa Bay, Florida, USA.'' \emph{Marine Coastal
+Eutrophication} Proceedings of an International Conference, Bologna,
+Italy, 21-24 March 1990: 1199--1215.
+
+\hypertarget{ref-Morrison06}{}
+Morrison, G., E. T. Sherwood, R. Boler, and J. Barron. 2006.
+``Variations in Water Clarity and Chlorophyll\emph{a} in Tampa Bay,
+Florida, in Response to Annual Rainfall, 1985-2004.'' \emph{Estuaries
+and Coasts} 29 (6): 926--31.
+
+\hypertarget{ref-Poe05}{}
+Poe, A., K. Hackett, S. Janicki, R. Pribble, and A. Janicki. 2005.
+``Estimates of Total Nitrogen, Total Phosphorus, Total Suspended Solids,
+and Biochemical Oxygen Demand Loadings to Tampa Bay, Florida:
+1999-2003.'' \#02-05. St. Petersburg, Florida, USA: Tampa Bay Estuary
+Program.
+
+\hypertarget{ref-Schiff16}{}
+Schiff, K., P.R. Trowbridge, E.T. Sherwood, P. Tango, and R.A. Batiuk.
+2016. ``Regional Monitoring Programs in the United States: Synthesis of
+Four Case Studies from Pacific, Atlantic, and Gulf Coasts.''
+\emph{Regional Studies in Marine Science} 4: A1--A7.
+\url{https://doi.org/10.1016/j.rsma.2015.11.007}.
+
+\hypertarget{ref-Sherwood17}{}
+Sherwood, E. T., H. S. Greening, J. O. R. Johansson, K. Kaufman, and G.
+Raulerson. 2017. ``Tampa Bay (Florida, USA): Documenting Seagrass
+Recovery Since the 1980s and Reviewing the Benefits.''
+\emph{Southeastern Geographer} 57 (3): 294--319.
+
+\hypertarget{ref-TBEP17}{}
+TBEP (Tampa Bay Estuary Program). 2017. ``Tampa Bay Water Atlas.''
+
+\hypertarget{ref-Wang99}{}
+Wang, P. F., J. Martin, and G. Morrison. 1999. ``Water Quality and
+Eutrophication in Tampa Bay, Florida.'' \emph{Estuarine, Coastal and
+Shelf Science} 49 (1): 1--20.
+
+
+\end{document}
