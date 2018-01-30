@@ -229,14 +229,14 @@ These projects represent numerous voluntary (e.g., habitat acquisition,
 restoration, watershed retention, etc.) and compliance-driven (e.g.,
 site-level permitting, power plant scrubber upgrades, etc.) activities.
 Although it is generally recognized that these projects have contributed
-to overall Bay improvements, the cumulative and contributory effects
-relative to large-scale management efforts are not well understood.
-Understanding the impacts within relevant spatial boundaries and how
-these projects have jointly contributed to changes over time will
-provide an improved understanding of the link between Bay improvements
-and restoration activities.
+to overall Bay improvements, the cumulativ effects relative to
+large-scale management efforts are not well understood. Understanding
+the impacts within relevant spatial boundaries and how these projects
+have jointly contributed to changes over time will provide an improved
+understanding of the link between Bay improvements and restoration
+activities.
 
-\subsection{Data synthesis}\label{data-synthesis}
+\subsection{Data sources}\label{data-sources}
 
 In addition to legacy improvements at wastewater treatment plants, over
 500 restoration projects have been documented in the Tampa Bay area
@@ -291,25 +291,50 @@ the probabilistic models, all measurements of salinity, total nitrogen,
 and \ac{chla} were combind for a total of 515 monthly observations of
 each parameter at each station.
 
-Combining the restoration and water quality datasets was a critical part
-of developing the analysis framework. A simple matching of restoration
-projects and water quality data was not possible because each dataset
-described events or sampling activities with unique dates and locations.
-To address this challenge, observations in each dataset were spatially
-and temporally matched following a specific rulset that was developed to
-maximize the potential of identifying a unique effect of the restoration
-projects on changes in water quality. The matching between the two
-datasets began with a spatial join where the Euclidean distances between
-each water quality station and each restoration project were quantified.
-The distances from each station to each project site were ranked from
-closest to farthest. The temporal matches between water quality stations
-and restoration projects were obtained by subsetting the water quality
-data within a window before and after the completion date of each
-spatially-matched restoration project. The combined spatial and temporal
-matching between the water quality sites and restoration proejcts were
-used as input for developing the probabilistic models.
+\subsection{Data synthesis and analysis
+framework}\label{data-synthesis-and-analysis-framework}
 
-\subsection{Analysis framework}\label{analysis-framework}
+Combining the restoration and water quality datasets was a critical part
+of developing the analysis framework. Each dataset described events or
+sampling activities with unique dates and locations and simple pairing
+of restoration projects with water quality data was impractical. To
+address this challenge, observations in each dataset were spatially and
+temporally matched using an approach to maximize the potential of
+identifying a unique effect of the restoration projects on changes in
+water quality.
+
+The matching between the two datasets began with a spatial join where
+the Euclidean distances between each water quality station and each
+restoration project were quantified. The spatial matches were used to
+create a ranking of project sites from each water quality station based
+on distance. The distances were also grouped by the five restoration
+project types (i.e., habitat protection, non-point source control, etc.)
+such that the closest \(n\) sites of a given project type could be
+identified for any water quality station. Temporal matching between
+water quality stations and restoration projects was obtained by
+subsetting the water quality data within a time window before and after
+the completion date of each spatially-matched restoration project. For
+the closest \(n\) restoration sites for each of five project types, two
+summarized water quality estimates were obtained to quantify a before
+and after effect of each project. Time windows that overlapped the start
+and end date of the water quality time series were discarded. The final
+two estimates of the before and after effects of the five types of
+restoration projectsat each water quality station were based on an
+average of the \(n\) closest restoration sites, weighted inversely by
+distance from the monitoring station.
+
+The combined water quality and restoration data were used as input for
+developing the probabilistic models. Two parameters affected the
+synthesis of the datasets which directly controlled the ability to
+identify an effect of each restoration project type, 1) the number of
+spatially-matched restoration projects used to average the cumulative
+effect of each project type, and 2) the time windows before and after a
+project completion date that were used to subset each water quality time
+series. Identifying the two values that maximized the difference between
+before and after water quality measurements was necessary to quantify
+how many projects induced a change in water quality, the time within
+which a change is expected, and the magnitude of a change differed
+between project types.
 
 Bayesian network, simple models pre/post, large model whole record.
 
