@@ -28,6 +28,7 @@ library(vegan)
 library(sf)
 library(sp)
 library(gridExtra)
+library(ggrepel)
 
 # functions
 fls <- list.files('../R', full.names = T)
@@ -120,19 +121,21 @@ toplo1 <- filter(toplo, rnk %in% 1)
 toplo2 <- filter(toplo, rnk %in% c(1:10))
 
 p1 <- pbase + 
-  geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`), size = 1) +
+  geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`, colour = `Restoration projects`), size = 1) +
   geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration projects`), size = 3, pch = 21) +
   geom_point(data = wqstat, aes(x = lon, y = lat, size = ''), pch = 21, fill = 'cyan') +
-  scale_fill_manual(values = c( 'lightgrey', 'grey30')) + 
+  scale_fill_manual(values = c( 'grey60', 'grey20')) + 
+  scale_colour_manual(values = c( 'grey60', 'grey20')) + 
   scale_size_manual('Water quality stations', values = 4) + 
   theme(legend.position = 'none') + 
   ggtitle('Closest match by project type')
 
 p2 <- pbase + 
-  geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`), size = 1) +
+  geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`, colour = `Restoration projects`), size = 1) +
   geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration projects`), size = 3, pch = 21) +
   geom_point(data = wqstat, aes(x = lon, y = lat, size = ''), pch = 21, fill = 'cyan') +
-  scale_fill_manual(values = c( 'lightgrey', 'grey30')) + 
+  scale_fill_manual(values = c( 'grey60', 'grey20')) + 
+  scale_colour_manual(values = c( 'grey60', 'grey20')) + 
   scale_size_manual('Water quality stations', values = 4) + 
   ggtitle('Closest "n" matches')
 pleg <- g_legend(p2)
@@ -146,7 +149,116 @@ grid.arrange(
   )
 ```
 
-The matching between the two datasets began with a spatial join where the Euclidean distances between each water quality station and each restoration project were quantified.  The spatial matches were used to create a ranking of project sites from each water quality station based on distance.  The distances were also grouped by the five restoration project types (i.e., habitat protection, non-point source control, etc.) such that the closest $n$ sites of a given project type could be identified for any water quality station (\cref{fig:spmtch}).  Temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each spatially-matched restoration project.  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after effect of each project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projectsat each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
+```{r tmmtch, out.width = '\\textwidth', fig.height = 3, fig.width = 8.5, fig.cap = 'Temporal matching of restoration project types with time series data at a water quality station.  The restoration project locations that are spatially matched with a water quality station (a) are used to create a temporal slice of the water quality data within a window of time before and after the completion date of each restoration project (b).  Slices are based on the closest "n" restoration projects by type (n = 2 in this example) to a water quality station.'}
+ptplo <- dplyr::filter(toplo, stat %in% 7 & rnk %in% c(1:2)) %>%
+  mutate(
+    id = factor(id, levels = as.character(id), labels = c('Habitat 1', 'Habitat 2', 'Water 1', 'Water 2'))
+  )
+
+p1 <- ggplot(ptplo) +
+  geom_segment(aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`, colour = `Restoration projects`), size = 1.5) +
+  geom_point(aes(x = lon.y, y = lat.y, fill = `Restoration projects`), size = 4, pch = 21) +
+  geom_point(aes(x = lon.x, y = lat.x), size = 5, pch = 21, fill = 'cyan', alpha = 0.8) +
+  geom_text(aes(x = lon.y, y = lat.y, label = id), family = 'serif', size = 3, vjust = c(2.5, -2, -1.4, -2)) +
+  scale_fill_manual(values = c( 'grey60', 'grey20')) + 
+  scale_colour_manual(values = c( 'grey60', 'grey20')) + 
+  theme_minimal(base_family = 'serif') +
+  theme(line = element_blank(),
+        axis.title = element_blank(), 
+        axis.line = element_blank(),
+        axis.text = element_blank(),
+        legend.position = 'none'
+        ) +
+  scale_x_continuous(expand = c(0.02, 0.02)) +
+  scale_y_continuous(expand = c(0.03, 0.03)) +
+  ggtitle('(a) Spatial match')
+
+levs <- c('Water quality', 'Habitat 1', 'Habitat 2', 'Water 1', 'Water 2')
+
+tmdf1 <- list(
+  `Water quality` = c(1974, 2016),
+  `Water 1` = 1996,
+  `Water 2` = 1980,
+  `Habitat 1` = 1986,
+  `Habitat 2` = 2009
+  ) %>%
+  enframe %>%
+  unnest %>%
+  mutate(
+    name = factor(name, levels = levs),
+    grp = gsub(' [0-9]$', '', name),
+    x = factor('Water quality')
+  )
+
+tmdf2 <- list(
+  `Water quality` = c(1974, 2016),
+  `Water 1` = c(1991, 1996, 2001),
+  `Water 2` = c(1975, 1980, 1985),
+  `Habitat 1` = c(1981, 1986, 1991),
+  `Habitat 2` = c(2004, 2009, 2014)
+  ) %>%
+  enframe %>%
+  unnest %>%
+  mutate(
+    name = factor(name, levels = levs),
+    grp = gsub(' [0-9]$', '', name)
+  )
+
+tmdf3 <- data.frame(
+  Before = c(1974, 1981, 2004, 1991, 1975),
+  After = c(2016, 1991, 2014, 2001, 1985)
+  ) %>%
+  mutate(
+    name = factor(levs, levels = levs)
+  )
+
+tmdf4 <- list(
+  `Water quality` = c(1974, 2016),
+  `Water 1` = c(1991, 2001),
+  `Water 2` = c(1975, 1985),
+  `Habitat 1` = c(1981, 1991),
+  `Habitat 2` = c(2004, 2014)
+  ) %>%
+  enframe %>%
+  unnest %>%
+  mutate(
+    name = factor(name, levels = levs),
+    grp = gsub(' [0-9]$', '', name),
+    x = factor('Water quality')
+  )
+
+p2 <- ggplot(tmdf1, aes(x = name, y = value, group = name)) +
+  geom_path(data = tmdf2, aes(x = name, y = value, group = name, linetype = grp, colour = grp), size = 1.5) +
+  geom_segment(data = tmdf4, aes(x = x, y = value, xend = name, yend = value, linetype = grp, colour = grp), size = 1) +
+  geom_segment(data = tmdf1, aes(x = x, y = value, xend = name, yend = value, linetype = grp, colour = grp), size = 0.6) +
+  geom_text(data = filter(tmdf3, !name %in% 'Water quality'), aes(x = name, y = Before),
+            label = 'Before', vjust = -0.75, size = 4, family = 'serif') +
+  geom_text(data = filter(tmdf3, !name %in% 'Water quality'), aes(x = name, y = After),
+            label = 'After', vjust = -0.75, size = 4, family = 'serif') +
+
+  coord_flip() +
+  geom_point(data = filter(tmdf1, !name %in% 'Water quality'), aes(fill = grp), pch = 21, size = 3) +
+  scale_fill_manual(values = c('grey60', 'grey20', 'cyan')) +
+  scale_colour_manual(values = c('grey60', 'grey20', 'cyan')) +
+  scale_linetype_manual(values = c('solid', 'dashed', 'solid')) + 
+  theme_bw(base_family = 'serif') +
+  theme(line = element_blank(),
+        legend.position = 'none', 
+        axis.title.y = element_blank()
+        ) +
+  scale_y_continuous("Temporal coverage of water quality time series") +
+  ggtitle('(b) Temporal match')
+
+grid.arrange(p1, p2, ncol = 2, widths = c(0.25, 1))
+```
+
+The matching between the two datasets began with a spatial join where the Euclidean distances between each water quality station and each restoration project were quantified.  The spatial matches were used to create a ranking of project sites from each water quality station based on distance.  The distances were also grouped by the five restoration project types (i.e., habitat protection, non-point source control, etc.) such that the closest $n$ sites of a given project type could be identified for any water quality station (\cref{fig:spmtch}).  Temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each spatially-matched restoration project (\cref{fig:tmmtch}).  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after effect of each project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projects at each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
+
+Change in water quality relative to each type of restoration project was estimated as:
+$$ 
+\delta WQ = \frac{\sum_{i = 1}^{n} \hat{wq} \in win + proj_{i, dt}}{n \cdot dist_{i \in n}} - \frac{\sum_{i = 1}^{n} \hat{wq} \in proj_{i, dt} - win}{n \cdot dist_{i \in n}}
+$$
+where $\delta WQ$ was the difference between the after and before changes for each of $n$ spatially  matched restoration projects.  For each $i$ of $n$ projects ($proj$), the average water quality ($\hat{wq}$) within the window ($win$) either before ($proj_{i, dt} - win$) or after ($win + proj_{i, dt}$) the completion date ($dt$) for project $i$ was summed.  The summation of water quality before after each project was then divided by the total number of $n$ matched projects, muliplied the distance of the projects from a water quality station ($dist_{i \in n}$). This created  weighted average of the before/after effects of each project that was inversely related to the distance from a watwer quality station. The total change in water quaility was simply the difference in weighted averages.
 
 The combined water quality and restoration data were used as input for developing the probabilistic models. Two parameters affected the synthesis of the datasets which directly controlled the ability to identify an effect of each restoration project type, 1) the number of spatially-matched restoration projects used to average the cumulative effect of each project type, and 2) the time windows before and after a project completion date that were used to subset each water quality time series.  Identifying the two values that maximized the difference between before and after water quality measurements was necessary to quantify how many projects induced a change in water quality, the time within which a change is expected, and the magnitude of a change differed between project types. 
 

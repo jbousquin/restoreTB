@@ -324,6 +324,10 @@ water quality.
 \includegraphics[width=\textwidth]{figs/spmtch-1} \caption{Spatial matching of water quality stations with restoration projects. Spatial matches of each water quality station with habitat (solid line) and water infrastucture (dashed line) projects are shown as the closest on the left and the "n" closest on the right.  The matchings were repeated for the five restoration project types within the broader habitat and water categories.}\label{fig:spmtch}
 \end{figure}
 
+\begin{figure}
+\includegraphics[width=\textwidth]{figs/tmmtch-1} \caption{Temporal matching of restoration project types with time series data at a water quality station.  The restoration project locations that are spatially matched with a water quality station (a) are used to create a temporal slice of the water quality data within a window of time before and after the completion date of each restoration project (b).  Slices are based on the closest "n" restoration projects by type (n = 2 in this example) to a water quality station.}\label{fig:tmmtch}
+\end{figure}
+
 The matching between the two datasets began with a spatial join where
 the Euclidean distances between each water quality station and each
 restoration project were quantified. The spatial matches were used to
@@ -335,14 +339,31 @@ identified for any water quality station (\cref{fig:spmtch}). Temporal
 matching between water quality stations and restoration projects was
 obtained by subsetting the water quality data within a time window
 before and after the completion date of each spatially-matched
-restoration project. For the closest \(n\) restoration sites for each of
-five project types, two summarized water quality estimates were obtained
-to quantify a before and after effect of each project. Time windows that
-overlapped the start and end date of the water quality time series were
-discarded. The final two estimates of the before and after effects of
-the five types of restoration projectsat each water quality station were
-based on an average of the \(n\) closest restoration sites, weighted
-inversely by distance from the monitoring station.
+restoration project (\cref{fig:tmmtch}). For the closest \(n\)
+restoration sites for each of five project types, two summarized water
+quality estimates were obtained to quantify a before and after effect of
+each project. Time windows that overlapped the start and end date of the
+water quality time series were discarded. The final two estimates of the
+before and after effects of the five types of restoration projects at
+each water quality station were based on an average of the \(n\) closest
+restoration sites, weighted inversely by distance from the monitoring
+station.
+
+Change in water quality relative to each type of restoration project was
+estimated as: \[ 
+\delta WQ = \frac{\sum_{i = 1}^{n} \hat{wq} \in win + proj_{i, dt}}{n \cdot dist_{i \in n}} - \frac{\sum_{i = 1}^{n} \hat{wq} \in proj_{i, dt} - win}{n \cdot dist_{i \in n}}
+\] where \(\delta WQ\) was the difference between the after and before
+changes for each of \(n\) spatially matched restoration projects. For
+each \(i\) of \(n\) projects (\(proj\)), the average water quality
+(\(\hat{wq}\)) within the window (\(win\)) either before
+(\(proj_{i, dt} - win\)) or after (\(win + proj_{i, dt}\)) the
+completion date (\(dt\)) for project \(i\) was summed. The summation of
+water quality before after each project was then divided by the total
+number of \(n\) matched projects, muliplied the distance of the projects
+from a water quality station (\(dist_{i \in n}\)). This created weighted
+average of the before/after effects of each project that was inversely
+related to the distance from a watwer quality station. The total change
+in water quaility was simply the difference in weighted averages.
 
 The combined water quality and restoration data were used as input for
 developing the probabilistic models. Two parameters affected the
