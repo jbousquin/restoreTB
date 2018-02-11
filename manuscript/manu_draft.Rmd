@@ -11,13 +11,37 @@ link-citations: true
 ---
 
 ```{r echo = F}
+# get current bib file
 refs <- httr::GET('https://raw.githubusercontent.com/fawda123/refs/master/refs.bib')
 refs <- rawToChar(refs$content)
 writeLines(refs, con = file('refs.bib'))
 ```
 
-```{r echo = F}
-knitr::opts_chunk$set(fig.path = 'figs/', warning = F, message = F)
+```{r setup, echo = F, warning = F, message = F}
+# figure path, chunk options
+knitr::opts_chunk$set(fig.path = 'figs/', warning = F, message = F, echo = F)
+
+# libraries
+library(ggmap)
+library(tidyverse)
+library(vegan)
+library(sf)
+library(sp)
+library(gridExtra)
+
+# functions
+fls <- list.files('../R', full.names = T)
+sapply(fls, source)
+
+# # spatial match for figs
+# mtch <- 10
+# wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = 'top', mtch = mtch)
+# save(wqmtch, file = '../data/wqmtch.RData', compress = 'xz')
+
+load(file = '../data/restdat.RData')
+load(file = '../data/reststat.RData')
+load(file = '../data/wqstat.RData')
+load(file = '../data/wqmtch.RData')
 ```
 
 # Introduction
@@ -56,7 +80,73 @@ Water quality data in Tampa Bay have been consistently collected since 1974 by t
 
 Combining the restoration and water quality datasets was a critical part of developing the analysis framework.  Each dataset described events or sampling activities with unique dates and locations and simple pairing of restoration projects with water quality data was impractical. To address this challenge, observations in each dataset were spatially and temporally matched using an approach designed to maximize the potential of identifying a unique effect of the restoration projects on changes in water quality.  
 
-The matching between the two datasets began with a spatial join where the Euclidean distances between each water quality station and each restoration project were quantified.  The spatial matches were used to create a ranking of project sites from each water quality station based on distance.  The distances were also grouped by the five restoration project types (i.e., habitat protection, non-point source control, etc.) such that the closest $n$ sites of a given project type could be identified for any water quality station.  Temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each spatially-matched restoration project.  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after effect of each project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projectsat each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
+```{r spmtch, fig.height = 6, fig.width = 9, out.width = '\\textwidth', fig.cap = 'Spatial matching of water quality stations with restoration projects. Spatial matches of each water quality station with habitat (solid line) and water infrastucture (dashed line) projects are shown as the closest on the left and the "n" closest on the right.  The matchings were repeated for the five restoration project types within the broader habitat and water categories.'}
+# spatial match plot
+
+# combine lat/lon for the plot
+toplo <- wqmtch %>% 
+  left_join(wqstat, by = 'stat') %>% 
+  left_join(reststat, by = 'id') %>%
+  mutate(
+    resgrp = factor(resgrp, levels = c('hab', 'wtr'), labels = c('Habitat', 'Water'))
+  ) %>% 
+  rename(
+    `Restoration projects` = resgrp,
+    `Distance (km)` = dist
+  )
+    
+# restoration project grouping column
+restall <- left_join(restdat, reststat, by = 'id') %>% 
+  mutate(
+    top = factor(top, levels = c('hab', 'wtr'), labels = c('Habitat', 'Water'))
+  ) %>% 
+  rename(`Restoration projects` = top)
+
+# extent
+ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.1)
+map <- get_stamenmap(ext, zoom = 12, maptype = "toner-lite")
+
+# base map
+pbase <- ggmap(map) +
+  theme_bw(base_family = 'serif') +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.position = 'top'
+  )
+
+# closest and all
+toplo1 <- filter(toplo, rnk %in% 1)
+toplo2 <- filter(toplo, rnk %in% c(1:10))
+
+p1 <- pbase + 
+  geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`), size = 1) +
+  geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration projects`), size = 3, pch = 21) +
+  geom_point(data = wqstat, aes(x = lon, y = lat, size = ''), pch = 21, fill = 'cyan') +
+  scale_fill_manual(values = c( 'lightgrey', 'grey30')) + 
+  scale_size_manual('Water quality stations', values = 4) + 
+  theme(legend.position = 'none') + 
+  ggtitle('Closest match by project type')
+
+p2 <- pbase + 
+  geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, linetype = `Restoration projects`), size = 1) +
+  geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration projects`), size = 3, pch = 21) +
+  geom_point(data = wqstat, aes(x = lon, y = lat, size = ''), pch = 21, fill = 'cyan') +
+  scale_fill_manual(values = c( 'lightgrey', 'grey30')) + 
+  scale_size_manual('Water quality stations', values = 4) + 
+  ggtitle('Closest "n" matches')
+pleg <- g_legend(p2)
+p2 <- p2 + theme(legend.position = 'none')
+
+grid.arrange(
+  heights = c(0.1, 1),
+  pleg,
+  arrangeGrob(p1, p2, ncol = 2),
+  ncol = 1
+  )
+```
+
+The matching between the two datasets began with a spatial join where the Euclidean distances between each water quality station and each restoration project were quantified.  The spatial matches were used to create a ranking of project sites from each water quality station based on distance.  The distances were also grouped by the five restoration project types (i.e., habitat protection, non-point source control, etc.) such that the closest $n$ sites of a given project type could be identified for any water quality station (\cref{fig:spmtch}).  Temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each spatially-matched restoration project.  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after effect of each project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projectsat each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
 
 The combined water quality and restoration data were used as input for developing the probabilistic models. Two parameters affected the synthesis of the datasets which directly controlled the ability to identify an effect of each restoration project type, 1) the number of spatially-matched restoration projects used to average the cumulative effect of each project type, and 2) the time windows before and after a project completion date that were used to subset each water quality time series.  Identifying the two values that maximized the difference between before and after water quality measurements was necessary to quantify how many projects induced a change in water quality, the time within which a change is expected, and the magnitude of a change differed between project types. 
 
