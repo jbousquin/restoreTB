@@ -266,6 +266,12 @@ The combined water quality and restoration data were used as input for developin
 
 Bayesian network, simple models pre/post, large model whole record.
 
+\begin{figure}
+\centerline{\includegraphics[width = 0.8\textwidth]{figs/flow_chrts.pdf}}
+\caption{Networks developed with Bayesian models showing a large model (top) using the complete time series from 1994 - 2016 and two simple models (bottom) for 1974 - 1993 and 1994 - 2016. Inputs to each network are water treatment and habitat restoration projects.  Intermediate nodes in the network are salinity and/or nitrogen depending on the model.  Chlorophyll is the terminal response endpoint for water quality in each model.}
+\label{fig:bys_flo}
+\end{figure}
+
 # Results
 
 # Discussion

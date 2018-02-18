@@ -1,3 +1,11 @@
+---
+output:
+  html_document:
+    keep_md: yes
+    code_folding: hide
+toc: no
+self_contained: no
+---
   
 # Evaluation of subset data{.tabset}
 
@@ -13,6 +21,8 @@ library(geosphere)
 library(stringi)
 library(tibble)
 library(bnlearn)
+library(sp)
+library(sf)
 
 data(restdat)
 data(reststat)
@@ -198,12 +208,42 @@ fittedBN$chlev
 ```
 
 ```r
-# #Get inferences
-# cpquery(fittedBN, 
-#         event = (chlev == "hi"), 
-#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
-#         )
+#Get inferences
+cpquery(fittedBN,
+        event = (chlev == "hi"),
+        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
+        )
 ```
+
+```
+## [1] 0.4871795
+```
+
+
+```r
+# 
+# toeval <- allchg_pre[[2]] %>% 
+#   dplyr::select(hab, wtr, chlev) %>% 
+#   unique %>% 
+#   na.omit %>% 
+#   mutate(
+#     ave = NA, 
+#     std = NA
+#   )
+# 
+# for(rw in 1:nrow(toeval)){
+#   
+#   
+#   cpdist(fittedBN,
+#         nodes = 'chlev',
+#         evidence= (hab == toeval[rw, 'hab'][[1]] & wtr == toeval[rw, 'wtr'][[1]])
+#         ) %>% 
+#     table
+#   
+# }
+#Get inferences
+```
+
 
 ## Post-1994 data
 
@@ -243,7 +283,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   scale_y_continuous('chlorophyll', limits = c(0, 15))
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 
 ```r
@@ -257,7 +297,7 @@ pbase +
   geom_point(data = restall_sub, aes(x = lon, y = lat, fill = `Restoration\ngroup`), size = 4, pch = 21)
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 # map by date
@@ -265,7 +305,7 @@ pbase +
   geom_point(data = restall_sub, aes(x = lon, y = lat, fill = factor(date)), size = 4, pch = 21)
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-5-2.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
 
 ```r
 # barplot of date counts
@@ -281,7 +321,7 @@ ggplot(restall_sub, aes(x = factor(date))) +
   scale_y_discrete(expand = c(0, 0))
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-5-3.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
 
 
 ```r
@@ -296,7 +336,7 @@ net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
 plot(net)
 ```
 
-![](sub_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](sub_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ```r
 #Creating CPTs from data
@@ -322,9 +362,9 @@ fittedBN$chlev
 ## 
 ##      hab
 ## chlev    hab_aft    hab_bef
-##    hi 0.23809524 0.38461538
-##    lo 0.47619048 0.30769231
-##    md 0.28571429 0.30769231
+##    hi 0.28571429 0.23076923
+##    lo 0.47619048 0.53846154
+##    md 0.23809524 0.23076923
 ## 
 ## , , salev = md, wtr = wtr_aft
 ## 
@@ -361,8 +401,8 @@ fittedBN$chlev
 
 ```r
 # #Get inferences
-# cpquery(fittedBN, 
-#         event = (chlev == "hi"), 
+# cpquery(fittedBN,
+#         event = (chlev == "hi"),
 #         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
 #         )
 ```

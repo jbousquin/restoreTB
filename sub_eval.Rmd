@@ -20,6 +20,8 @@ library(geosphere)
 library(stringi)
 library(tibble)
 library(bnlearn)
+library(sp)
+library(sf)
 
 data(restdat)
 data(reststat)
