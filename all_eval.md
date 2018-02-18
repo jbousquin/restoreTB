@@ -1,3 +1,11 @@
+---
+output:
+  html_document:
+    keep_md: yes
+    code_folding: hide
+toc: no
+self_contained: no
+---
   
 # Evaluation of full model
 
@@ -12,7 +20,7 @@ library(lubridate)
 library(geosphere)
 library(stringi)
 library(tibble)
-library(raster)
+library(sf)
 library(sp)
 library(rgdal)
 library(foreach)
@@ -94,7 +102,7 @@ tnallchg <- get_fin(tnchg, salbrk, salchg, lbs = lbs1)
 chlchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = wqvar3, yrdf = yrdf)
 
 # Get conditional probability distributions for the restoration type on tn
-tncdt<- tnallchg %>% 
+tncdt<- tnallchg[[1]] %>% 
   dplyr::select(stat, hab_enh, hab_est, hab_pro, non_src, pnt_src, cval) %>% 
   get_cdt
 
@@ -111,7 +119,7 @@ chlallchg <- get_fin(chlchg, tnbrk, tnchg, lbs = lbs2)
 
 
 ```r
-toplo <- tnallchg %>% 
+toplo <- tnallchg[[1]] %>% 
   group_by(hab_enh, hab_est, hab_pro, non_src, pnt_src, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
@@ -140,7 +148,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
 
 
 ```r
-toplo <- chlallchg %>% 
+toplo <- chlallchg[[1]] %>% 
   group_by(hab_enh, hab_est, hab_pro, non_src, pnt_src, salev) %>% 
   summarize(
     chvalmd = mean(cval, na.rm = T)
