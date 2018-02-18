@@ -97,15 +97,6 @@ Gulf of Mexico}
 \begin{document}
 \maketitle
 
-\begin{verbatim}
-##         ../R/funcs.R ../R/get_all.R ../R/get_brk.R ../R/get_cdt.R
-## value   ?            ?              ?              ?             
-## visible FALSE        FALSE          FALSE          FALSE         
-##         ../R/get_chg.R ../R/get_clo.R ../R/get_fin.R ../R/rnd_dat.R
-## value   ?              ?              ?              ?             
-## visible FALSE          FALSE          FALSE          FALSE
-\end{verbatim}
-
 \section{Introduction}\label{introduction}
 
 Despite considerable investments over the last four decades in coastal
@@ -350,33 +341,41 @@ restoration sites, weighted inversely by distance from the monitoring
 station.
 
 Change in water quality relative to each type of restoration project was
-estimated as: \[ 
+estimated as:
+
+\begin{equation}
 \delta WQ = \frac{\sum_{i = 1}^{n} \hat{wq} \in win + proj_{i, dt}}{n \cdot dist_{i \in n}} - \frac{\sum_{i = 1}^{n} \hat{wq} \in proj_{i, dt} - win}{n \cdot dist_{i \in n}}
-\] where \(\delta WQ\) was the difference between the after and before
-changes for each of \(n\) spatially matched restoration projects. For
+\label{eq:wqdif}
+\end{equation}
+
+where \(\delta WQ\) was the difference between the after and before
+averages for each of \(n\) spatially matched restoration projects. For
 each \(i\) of \(n\) projects (\(proj\)), the average water quality
 (\(\hat{wq}\)) within the window (\(win\)) either before
 (\(proj_{i, dt} - win\)) or after (\(win + proj_{i, dt}\)) the
 completion date (\(dt\)) for project \(i\) was summed. The summation of
-water quality before after each project was then divided by the total
-number of \(n\) matched projects, muliplied the distance of the projects
-from a water quality station (\(dist_{i \in n}\)). This created weighted
-average of the before/after effects of each project that was inversely
-related to the distance from a watwer quality station. The total change
-in water quaility was simply the difference in weighted averages.
+water quality before and after each project was then divided by the
+total number of \(n\) matched projects, muliplied the distance of the
+projects from a water quality station (\(dist_{i \in n}\)). This created
+a weighted average of the before/after effects of each project that was
+inversely related to the distance from a water quality station. A
+weighted average by distance was used based on the assumption that
+restoration projects farther from a water quality station will have a
+weaker signal. The total change in water quaility for a project type was
+simply the difference in weighted averages.
 
 The combined water quality and restoration data were used as input for
-developing the probabilistic models. Two parameters affected the
-synthesis of the datasets which directly controlled the ability to
-identify an effect of each restoration project type, 1) the number of
-spatially-matched restoration projects used to average the cumulative
-effect of each project type, and 2) the time windows before and after a
-project completion date that were used to subset each water quality time
-series. Identifying the two values that maximized the difference between
-before and after water quality measurements was necessary to quantify
-how many projects induced a change in water quality, the time within
-which a change is expected, and the magnitude of a change differed
-between project types.
+developing the probabilistic models. Two parameters in \cref{eq:wqdif}
+affected the synthesis of the datasets which directly controlled the
+ability to identify an effect of each restoration project type, 1)
+\(n\), the number of spatially-matched restoration projects used to
+average the cumulative effect of each project type, and 2) \(win\), the
+time windows before and after a project completion date that were used
+to subset each water quality time series. Identifying the two values
+that maximized the difference between before and after water quality
+measurements was necessary to quantify how many projects induced a
+change in water quality, the time within which a change is expected, and
+the magnitude of a change differed between project types.
 
 Bayesian network, simple models pre/post, large model whole record.
 
