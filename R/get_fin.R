@@ -13,7 +13,7 @@
 get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0.33, 0.66)){
 
   # grouping variables
-  grps <- names(salbrk)[-grep('^qts$|^brk$|^clev$', names(salbrk))]
+  grps <- names(salbrk)[-grep('^qts$|^brk$', names(salbrk))]
   
   # merge with salinity, bet salinity levels
   salbrk <- salbrk %>% 
@@ -49,7 +49,7 @@ get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0
 
   # get conditional probs only where estimable
   cdt <- allchg %>% 
-    filter(!is.na(salev)) %>% 
+    filter(!is.na(salev)) %>%
     get_cdt %>% 
     mutate(
       chk = map(crv, ~ .x %>% is.na %>% any),
@@ -60,9 +60,9 @@ get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0
   brk <- get_brk(cdt, qts = qts) %>% 
     group_by_if(is.character) %>% 
     nest(.key = 'levs')
-  
+
   # get final cond probs
-  allchg <- allchg %>% 
+  dsc <- allchg %>% 
     group_by_if(is.character) %>% 
     nest %>% 
     inner_join(brk) %>% 
@@ -89,7 +89,7 @@ get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0
   # output list
   out <- list(
     emp = emp, 
-    dsc = allchg
+    dsc = dsc
   )
   
   return(out)

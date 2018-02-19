@@ -5,6 +5,13 @@
 #'
 get_brk <- function(wqcdt, qts = c(0.33, 0.66)){
 
+  # empirical value of wq data given quantiles
+  vals <- wqcdt %>% 
+    select(data) %>% 
+    unnest %>% 
+    .$cval %>% 
+    quantile(., qts, na.rm = T)
+  
   # get quantile levels, interpolate to cdf values, relabel
   brk <- wqcdt %>% 
     dplyr::select(-data, -crv) %>% 
@@ -12,22 +19,10 @@ get_brk <- function(wqcdt, qts = c(0.33, 0.66)){
     group_by_if(is.character) %>% 
     nest %>% 
     mutate(
-      qts = map(data, function(x){
-        
-        out<- quantile(x$cval, qts)
-        return(out)
-        
-      }),
-      brk = pmap(list(data, qts), function(data, qts){
+      brk = map(data, function(data){
 
-        out <- approx(x = data$cval, y = data$cumest, xout = qts)
-        out <- out$y
-        return(out)
-        
-      }),
-      clev = map(brk, function(x){
-        
-        out <- rank(x)
+        est <- approx(x = data$cval, y = data$cumest, xout = vals)
+        out <- data.frame(qts = vals, brk = est$y)
         return(out)
         
       })

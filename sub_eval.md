@@ -1,11 +1,3 @@
----
-output:
-  html_document:
-    keep_md: yes
-    code_folding: hide
-toc: no
-self_contained: no
----
   
 # Evaluation of subset data{.tabset}
 
@@ -66,7 +58,7 @@ reststat_sub <- reststat %>%
 
 # get conditional probability tables
 allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
 toplo <- allchg_pre[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
@@ -161,50 +153,30 @@ fittedBN$chlev
 ## , , salev = hi, wtr = wtr_aft
 ## 
 ##      hab
-## chlev hab_aft hab_bef
-##    hi                
-##    lo                
-##    md                
+## chlev   hab_aft   hab_bef
+##    hi 0.2500000 0.2500000
+##    lo 0.7500000 0.7500000
 ## 
 ## , , salev = lo, wtr = wtr_aft
 ## 
 ##      hab
-## chlev    hab_aft hab_bef
-##    hi 0.50000000        
-##    lo 0.25000000        
-##    md 0.25000000        
-## 
-## , , salev = md, wtr = wtr_aft
-## 
-##      hab
-## chlev hab_aft    hab_bef
-##    hi         0.50000000
-##    lo         0.25000000
-##    md         0.25000000
+## chlev   hab_aft   hab_bef
+##    hi 0.0000000 0.5000000
+##    lo 1.0000000 0.5000000
 ## 
 ## , , salev = hi, wtr = wtr_bef
 ## 
 ##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.12500000 0.25000000
-##    lo 0.75000000 0.50000000
-##    md 0.12500000 0.25000000
+## chlev   hab_aft   hab_bef
+##    hi 0.3636364 0.2916667
+##    lo 0.6363636 0.7083333
 ## 
 ## , , salev = lo, wtr = wtr_bef
 ## 
 ##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.13043478 0.20000000
-##    lo 0.47826087 0.40000000
-##    md 0.39130435 0.40000000
-## 
-## , , salev = md, wtr = wtr_bef
-## 
-##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.25000000 0.08333333
-##    lo 0.50000000 0.66666667
-##    md 0.25000000 0.25000000
+## chlev   hab_aft   hab_bef
+##    hi 0.7647059 0.8750000
+##    lo 0.2352941 0.1250000
 ```
 
 ```r
@@ -216,34 +188,33 @@ cpquery(fittedBN,
 ```
 
 ```
-## [1] 0.4871795
+## [1] 0.1608187
 ```
 
 
 ```r
-# 
-# toeval <- allchg_pre[[2]] %>% 
-#   dplyr::select(hab, wtr, chlev) %>% 
-#   unique %>% 
-#   na.omit %>% 
-#   mutate(
-#     ave = NA, 
-#     std = NA
-#   )
-# 
-# for(rw in 1:nrow(toeval)){
-#   
-#   
-#   cpdist(fittedBN,
-#         nodes = 'chlev',
-#         evidence= (hab == toeval[rw, 'hab'][[1]] & wtr == toeval[rw, 'wtr'][[1]])
-#         ) %>% 
-#     table
-#   
-# }
-#Get inferences
+ests <- unique(cdat) %>% 
+  mutate(est = NA)
+
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- cpquery(fittedBN,
+                 event = (chlev == toest$chlev),
+                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
+  )
+  
+  ests[i, 'est'] <- est
+  
+}
+
+ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  facet_wrap(hab ~ wtr) + 
+  theme_bw()
 ```
 
+![](sub_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ## Post-1994 data
 
@@ -257,7 +228,7 @@ reststat_sub <- reststat %>%
 
 # get conditional probability tables
 allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
 # summarize
 toplo <- allchg_pst[[1]] %>% 
@@ -353,56 +324,65 @@ fittedBN$chlev
 ## , , salev = hi, wtr = wtr_aft
 ## 
 ##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.28571429 0.20000000
-##    lo 0.57142857 0.60000000
-##    md 0.14285714 0.20000000
+## chlev   hab_aft   hab_bef
+##    hi 0.2307692 0.1875000
+##    lo 0.7692308 0.8125000
 ## 
 ## , , salev = lo, wtr = wtr_aft
 ## 
 ##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.28571429 0.23076923
-##    lo 0.47619048 0.53846154
-##    md 0.23809524 0.23076923
-## 
-## , , salev = md, wtr = wtr_aft
-## 
-##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.23076923 0.28571429
-##    lo 0.53846154 0.42857143
-##    md 0.23076923 0.28571429
+## chlev   hab_aft   hab_bef
+##    hi 0.8666667 0.8750000
+##    lo 0.1333333 0.1250000
 ## 
 ## , , salev = hi, wtr = wtr_bef
 ## 
 ##      hab
-## chlev hab_aft hab_bef
-##    hi                
-##    lo                
-##    md                
+## chlev   hab_aft   hab_bef
+##    hi 0.2142857 0.0000000
+##    lo 0.7857143 1.0000000
 ## 
 ## , , salev = lo, wtr = wtr_bef
 ## 
 ##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.05555556 0.33333333
-##    lo 0.72222222 0.44444444
-##    md 0.22222222 0.22222222
-## 
-## , , salev = md, wtr = wtr_bef
-## 
-##      hab
-## chlev    hab_aft    hab_bef
-##    hi 0.25000000 0.27777778
-##    lo 0.31250000 0.44444444
-##    md 0.43750000 0.27777778
+## chlev   hab_aft   hab_bef
+##    hi 0.6190476 0.8000000
+##    lo 0.3809524 0.2000000
 ```
 
 ```r
-# #Get inferences
-# cpquery(fittedBN,
-#         event = (chlev == "hi"),
-#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
-#         )
+#Get inferences
+cpquery(fittedBN,
+        event = (chlev == "hi"),
+        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
+        )
 ```
+
+```
+## [1] 0.4692702
+```
+
+
+```r
+ests <- unique(cdat) %>% 
+  mutate(est = NA)
+
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- cpquery(fittedBN,
+                 event = (chlev == toest$chlev),
+                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
+  )
+  
+  ests[i, 'est'] <- est
+  
+}
+
+ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  facet_wrap(hab ~ wtr) + 
+  theme_bw()
+```
+
+![](sub_eval_files/figure-html/unnamed-chunk-8-1.png)<!-- -->

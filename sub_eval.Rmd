@@ -64,7 +64,7 @@ reststat_sub <- reststat %>%
 
 # get conditional probability tables
 allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
 toplo <- allchg_pre[[1]] %>% 
   group_by(hab, wtr, salev) %>% 
@@ -139,30 +139,26 @@ cpquery(fittedBN,
 ```
 
 ```{r}
-# 
-# toeval <- allchg_pre[[2]] %>% 
-#   dplyr::select(hab, wtr, chlev) %>% 
-#   unique %>% 
-#   na.omit %>% 
-#   mutate(
-#     ave = NA, 
-#     std = NA
-#   )
-# 
-# for(rw in 1:nrow(toeval)){
-#   
-#   
-#   cpdist(fittedBN,
-#         nodes = 'chlev',
-#         evidence= (hab == toeval[rw, 'hab'][[1]] & wtr == toeval[rw, 'wtr'][[1]])
-#         ) %>% 
-#     table
-#   
-# }
-#Get inferences
+ests <- unique(cdat) %>% 
+  mutate(est = NA)
 
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- cpquery(fittedBN,
+                 event = (chlev == toest$chlev),
+                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
+  )
+  
+  ests[i, 'est'] <- est
+  
+}
+
+ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  facet_wrap(hab ~ wtr) + 
+  theme_bw()
 ```
-
 
 ## Post-1994 data
 
@@ -175,7 +171,7 @@ reststat_sub <- reststat %>%
 
 # get conditional probability tables
 allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp)
+                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
 # summarize
 toplo <- allchg_pst[[1]] %>% 
@@ -243,9 +239,31 @@ plot(net)
 fittedBN <- bn.fit(net, data = cdat)
 fittedBN$chlev
 
-# #Get inferences
-# cpquery(fittedBN,
-#         event = (chlev == "hi"),
-#         evidence= (hab == "hab_aft" & wtr == 'wtr_aft' & salev == 'lo')
-#         )
+#Get inferences
+cpquery(fittedBN,
+        event = (chlev == "hi"),
+        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
+        )
+```
+
+```{r}
+ests <- unique(cdat) %>% 
+  mutate(est = NA)
+
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- cpquery(fittedBN,
+                 event = (chlev == toest$chlev),
+                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
+  )
+  
+  ests[i, 'est'] <- est
+  
+}
+
+ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  facet_wrap(hab ~ wtr) + 
+  theme_bw()
 ```
