@@ -214,6 +214,58 @@ ggplot(ests, aes(x = chlev, y = project, fill = chg)) +
 
 ![](all_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
+
+```r
+# get conditional probabilities of lo/md/hi chl for bef/aft of each project type
+ests <- bncdat %>% 
+  dplyr::select(-salev, -nilev) %>% 
+  mutate_if(is.factor, as.character) %>% 
+  gather('project', 'event', -chlev) %>% 
+  unique %>% 
+  group_by(chlev, project, event) %>% 
+  nest %>% 
+  rename(est = data)
+
+# get 100 ests for each scenario
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- paste0('cpquery(fittedBN, event = (chlev == toest$chlev), evidence = (', toest$project, ' == "', toest$event, '"))')
+  est <- sapply(1:100, function(x) eval(parse(text = est)))
+  ests[[i, 'est']] <- est
+  
+}
+
+# get average diff and conf int, format for plot
+ests <- ests %>% 
+  mutate(event = gsub('^hab\\_enh\\_|^hab\\_est\\_|^hab\\_pro\\_|^non\\_src\\_|^pnt\\_src\\_', '', event)) %>% 
+  mutate(chlev = factor(chlev, levels = c('lo', 'md', 'hi'))) %>% 
+  spread(event, est) %>% 
+  mutate(
+    chg = pmap(list(aft, bef), function(aft, bef){
+      
+      res <- t.test(aft, bef)
+      dif <- -1 * diff(res$estimate)
+      los <- res$conf.int[1]
+      his <- res$conf.int[2]
+      out <- data.frame(dif = dif, los = los, his = his)
+       
+      return(out)
+      
+    })
+  ) %>% 
+  dplyr::select(-aft, -bef) %>% 
+  unnest
+
+ggplot(ests, aes(x = chlev, y = dif, group = project)) +
+  geom_bar(colour = 'black', stat = 'identity') +
+  geom_errorbar(aes(ymin = los, ymax = his)) +
+  theme_bw(base_family = 'serif') +
+  facet_wrap(~project)
+```
+
+![](all_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
 ## Distance to restoration sites {.tabset}
 
 
@@ -262,7 +314,7 @@ pbase +
   geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ### Closest three
 
@@ -277,7 +329,7 @@ pbase +
   geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ### Closest all
 
@@ -289,4 +341,4 @@ pbase +
   geom_segment(data = toplo3, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
