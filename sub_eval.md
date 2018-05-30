@@ -1,3 +1,11 @@
+---
+output:
+  html_document:
+    keep_md: yes
+    code_folding: hide
+toc: no
+self_contained: no
+---
   
 # Evaluation of subset data{.tabset}
 
@@ -34,6 +42,8 @@ source('R/rnd_dat.R')
 mtch <- 2
 yrdf <- 5
 resgrp <- 'top' 
+qts <- c(0.5)
+lbs <- c('lo', 'hi')
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -57,19 +67,36 @@ reststat_sub <- reststat %>%
   filter(id %in% restdat_sub$id)
 
 # get conditional probability tables
-allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
-toplo <- allchg_pre[[1]] %>% 
+## Distance to restoration sites
+wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+
+## Summarizing effects of restoration projects on salinity
+sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
+  rename(saval = cval)
+
+## Summarizing effects of restoration projects on chl
+chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
+  rename(chval = cval)
+
+# combine all using a super simple approach
+cdat_pre <- sachg %>% 
+  left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
+  mutate(
+    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+  ) %>% 
+  # dplyr::select(-saval, -nival, -chval, -stat) %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+toplo <- cdat_pre %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
-    chvalmd = mean(cval, na.rm = T)
+    chvalmd = mean(chval, na.rm = T)
     ) %>% 
   na.omit %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
-  )
+  unite('rest', hab, wtr, sep = ', ')
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -125,10 +152,9 @@ ggplot(restall_sub, aes(x = factor(date))) +
 
 
 ```r
-cdat <- allchg_pre[[2]] %>% 
-  select_if(is.character) %>% 
+cdat_pre_mod <- cdat_pre %>% 
+  select_if(is.factor) %>% 
   na.omit %>% 
-  mutate_if(is.character, factor) %>% 
   data.frame
 
 # create Network
@@ -140,7 +166,7 @@ plot(net)
 
 ```r
 #Creating CPTs from data
-fittedBN <- bn.fit(net, data = cdat)
+fittedBN <- bn.fit(net, data = cdat_pre_mod)
 fittedBN$chlev
 ```
 
@@ -150,33 +176,33 @@ fittedBN$chlev
 ## 
 ## Conditional probability table:
 ##  
-## , , salev = hi, wtr = wtr_aft
-## 
-##      hab
-## chlev   hab_aft   hab_bef
-##    hi 0.2500000 0.2500000
-##    lo 0.7500000 0.7500000
-## 
 ## , , salev = lo, wtr = wtr_aft
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.0000000 0.5000000
 ##    lo 1.0000000 0.5000000
+##    hi 0.0000000 0.5000000
 ## 
-## , , salev = hi, wtr = wtr_bef
+## , , salev = hi, wtr = wtr_aft
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.3636364 0.2916667
-##    lo 0.6363636 0.7083333
+##    lo 0.7500000 0.7500000
+##    hi 0.2500000 0.2500000
 ## 
 ## , , salev = lo, wtr = wtr_bef
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.7647059 0.8750000
 ##    lo 0.2352941 0.1250000
+##    hi 0.7647059 0.8750000
+## 
+## , , salev = hi, wtr = wtr_bef
+## 
+##      hab
+## chlev   hab_aft   hab_bef
+##    lo 0.6363636 0.7083333
+##    hi 0.3636364 0.2916667
 ```
 
 ```r
@@ -188,12 +214,12 @@ cpquery(fittedBN,
 ```
 
 ```
-## [1] 0.1608187
+## [1] 0.1333333
 ```
 
 
 ```r
-ests <- unique(cdat) %>% 
+ests <- unique(cdat_pre_mod) %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){
@@ -227,20 +253,36 @@ reststat_sub <- reststat %>%
   filter(id %in% restdat_sub$id)
 
 # get conditional probability tables
-allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
-# summarize
-toplo <- allchg_pst[[1]] %>% 
+## Distance to restoration sites
+wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+
+## Summarizing effects of restoration projects on salinity
+sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
+  rename(saval = cval)
+
+## Summarizing effects of restoration projects on chl
+chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
+  rename(chval = cval)
+
+# combine all using a super simple approach
+cdat_pst <- sachg %>% 
+  left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
+  mutate(
+    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+  ) %>% 
+  # dplyr::select(-saval, -nival, -chval, -stat) %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+toplo <- cdat_pst %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
-    chvalmd = mean(cval, na.rm = T)
+    chvalmd = mean(chval, na.rm = T)
     ) %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
-    dat = 'Observed'
-  )
+  na.omit %>% 
+  unite('rest', hab, wtr, sep = ', ')
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -251,7 +293,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
+  scale_y_continuous('chlorophyll', limits = c(0,15))
 ```
 
 ![](sub_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -296,10 +338,9 @@ ggplot(restall_sub, aes(x = factor(date))) +
 
 
 ```r
-cdat <- allchg_pst[[2]] %>% 
-  select_if(is.character) %>% 
+cdat_pst_mod <- cdat_pst %>% 
+  select_if(is.factor) %>% 
   na.omit %>% 
-  mutate_if(is.character, factor) %>% 
   data.frame
 
 # create Network
@@ -311,7 +352,7 @@ plot(net)
 
 ```r
 #Creating CPTs from data
-fittedBN <- bn.fit(net, data = cdat)
+fittedBN <- bn.fit(net, data = cdat_pst_mod)
 fittedBN$chlev
 ```
 
@@ -321,33 +362,33 @@ fittedBN$chlev
 ## 
 ## Conditional probability table:
 ##  
-## , , salev = hi, wtr = wtr_aft
-## 
-##      hab
-## chlev   hab_aft   hab_bef
-##    hi 0.2307692 0.1875000
-##    lo 0.7692308 0.8125000
-## 
 ## , , salev = lo, wtr = wtr_aft
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.8666667 0.8750000
 ##    lo 0.1333333 0.1250000
+##    hi 0.8666667 0.8750000
 ## 
-## , , salev = hi, wtr = wtr_bef
+## , , salev = hi, wtr = wtr_aft
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.2142857 0.0000000
-##    lo 0.7857143 1.0000000
+##    lo 0.7692308 0.8125000
+##    hi 0.2307692 0.1875000
 ## 
 ## , , salev = lo, wtr = wtr_bef
 ## 
 ##      hab
 ## chlev   hab_aft   hab_bef
-##    hi 0.6190476 0.8000000
 ##    lo 0.3809524 0.2000000
+##    hi 0.6190476 0.8000000
+## 
+## , , salev = hi, wtr = wtr_bef
+## 
+##      hab
+## chlev   hab_aft   hab_bef
+##    lo 0.7857143 1.0000000
+##    hi 0.2142857 0.0000000
 ```
 
 ```r
@@ -359,12 +400,12 @@ cpquery(fittedBN,
 ```
 
 ```
-## [1] 0.4692702
+## [1] 0.4564506
 ```
 
 
 ```r
-ests <- unique(cdat) %>% 
+ests <- unique(cdat_pst_mod) %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){

@@ -41,6 +41,8 @@ source('R/rnd_dat.R')
 mtch <- 2
 yrdf <- 5
 resgrp <- 'top' 
+qts <- c(0.5)
+lbs <- c('lo', 'hi')
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -63,19 +65,36 @@ reststat_sub <- reststat %>%
   filter(id %in% restdat_sub$id)
 
 # get conditional probability tables
-allchg_pre <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
-toplo <- allchg_pre[[1]] %>% 
+## Distance to restoration sites
+wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+
+## Summarizing effects of restoration projects on salinity
+sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
+  rename(saval = cval)
+
+## Summarizing effects of restoration projects on chl
+chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
+  rename(chval = cval)
+
+# combine all using a super simple approach
+cdat_pre <- sachg %>% 
+  left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
+  mutate(
+    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+  ) %>% 
+  # dplyr::select(-saval, -nival, -chval, -stat) %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+toplo <- cdat_pre %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
-    chvalmd = mean(cval, na.rm = T)
+    chvalmd = mean(chval, na.rm = T)
     ) %>% 
   na.omit %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')) 
-  )
+  unite('rest', hab, wtr, sep = ', ')
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -117,10 +136,9 @@ ggplot(restall_sub, aes(x = factor(date))) +
 ```
 
 ```{r}
-cdat <- allchg_pre[[2]] %>% 
-  select_if(is.character) %>% 
+cdat_pre_mod <- cdat_pre %>% 
+  select_if(is.factor) %>% 
   na.omit %>% 
-  mutate_if(is.character, factor) %>% 
   data.frame
 
 # create Network
@@ -128,7 +146,7 @@ net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
 plot(net)
 
 #Creating CPTs from data
-fittedBN <- bn.fit(net, data = cdat)
+fittedBN <- bn.fit(net, data = cdat_pre_mod)
 fittedBN$chlev
 
 #Get inferences
@@ -139,7 +157,7 @@ cpquery(fittedBN,
 ```
 
 ```{r}
-ests <- unique(cdat) %>% 
+ests <- unique(cdat_pre_mod) %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){
@@ -162,7 +180,7 @@ ggplot(ests, aes(x = salev, y = est, fill = chlev)) +
 
 ## Post-1994 data
 
-```{r fig.height = 4, fig.width = 8}
+```{r fig.height = 4, fig.width = 8, eval = T}
 # get sub data, restoration sites
 restdat_sub <- restdat %>% 
   filter(date >= 1994)
@@ -170,20 +188,36 @@ reststat_sub <- reststat %>%
   filter(id %in% restdat_sub$id)
 
 # get conditional probability tables
-allchg_pst <- get_all(restdat_sub, reststat_sub, wqdat, wqstat,
-                  mtch = mtch, yrdf = yrdf, resgrp = resgrp, qts = c(0.5), lbs = c('lo', 'hi'))
 
-# summarize
-toplo <- allchg_pst[[1]] %>% 
+## Distance to restoration sites
+wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+
+## Summarizing effects of restoration projects on salinity
+sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
+  rename(saval = cval)
+
+## Summarizing effects of restoration projects on chl
+chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
+  rename(chval = cval)
+
+# combine all using a super simple approach
+cdat_pst <- sachg %>% 
+  left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
+  mutate(
+    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+  ) %>% 
+  # dplyr::select(-saval, -nival, -chval, -stat) %>% 
+  mutate_if(is.character, factor) %>% 
+  data.frame
+
+toplo <- cdat_pst %>% 
   group_by(hab, wtr, salev) %>% 
   summarize(
-    chvalmd = mean(cval, na.rm = T)
+    chvalmd = mean(chval, na.rm = T)
     ) %>% 
-  unite('rest', hab, wtr, sep = ', ') %>% 
-  mutate(
-    salev = factor(salev, levels = c('lo', 'md', 'hi')), 
-    dat = 'Observed'
-  )
+  na.omit %>% 
+  unite('rest', hab, wtr, sep = ', ')
 
 # plot
 ggplot(toplo, aes(x = rest, y = chvalmd)) + 
@@ -194,7 +228,7 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
   geom_bar(stat = 'identity') +
   facet_wrap(~ salev, ncol = 1) + 
   coord_flip() +
-  scale_y_continuous('chlorophyll', limits = c(0, 15))
+  scale_y_continuous('chlorophyll', limits = c(0,15))
 ```
 
 ```{r fig.width = 7, fig.height = 8, eval = T}
@@ -225,10 +259,9 @@ ggplot(restall_sub, aes(x = factor(date))) +
 ```
 
 ```{r}
-cdat <- allchg_pst[[2]] %>% 
-  select_if(is.character) %>% 
+cdat_pst_mod <- cdat_pst %>% 
+  select_if(is.factor) %>% 
   na.omit %>% 
-  mutate_if(is.character, factor) %>% 
   data.frame
 
 # create Network
@@ -236,7 +269,7 @@ net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
 plot(net)
 
 #Creating CPTs from data
-fittedBN <- bn.fit(net, data = cdat)
+fittedBN <- bn.fit(net, data = cdat_pst_mod)
 fittedBN$chlev
 
 #Get inferences
@@ -247,7 +280,7 @@ cpquery(fittedBN,
 ```
 
 ```{r}
-ests <- unique(cdat) %>% 
+ests <- unique(cdat_pst_mod) %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){

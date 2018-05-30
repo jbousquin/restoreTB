@@ -14,7 +14,7 @@ get_fin <- function(chlchg, salbrk, salchg, lbs = c('lo', 'md', 'hi'), qts = c(0
 
   # grouping variables
   grps <- names(salbrk)[-grep('^qts$|^brk$', names(salbrk))]
-  
+
   # merge with salinity, bet salinity levels
   salbrk <- salbrk %>% 
     group_by_(.dots = grps) %>% 
