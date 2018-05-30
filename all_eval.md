@@ -1,11 +1,3 @@
----
-output:
-  html_document:
-    keep_md: yes
-    code_folding: hide
-toc: no
-self_contained: no
----
   
 # Evaluation of full model
 
@@ -26,6 +18,7 @@ library(rgdal)
 library(foreach)
 library(doParallel)
 library(bnlearn)
+library(scales)
 
 data(restdat)
 data(reststat)
@@ -168,14 +161,58 @@ ggplot(toplo, aes(x = rest, y = chvalmd)) +
 
 ```r
 bncdat <- cdat %>% 
-  dplyr::select(-saval, -nival, -chval, -stat)
+  dplyr::select(-saval, -nival, -chval, -stat) %>% 
+  na.omit
 
 net <- model2network("[hab_enh][hab_est][hab_pro][non_src][pnt_src][salev|hab_enh:hab_est:hab_pro:non_src:pnt_src][nilev|salev:hab_enh:hab_est:hab_pro:non_src:pnt_src][chlev|nilev]")
 
 mat <- amat(net)
 fittedBN <- bn.fit(net, data = bncdat)
+plot(net)
 ```
 
+![](all_eval_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+
+```r
+# get conditional probabilities of lo/md/hi chl for bef/aft of each project type
+ests <- bncdat %>% 
+  dplyr::select(-salev, -nilev) %>% 
+  mutate_if(is.factor, as.character) %>% 
+  gather('project', 'event', -chlev) %>% 
+  unique %>% 
+  mutate(est = NA)
+
+for(i in 1:nrow(ests)){
+  
+  toest <- ests[i, ]
+  est <- paste0('cpquery(fittedBN, event = (chlev == toest$chlev), evidence = (', toest$project, ' == "', toest$event, '"))')
+  est <- eval(parse(text = est))
+  ests[i, 'est'] <- est
+  
+}
+
+# format for plot
+ests <- ests %>% 
+  mutate(event = gsub('^hab\\_enh\\_|^hab\\_est\\_|^hab\\_pro\\_|^non\\_src\\_|^pnt\\_src\\_', '', event)) %>% 
+  mutate(chlev = factor(chlev, levels = c('lo', 'md', 'hi'))) %>% 
+  spread(event, est) %>% 
+  mutate(
+    chg = 100 * (aft - bef),
+    chg = round(chg, 1)
+    )
+
+ggplot(ests, aes(x = chlev, y = project, fill = chg)) +
+  geom_tile(colour = 'black') +
+  geom_text(aes(label = chg, size = abs(chg))) +
+  scale_size(guide = F) +
+  theme_bw(base_family = 'serif') +
+  scale_x_discrete('Chlorophyll', expand = c(0, 0)) + 
+  scale_y_discrete('Restoration project', expand = c(0, 0)) +
+  scale_fill_gradient2('% change', low = muted("red"), mid = "white", high = muted("blue"), midpoint = 0)
+```
+
+![](all_eval_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ## Distance to restoration sites {.tabset}
 
@@ -225,7 +262,7 @@ pbase +
   geom_segment(data = toplo1, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ### Closest three
 
@@ -240,7 +277,7 @@ pbase +
   geom_segment(data = toplo2, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ### Closest all
 
@@ -252,4 +289,4 @@ pbase +
   geom_segment(data = toplo3, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration\ntype`), size = 1)
 ```
 
-![](all_eval_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](all_eval_files/figure-html/unnamed-chunk-8-1.png)<!-- -->

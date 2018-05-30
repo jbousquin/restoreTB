@@ -22,6 +22,7 @@ library(tibble)
 library(bnlearn)
 library(sp)
 library(sf)
+library(scales)
 
 data(restdat)
 data(reststat)
@@ -41,8 +42,8 @@ source('R/rnd_dat.R')
 mtch <- 2
 yrdf <- 5
 resgrp <- 'top' 
-qts <- c(0.5)
-lbs <- c('lo', 'hi')
+qts <- c(0.33, 0.66)
+lbs <- c('lo', 'md', 'hi')
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
@@ -147,35 +148,44 @@ plot(net)
 
 #Creating CPTs from data
 fittedBN <- bn.fit(net, data = cdat_pre_mod)
-fittedBN$chlev
-
-#Get inferences
-cpquery(fittedBN,
-        event = (chlev == "hi"),
-        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
-        )
 ```
 
-```{r}
-ests <- unique(cdat_pre_mod) %>% 
+```{r, fig.height = 3, fig.width = 4}
+# get conditional probabilities of lo/md/hi chl for bef/aft of each project type
+ests <- cdat_pre_mod %>% 
+  dplyr::select(-salev) %>% 
+  mutate_if(is.factor, as.character) %>% 
+  gather('project', 'event', -chlev) %>% 
+  unique %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){
   
   toest <- ests[i, ]
-  est <- cpquery(fittedBN,
-                 event = (chlev == toest$chlev),
-                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
-  )
-  
+  est <- paste0('cpquery(fittedBN, event = (chlev == toest$chlev), evidence = (', toest$project, ' == "', toest$event, '"))')
+  est <- eval(parse(text = est))
   ests[i, 'est'] <- est
   
 }
 
-ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
-  facet_wrap(hab ~ wtr) + 
-  theme_bw()
+# format for plot
+ests <- ests %>% 
+  mutate(event = gsub('^wtr\\_|^hab\\_', '', event)) %>% 
+  mutate(chlev = factor(chlev, levels = lbs)) %>% 
+  spread(event, est) %>% 
+  mutate(
+    chg = 100 * (aft - bef),
+    chg = round(chg, 1)
+    )
+
+ggplot(ests, aes(x = chlev, y = project, fill = chg)) +
+  geom_tile(colour = 'black') +
+  geom_text(aes(label = chg, size = abs(chg))) +
+  scale_size(guide = F) +
+  theme_bw(base_family = 'serif') +
+  scale_x_discrete('Chlorophyll', expand = c(0, 0)) + 
+  scale_y_discrete('Restoration project', expand = c(0, 0)) +
+  scale_fill_gradient2('% change', low = muted("red"), mid = "white", high = muted("blue"), midpoint = 0)
 ```
 
 ## Post-1994 data
@@ -270,33 +280,42 @@ plot(net)
 
 #Creating CPTs from data
 fittedBN <- bn.fit(net, data = cdat_pst_mod)
-fittedBN$chlev
-
-#Get inferences
-cpquery(fittedBN,
-        event = (chlev == "hi"),
-        evidence= (hab == "hab_aft" & wtr == 'wtr_aft')
-        )
 ```
 
-```{r}
-ests <- unique(cdat_pst_mod) %>% 
+```{r, fig.height = 3, fig.width = 4}
+# get conditional probabilities of lo/md/hi chl for bef/aft of each project type
+ests <- cdat_pst_mod %>% 
+  dplyr::select(-salev) %>% 
+  mutate_if(is.factor, as.character) %>% 
+  gather('project', 'event', -chlev) %>% 
+  unique %>% 
   mutate(est = NA)
 
 for(i in 1:nrow(ests)){
   
   toest <- ests[i, ]
-  est <- cpquery(fittedBN,
-                 event = (chlev == toest$chlev),
-                 evidence= (wtr == toest$wtr & hab == toest$hab & salev == toest$salev)
-  )
-  
+  est <- paste0('cpquery(fittedBN, event = (chlev == toest$chlev), evidence = (', toest$project, ' == "', toest$event, '"))')
+  est <- eval(parse(text = est))
   ests[i, 'est'] <- est
   
 }
 
-ggplot(ests, aes(x = salev, y = est, fill = chlev)) + 
-  geom_bar(stat = 'identity', position = 'dodge') + 
-  facet_wrap(hab ~ wtr) + 
-  theme_bw()
+# format for plot
+ests <- ests %>% 
+  mutate(event = gsub('^wtr\\_|^hab\\_', '', event)) %>% 
+  mutate(chlev = factor(chlev, levels = lbs)) %>% 
+  spread(event, est) %>% 
+  mutate(
+    chg = 100 * (aft - bef),
+    chg = round(chg, 1)
+    )
+
+ggplot(ests, aes(x = chlev, y = project, fill = chg)) +
+  geom_tile(colour = 'black') +
+  geom_text(aes(label = chg, size = abs(chg))) +
+  scale_size(guide = F) +
+  theme_bw(base_family = 'serif') +
+  scale_x_discrete('Chlorophyll', expand = c(0, 0)) + 
+  scale_y_discrete('Restoration project', expand = c(0, 0)) +
+  scale_fill_gradient2('% change', low = muted("red"), mid = "white", high = muted("blue"), midpoint = 0)
 ```
