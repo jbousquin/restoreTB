@@ -17,19 +17,28 @@ raw <- read.csv('other/DRAFT_TBEP_Combined_Projects_1971-2017_04102018.csv', str
     lon = ProjectLongitude
   ) %>% 
   select(date, type, tech, lat, lon) %>% 
+  filter(
+    lon > -1e6 & lat > 20 & !is.na(date)
+  ) %>% 
   mutate(
     id = stri_rand_strings(nrow(.), length = 4),
     top = fct_recode(type,
-      hab = 'Habitat_Enhancement',
-      hab = 'Habitat_Establishment', 
-      hab = 'Habitat_Protection', 
-      wtr = 'Nonpoint_Source', 
-      wtr = 'Point_Source'
+                     hab = 'Habitat_Enhancement',
+                     hab = 'Habitat_Establishment', 
+                     hab = 'Habitat_Protection', 
+                     wtr = 'Nonpoint_Source', 
+                     wtr = 'Point_Source'
     ), 
-    type = toupper(type), 
-    tech = toupper(tech)
-  ) %>% 
-  mutate_if(is.factor, as.character)
+    type = fct_recode(type, 
+                      hab_enh = 'Habitat_Enhancement',
+                      hab_est = 'Habitat_Establishment', 
+                      hab_pro = 'Habitat_Protection',                    
+                      non_src = 'Nonpoint_Source', 
+                      pnt_src = 'Point_Source'
+    ), 
+    tech = toupper(tech),
+    date = as.numeric(date)
+  ) 
 
 # restdat
 restdat <- raw %>% 

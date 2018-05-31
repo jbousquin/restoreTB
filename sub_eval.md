@@ -1,3 +1,11 @@
+---
+output:
+  html_document:
+    keep_md: yes
+    code_folding: hide
+toc: no
+self_contained: no
+---
   
 # Evaluation of subset data{.tabset}
 
@@ -35,8 +43,8 @@ source('R/rnd_dat.R')
 mtch <- 2
 yrdf <- 5
 resgrp <- 'top' 
-qts <- c(0.33, 0.66)
-lbs <- c('lo', 'md', 'hi')
+qts <- c(0.5)
+lbs <- c('lo', 'hi')
 
 # base map
 ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)

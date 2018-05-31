@@ -61,9 +61,8 @@ wqvar3 <- 'chla'
 mtch <- 10
 yrdf <- 5
 resgrp <- 'type' 
-qts <- c(0.33, 0.66)
-lbs1 <- c('sal_lo', 'sal_md', 'sal_hi')
-lbs2 <- c('tn_lo', 'tn_md', 'tn_hi')
+qts <- c(0.5)
+lbs <- c('lo', 'hi')
 
 data(restdat)
 data(reststat)
@@ -71,15 +70,6 @@ data(wqdat)
 data(wqstat)
 data(tbpoly)
 data(allchg)
-
-# get sub data, restoration sites
-restdat <- restdat %>% 
-  mutate(
-    type = factor(type, 
-                  levels = c('HABITAT_ENHANCEMENT', 'HABITAT_ESTABLISHMENT', 'HABITAT_PROTECTION', 'NONPOINT_SOURCE', 'POINT_SOURCE'),
-                  labels = c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
-    )
-  )
 
 ## Distance to restoration sites
 wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
@@ -101,9 +91,9 @@ cdat <- sachg %>%
   left_join(tnchg, by = c('stat', 'hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')) %>% 
   left_join(chchg, by = c('stat', 'hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')) %>% 
   mutate(
-    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = c('lo', 'md', 'hi')),
-    nilev = cut(nival, breaks = c(-Inf, quantile(nival, qts, na.rm = T), Inf), labels = c('lo', 'md', 'hi')),
-    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = c('lo', 'md', 'hi'))
+    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+    nilev = cut(nival, breaks = c(-Inf, quantile(nival, qts, na.rm = T), Inf), labels = lbs),
+    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
   ) %>% 
   # dplyr::select(-saval, -nival, -chval, -stat) %>% 
   mutate_if(is.character, factor) %>% 
