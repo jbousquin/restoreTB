@@ -1,3 +1,11 @@
+---
+output:
+  html_document:
+    keep_md: yes
+    code_folding: hide
+toc: no
+self_contained: no
+---
   
 # Evaluation of full model
 
