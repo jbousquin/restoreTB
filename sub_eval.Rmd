@@ -5,7 +5,7 @@ output:
 self_contained: yes
 runtime: shiny
 ---
-  
+
 # Simple model
 
 ```{r globals, echo = T, message = F, warning = F}
@@ -22,6 +22,7 @@ library(scales)
 library(shiny)
 library(sf)
 library(sp)
+library(gridExtra)
 
 data(restdat)
 data(reststat)
@@ -38,15 +39,16 @@ source('R/get_all.R')
 source('R/rnd_dat.R')
 
 # globals
-mtch <- 2
-yrdf <- 5
 resgrp <- 'top' 
 qts <- c(0.5)
 lbs <- c('lo', 'hi')
 
+# network structure
+net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+  
 # base map
-ext <- make_bbox(reststat$lon, reststat$lat, f = 0.1)
-map <- get_stamenmap(ext, zoom = 10, maptype = "toner-lite")
+ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
+map <- get_stamenmap(ext, zoom = 11, maptype = "toner-lite")
 pbase <- ggmap(map) +
   theme_bw() +
   theme(
@@ -55,94 +57,249 @@ pbase <- ggmap(map) +
   )
 ```
 
-```{r}
-numericInput("yrdf", "Choose year diff:", 5)
-numericInput("mtch", "Choose number of restration matches:", 2)
-```
-
-## Pre-1994 data
-
-```{r fig.height = 4, fig.width = 8, eval = T}
-# get sub data, restoration sites
-restdat_sub <- restdat %>% 
-  filter(date < 1994)
-reststat_sub <- reststat %>% 
-  filter(id %in% restdat_sub$id)
-
-# get conditional probability tables
-
-## Distance to restoration sites
-wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
-
-## Summarizing effects of restoration projects on salinity
-sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
-  rename(saval = cval)
-
-## Summarizing effects of restoration projects on chl
-chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
-  rename(chval = cval)
-
-# combine all using a super simple approach
-cdat_pre <- sachg %>% 
-  left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
-  mutate(
-    salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
-    chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
-  ) %>% 
-  # dplyr::select(-saval, -nival, -chval, -stat) %>% 
-  mutate_if(is.character, factor) %>% 
-  data.frame
-```
-
-
-```{r}
-cdat_pre_mod <- cdat_pre %>% 
-  select_if(is.factor) %>% 
-  na.omit %>% 
-  data.frame
-
-# create Network
-net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
+```{r, out.width = "70%", fig.align = 'center'}
 plot(net)
-
-#Creating CPTs from data
-fittedBN <- bn.fit(net, data = cdat_pre_mod)
 ```
 
-```{r, fig.height = 3, fig.width = 4}
-# get conditional probabilities of lo/md/hi chl for bef/aft of each project type
-ests <- cdat_pre_mod %>% 
-  dplyr::select(-salev) %>% 
-  mutate_if(is.factor, as.character) %>% 
-  gather('project', 'event', -chlev) %>% 
-  unique %>% 
-  mutate(est = NA)
+```{r}
+## sliders
 
-for(i in 1:nrow(ests)){
+column(width = 12, 
   
-  toest <- ests[i, ]
-  est <- paste0('cpquery(fittedBN, event = (chlev == toest$chlev), evidence = (', toest$project, ' == "', toest$event, '"))')
-  est <- eval(parse(text = est))
-  ests[i, 'est'] <- est
+  column(width = 6, 
+    
+    # wq year slice window
+    numericInput("yrdf", "Choose year diff:", 5), 
+    
+    # wq site match upper limit
+    numericInput("mtch", "Choose number of restoration matches:", 2)
+    
+  ),
   
-}
-
-# format for plot
-ests <- ests %>% 
-  mutate(event = gsub('^wtr\\_|^hab\\_', '', event)) %>% 
-  mutate(chlev = factor(chlev, levels = lbs)) %>% 
-  spread(event, est) %>% 
-  mutate(
-    chg = 100 * (aft - bef),
-    chg = round(chg, 1)
-    )
-
-ggplot(ests, aes(x = chlev, y = project, fill = chg)) +
-  geom_tile(colour = 'black') +
-  geom_text(aes(label = chg, size = abs(chg))) +
-  scale_size(guide = F) +
-  theme_bw(base_family = 'serif') +
-  scale_x_discrete('Chlorophyll', expand = c(0, 0)) + 
-  scale_y_discrete('Restoration project', expand = c(0, 0)) +
-  scale_fill_gradient2('% change', low = muted("red"), mid = "white", high = muted("blue"), midpoint = 0)
+  # year slider
+  column(width = 6, 
+    sliderInput("yrs", label = 'Select year ranges:',  
+          min = 1974, max = 2016, 
+          value = c(1974, 2016),
+          sep = '', ticks = FALSE
+        )
+  )
+  
+)
 ```
+
+```{r}
+## reactives
+
+# reactives for restoration data subsets, data
+restdat_sub <- reactive({
+  
+  out <- restdat %>% 
+    filter(date >= input$yrs[1] & date <= input$yrs[2])
+  
+  return(out)
+  
+})
+
+# reactives for restoration data subsets, station lat/lon
+reststat_sub <- reactive({
+  
+  out <- reststat %>% 
+    filter(id %in% restdat_sub()$id)
+  
+  return(out)
+  
+})
+
+# wq stats matched to rest stats
+wqmtch <- reactive({
+  
+  # reactive inputs
+  mtch <- input$mtch
+  yrdf <- input$yrdf
+  restdat_sub <- restdat_sub()
+  reststat_sub <- reststat_sub()
+  
+  ## Distance to restoration sites
+  out <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+  
+  return(out)
+  
+})
+
+# get conditional data for bn input 
+cdat <- reactive({
+  
+  # reactive inputs
+  mtch <- input$mtch
+  yrdf <- input$yrdf
+  restdat_sub <- restdat_sub()
+  wqmtch <- wqmtch()
+
+  ## Summarizing effects of restoration projects on salinity
+  sachg <- get_chg(wqdat, wqmtch, statdat, restdat_sub, wqvar = 'sal', yrdf = yrdf) %>% 
+    rename(saval = cval)
+  
+  ## Summarizing effects of restoration projects on chl
+  chchg <- get_chg(wqdat, wqmtch, statdat, restdat_sub, wqvar = 'chla', yrdf = yrdf) %>% 
+    rename(chval = cval)
+  
+  # combine all using a super simple approach
+  out <- sachg %>% 
+    left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
+    mutate(
+      salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
+      chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+    ) %>% 
+    # dplyr::select(-saval, -nival, -chval, -stat) %>% 
+    mutate_if(is.character, factor) %>% 
+    data.frame
+  
+  return(out)
+  
+})
+
+# fit simple bn model
+cdat_mod <- reactive({
+  
+  # inputs
+  cdat <- cdat()
+  
+  # format cdat for model input
+  cdat_frm <- cdat %>% 
+    select_if(is.factor) %>% 
+    na.omit %>% 
+    data.frame
+
+  # fitted mod
+  out <- bn.fit(net, data = cdat_frm)
+  
+  return(out)
+    
+})
+
+# get likelihood estimates from mod, bef/aft only (no salinity)
+ests <- reactive({
+
+  # inputs
+  cdat <- cdat() # conditional data for mod input
+  cdat_mod <- cdat_mod() # bn model
+  
+  # get all relevant combos to query in model from cdat
+  out <- cdat %>% 
+    select_if(is.factor) %>% 
+    na.omit %>% 
+    data.frame %>%
+    dplyr::select(-salev) %>%
+    mutate_if(is.factor, as.character) %>%
+    gather('project', 'event', -chlev) %>%
+    unique %>%
+    mutate(est = NA)
+
+  # iterate through scenarios to get likelihoods
+  for(i in 1:nrow(out)){
+
+    toest <- out[i, ]
+    est <- paste0('cpquery(cdat_mod, event = (chlev == "', toest$chlev, '"), evidence = (', toest$project, ' == "', toest$event, '"))')
+    est <- eval(parse(text = est))
+    out[i, 'est'] <- est
+
+  }
+
+  return(out)
+
+})
+```
+
+```{r}
+# spatial matches and % changes
+column(12, 
+      
+       column(width = 6, 
+
+          renderPlot({
+          
+            wqmtch <- wqmtch()
+            restdat_sub <- restdat_sub()
+            reststat_sub <- reststat_sub()
+            
+            # combine lat/lon for the plot
+            toplo <- wqmtch %>% 
+              left_join(wqstat, by = 'stat') %>% 
+              left_join(reststat_sub, by = 'id') %>% 
+              rename(
+                `Restoration type` = resgrp,
+                `Distance (dd)` = dist
+              )
+              
+            # restoration project grouping column
+            restall <- left_join(restdat_sub, reststat_sub, by = 'id')
+            names(restall)[names(restall) %in% resgrp] <- 'Restoration type'
+          
+            # outplot
+            p <- pbase +
+              geom_point(data = restall, aes(x = lon, y = lat, fill = `Restoration type`), size = 4, pch = 21) +
+              geom_point(data = wqstat, aes(x = lon, y = lat), size = 2) +
+              geom_segment(data = toplo, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration type`), size = 1) + 
+              scale_alpha(guide = F) + 
+              theme_bw(base_family = 'serif', base_size = 16) + 
+              theme(legend.position = 'top')
+            
+            return(p)
+            
+          }, width = 450, height = 600)
+          
+       ), 
+       
+       column(width = 6, 
+          renderPlot({
+          
+            #inputs
+            ests <- ests()
+          
+            # format for plot
+            toplo <- ests %>%
+              mutate(event = gsub('^wtr\\_|^hab\\_', '', event)) %>%
+              mutate(chlev = factor(chlev, levels = lbs)) %>%
+              spread(event, est) %>%
+              mutate(
+                chg = 100 * (aft - bef),
+                chg = round(chg, 1)
+                )
+          
+            # # heatmap
+            # toplotmp <- toplo %>% mutate(project = factor(project, levels = rev(unique(toplo$project))))
+            # p1 <- ggplot(toplotmp, aes(x = chlev, y = project, fill = chg)) +
+            #   geom_tile(colour = 'black') +
+            #   geom_text(aes(label = chg, size = abs(chg))) +
+            #   scale_size(guide = F, range = c(3, 8)) +
+            #   theme_bw(base_family = 'serif', base_size = 16) +
+            #   scale_x_discrete('Chlorophyll', expand = c(0, 0)) +
+            #   scale_y_discrete('Restoration project', expand = c(0, 0)) +
+            #   scale_fill_gradient2('% change', low = 'lightgreen', mid = "white", high = 'lightblue', midpoint = 0)
+          
+            # bars
+            p2 <- ggplot(toplo, aes(x = chlev, y = chg, group = project)) +
+              geom_bar(colour = 'black', stat = 'identity', aes(fill = chg)) +
+              theme_bw(base_family = 'serif', base_size = 16) +
+              theme(
+                strip.background = element_blank(), 
+                panel.grid = element_blank(),
+                legend.position = 'none'
+              ) +
+              geom_hline(yintercept = 0) +
+              xlab('Chlorophyll') +
+              ylab('% change') +
+              scale_fill_gradient2('% change', low = 'lightgreen', mid = "white", high = 'lightblue', midpoint = 0) +
+              facet_wrap(~ project, ncol = 1)
+              
+            return(p2)
+            # grid.arrange(p1, p2, ncol = 2)
+          
+          }, width = 450, height = 600)
+          
+          )
+)
+```
+
+
