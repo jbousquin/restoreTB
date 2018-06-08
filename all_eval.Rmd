@@ -37,10 +37,6 @@ data(allchg)
 # source R files
 source('R/get_chg.R')
 source('R/get_clo.R')
-source('R/get_cdt.R')
-source('R/get_brk.R')
-source('R/get_fin.R')
-source('R/get_all.R')
 source('R/rnd_dat.R')
 
 # base map

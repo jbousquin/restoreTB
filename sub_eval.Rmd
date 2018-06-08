@@ -32,10 +32,6 @@ data(wqstat)
 # source R files
 source('R/get_chg.R')
 source('R/get_clo.R')
-source('R/get_cdt.R')
-source('R/get_brk.R')
-source('R/get_fin.R')
-source('R/get_all.R')
 source('R/rnd_dat.R')
 
 # globals
@@ -43,9 +39,6 @@ resgrp <- 'top'
 qts <- c(0.5)
 lbs <- c('lo', 'hi')
 
-# network structure
-net <- model2network("[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]")
-  
 # base map
 ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
 map <- get_stamenmap(ext, zoom = 11, maptype = "toner-lite")
@@ -57,12 +50,31 @@ pbase <- ggmap(map) +
   )
 ```
 
-```{r, out.width = "70%", fig.align = 'center'}
-plot(net)
+```{r}
+# which model to select
+selectInput("net", label = 'Select model type:', 
+            choices = list(
+              simple = '[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]', 
+              complex = '[hab_enh][hab_est][hab_pro][non_src][pnt_src][salev|hab_enh:hab_est:hab_pro:non_src:pnt_src][nilev|salev:hab_enh:hab_est:hab_pro:non_src:pnt_src][chlev|nilev]'
+            ), selected = 'simple'
+            )
+```
+
+```{r, fig.align = 'center'}
+# bn class reactive
+net <- reactive({
+  
+  out <- model2network(input$net)
+  
+  return(out)
+  
+})
+
+renderPlot({plot(net())}, width = 450, height = 300)
 ```
 
 ```{r}
-## sliders
+## secondary sliders
 
 column(width = 12, 
   
@@ -83,6 +95,7 @@ column(width = 12,
           value = c(1974, 2016),
           sep = '', ticks = FALSE
         )
+
   )
   
 )
@@ -172,7 +185,7 @@ cdat_mod <- reactive({
     data.frame
 
   # fitted mod
-  out <- bn.fit(net, data = cdat_frm)
+  out <- bn.fit(net(), data = cdat_frm)
   
   return(out)
     
