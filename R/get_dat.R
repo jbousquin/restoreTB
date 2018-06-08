@@ -12,19 +12,19 @@
 #'
 #' @return a two element list of conditional data and matched water quality and restoration stations (from get_clo)
 get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat, mtch, yrdf, qts, lbs){
-  
+
   # get model type, top is simple, type is complex
   resgrp <- match.arg(resgrp)
  
   ## Distance to restoration sites
-  wqmtch <- get_clo(restdat_sub, reststat_sub, wqstat, resgrp = resgrp, mtch = mtch)
+  wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
   
   ## Summarizing effects of restoration projects on salinity
-  sachg <- get_chg(wqdat, wqmtch, statdat, restdat_sub, wqvar = 'sal', yrdf = yrdf) %>% 
+  sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
     rename(saval = cval)
   
   ## Summarizing effects of restoration projects on chl
-  chchg <- get_chg(wqdat, wqmtch, statdat, restdat_sub, wqvar = 'chla', yrdf = yrdf) %>% 
+  chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
     rename(chval = cval)
   
   # simple model

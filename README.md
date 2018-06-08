@@ -1,12 +1,3 @@
----
-output:
-  html_document:
-    keep_md: yes
-    toc: no
-    self_contained: no
-  pdf_document:
-    toc: yes
----
 
 # README
 
@@ -14,8 +5,6 @@ Materials for the evaluation of restoration projects using Bayes Decision Networ
 
 # Content
 
-Evaluation of complete model, restoration project types: [link](https://fawda123.github.io/restorebayes/all_eval)
-
-Evaluation of simple model, pre/post 1994: [link](https://fawda123.github.io/restorebayes/sub_eval)
+Evaluation of simple and complete models: [link](http://162.243.131.102:3838/restorebayes/all_eval.Rmd)
 
 ![](other/flow_chrts.png)
