@@ -7,12 +7,15 @@
 #' @param wqdat water quality data
 #' @param mtch numeric for number of restoration projects by type to match to water quality stations
 #' @param yrdf numeric for year difference window before/after a restoration project
-#' @param qts numeric value for quantile defining categorical groupings of water quality response
-#' @param lbs chr string for labels defining categorical groupings of water quality response
+#' @param chlspl numeric value defining categorical groupings of chl response
+#' @param salspl numeric value defining categorical groupings of sal response
 #'
 #' @return a two element list of conditional data and matched water quality and restoration stations (from get_clo)
-get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat, mtch, yrdf, qts, lbs){
-
+get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl){
+  
+  # categorical labels for splits
+  lbs <- c('lo', 'hi')
+  
   # get model type, top is simple, type is complex
   resgrp <- match.arg(resgrp)
  
@@ -34,8 +37,8 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
     out <- sachg %>% 
       left_join(chchg, by = c('stat', 'hab', 'wtr')) %>% 
       mutate(
-        salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
-        chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+        salev = cut(saval, breaks = c(-Inf, salspl, Inf), labels = lbs),
+        chlev = cut(chval, breaks = c(-Inf, chlspl, Inf), labels = lbs)
       ) %>% 
       # dplyr::select(-saval, -nival, -chval, -stat) %>% 
       mutate_if(is.character, factor) %>% 
@@ -53,9 +56,9 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
       left_join(tnchg, by = c('stat', 'hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')) %>% 
       left_join(chchg, by = c('stat', 'hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')) %>% 
       mutate(
-        salev = cut(saval, breaks = c(-Inf, quantile(saval, qts, na.rm = T), Inf), labels = lbs),
-        nilev = cut(nival, breaks = c(-Inf, quantile(nival, qts, na.rm = T), Inf), labels = lbs),
-        chlev = cut(chval, breaks = c(-Inf, quantile(chval, qts, na.rm = T), Inf), labels = lbs)
+        salev = cut(saval, breaks = c(-Inf, salspl, Inf), labels = lbs),
+        nilev = cut(nival, breaks = c(-Inf, nitspl, Inf), labels = lbs),
+        chlev = cut(chval, breaks = c(-Inf, chlspl, Inf), labels = lbs)
       ) %>% 
       # dplyr::select(-saval, -nival, -chval, -stat) %>% 
       mutate_if(is.character, factor) %>% 

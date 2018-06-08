@@ -35,10 +35,6 @@ source('R/get_clo.R')
 source('R/get_dat.R')
 source('R/get_lik.R')
 
-# globals
-qts <- c(0.5)
-lbs <- c('lo', 'hi')
-
 # base map
 ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
 map <- get_stamenmap(ext, zoom = 11, maptype = "toner-lite")
@@ -51,16 +47,101 @@ pbase <- ggmap(map) +
 ```
 
 ```{r}
-# which model to select
-selectInput("resgrp", label = 'Select model type:', 
-            choices = list(
-              simple = 'top', 
-              complex = 'type'
-            ), selected = 'simple'
-            )
+## sliders
+
+column(width = 12, 
+  
+  column(width = 6, 
+    
+    # which model to select
+    selectInput("resgrp", label = 'Select model type:', 
+                choices = list(
+                  simple = 'top', 
+                  complex = 'type'
+                ), selected = 'simple'
+              ),
+
+    # wq year slice window
+    numericInput("yrdf", "Choose year diff:", 5), 
+    
+    # wq site match upper limit
+    numericInput("mtch", "Choose number of restoration matches:", 2),
+    
+    # dynamic UI for chl thresh
+    renderUI({
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for chl
+      chlrng <- uirngs %>% 
+        filter(var == 'chla')
+
+      # chl selector
+      numericInput("chlspl", label = 'Select chl lo/hi split:',
+        min = chlrng$minv, max = chlrng$maxv,
+        value = chlrng$medv
+        )
+
+      }), 
+    
+    # dynamic UI for nit thresh
+    renderUI({
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for nit
+      nitrng <- uirngs %>% 
+        filter(var == 'tn')
+
+      # sal selector
+      numericInput("nitspl", label = 'Select nitrogen lo/hi split:',
+        min = nitrng$minv, max = nitrng$maxv,
+        value = nitrng$medv
+        )
+    
+      }), 
+    
+    # dynamic UI for sal thresh
+    renderUI({
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for sal
+      salrng <- uirngs %>% 
+        filter(var == 'sal')
+      
+      # sal selector
+      numericInput("salspl", label = 'Select sal lo/hi split:',
+        min = salrng$minv, max = salrng$maxv,
+        value = salrng$medv
+        )
+    
+      })
+    
+  ),
+  
+  column(width = 6, 
+         
+    # year slider
+    sliderInput("yrs", label = 'Select year ranges:',  
+          min = 1974, max = 2016, 
+          value = c(1974, 2016),
+          sep = '', ticks = FALSE
+        ), 
+    
+    renderPlot({plot(net())}, width = 450, height = 400)
+
+  )
+  
+)
 ```
 
-```{r, fig.align = 'center'}
+```{r}
+## reactives
+
 # bn class reactive
 net <- reactive({
   
@@ -78,39 +159,28 @@ net <- reactive({
   
 })
 
-renderPlot({plot(net())}, width = 450, height = 400)
-```
-
-```{r}
-## secondary sliders
-
-column(width = 12, 
+# chl and sal ranges from year inputs, for dynamic ui selector of thresholds
+uirngs <- reactive({
   
-  column(width = 6, 
-    
-    # wq year slice window
-    numericInput("yrdf", "Choose year diff:", 5), 
-    
-    # wq site match upper limit
-    numericInput("mtch", "Choose number of restoration matches:", 2)
-    
-  ),
+  # input years
+  yrs <- input$yrs
+   
+  # get chl, sal ranges from year inputs   
+  rngs <- wqdat %>% 
+    mutate(yr = year(datetime)) %>% 
+    filter(yr >= yrs[1] & yr <= yrs[2]) %>% 
+    select(chla, sal, tn) %>% 
+    gather('var', 'val') %>% 
+    group_by(var) %>% 
+    summarize(
+      minv = min(val, na.rm = T), 
+      medv = round(quantile(val, 0.5, na.rm = T), 2),
+      maxv = max(val, na.rm = T)
+    )
   
-  # year slider
-  column(width = 6, 
-    sliderInput("yrs", label = 'Select year ranges:',  
-          min = 1974, max = 2016, 
-          value = c(1974, 2016),
-          sep = '', ticks = FALSE
-        )
-
-  )
+  return(rngs)
   
-)
-```
-
-```{r}
-## reactives
+})
 
 # reactives for restoration data subsets, data
 restdat_sub <- reactive({
@@ -139,11 +209,14 @@ allcdat <- reactive({
   mtch <- input$mtch
   yrdf <- input$yrdf
   resgrp <- input$resgrp
+  chlspl <- input$chlspl
+  nitspl <- input$nitspl
+  salspl <- input$salspl
   restdat_sub <- restdat_sub()
   reststat_sub <- reststat_sub()
   
   # get cdat and wqmtch
-  out <- get_dat(resgrp, restdat, reststat, wqstat, wqdat, mtch, yrdf, qts, lbs)
+  out <- get_dat(resgrp, restdat, reststat, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl)
   
   return(out)
   
@@ -249,7 +322,7 @@ renderPlot({
   # format for plot
   toplo <- ests %>%
     mutate(event = gsub('^wtr\\_|^hab\\_|^hab\\_enh\\_|^hab\\_est\\_|^hab\\_pro\\_|^non\\_src\\_|^pnt\\_src\\_', '', event)) %>%
-    mutate(chlev = factor(chlev, levels = lbs)) %>%
+    mutate(chlev = factor(chlev, levels = c('lo', 'hi'))) %>%
     spread(event, est) %>%
     mutate(
       chg = 100 * (aft - bef),
