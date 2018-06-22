@@ -216,7 +216,7 @@ allcdat <- reactive({
   reststat_sub <- reststat_sub()
   
   # get cdat and wqmtch
-  out <- get_dat(resgrp, restdat, reststat, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl)
+  out <- get_dat(resgrp, restdat_sub, reststat_sub, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl)
   
   return(out)
   
