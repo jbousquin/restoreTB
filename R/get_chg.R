@@ -38,6 +38,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
             
             # get date range +/- restoration proj defined by yrdf
             dtrng <- with(dt, c(date - yrdf * 365, date + yrdf * 365))
+            # dtrng <- with(dt, c(date - 365, date + yrdf * 365))
             
             ## get values within window in dtrng, only if dates available
             ## values are summarized as mean before/after
