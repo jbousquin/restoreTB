@@ -31,8 +31,11 @@ library(gridExtra)
 library(ggrepel)
 
 # functions
-fls <- list.files('../R', full.names = T)
-sapply(fls, source)
+source('../R/funcs.R')
+source('../R/get_chg.R')
+source('../R/get_clo.R')
+source('../R/get_dat.R')
+source('../R/get_lik.R')
 
 # # spatial match for figs
 # mtch <- 10

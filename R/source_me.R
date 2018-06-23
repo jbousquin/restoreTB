@@ -1,5 +1,3 @@
-
-
 library(tidyverse)
 library(lubridate)
 library(geosphere)
@@ -32,11 +30,17 @@ salspl <- 27
 grds <- crossing(
   yrdf = 1:10, 
   mtch = 1:10, 
-  resgrp = c('type'), 
-  yrstr = c(1974), 
-  yrend = c(2017)
-  ) %>% 
-  filter(yrend > yrstr)
+  resgrp = c('top', 'type'), 
+  yrstr = c(1974, 1994), 
+  yrend = c(1994, 2017)
+  )
+
+# remove cases not to evaluate
+grds <- grds %>% 
+  filter(yrend > yrstr) %>% 
+  filter(!(resgrp == 'type' & yrstr == 1994)) %>% 
+  filter(!(resgrp == 'type' & yrend == 1994)) %>% 
+  filter(!(resgrp == 'top'& yrstr == 1974 & yrend == 2017))
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
 
@@ -108,20 +112,20 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   
 }
 
-# combin with grds for plot
-grdsres <- grds %>% 
-  mutate(res = res) %>% 
-  unnest %>% 
-  unite('yrs', yrstr, yrend, sep = '-') %>% 
-  filter(chlev == 'lo')
+# combine results with grds
+grdsres <- grds %>%
+  mutate(res = res) %>%
+  unnest
 
-ggplot(grdsres, aes(x = yrdf, y = chg, colour = mtch, group = mtch)) + 
-  # geom_line() +
-  geom_point() + 
-  stat_smooth(method = 'lm', se = F) +
-  facet_grid(salev ~ project) +
-  theme_bw() + 
-  geom_hline(yintercept = 0)
+save(grdsres, file = 'data/grdsres.RData', compress = 'xz')
+
+# ggplot(grdsres, aes(x = yrdf, y = chg, colour = mtch, group = mtch)) + 
+#   # geom_line() +
+#   geom_point() + 
+#   stat_smooth(method = 'lm', se = F) +
+#   facet_grid(salev ~ project) +
+#   theme_bw() + 
+#   geom_hline(yintercept = 0)
   
 
 
