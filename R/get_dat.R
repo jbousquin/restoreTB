@@ -7,11 +7,12 @@
 #' @param wqdat water quality data
 #' @param mtch numeric for number of restoration projects by type to match to water quality stations
 #' @param yrdf numeric for year difference window before/after a restoration project
-#' @param chlspl numeric value defining categorical groupings of chl response
-#' @param salspl numeric value defining categorical groupings of sal response
+#' @param chlspl numeric value defining categorical groupings of chl response, defaults to median of estimated groups
+#' @param nitspl numeric value defining categorical groupings of nit response, defaults to median of estimated groups
+#' @param salspl numeric value defining categorical groupings of sal response, defaults to median of estimated groups
 #'
 #' @return a two element list of conditional data and matched water quality and restoration stations (from get_clo)
-get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl){
+get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat, mtch, yrdf, chlspl = NULL, nitspl = NULL, salspl = NULL){
   
   # categorical labels for splits
   lbs <- c('lo', 'hi')
@@ -29,6 +30,10 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
   ## Summarizing effects of restoration projects on chl
   chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
     rename(chval = cval)
+  
+  # get salinity, chlorophyll nominal split if not provided
+  if(is.null(salspl)) salspl <- quantile(sachg$saval, 0.5, na.rm = T)
+  if(is.null(chlspl)) chlspl <- quantile(chchg$chval, 0.5, na.rm = T)
   
   # simple model
   if(resgrp == 'top'){
@@ -50,6 +55,9 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
     ## Summarizing effects of restoration projects on tn
     tnchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'tn', yrdf = yrdf) %>% 
       rename(nival = cval)
+    
+    # get nitrogen nominal split if not provided
+    if(is.null(nitspl)) nitspl <- quantile(tnchg$nival, 0.5, na.rm = T)
     
     # combine all using a super simple approach
     out <- sachg %>% 

@@ -28,6 +28,7 @@ data(restdat)
 data(reststat)
 data(wqdat)
 data(wqstat)
+data(map)
 
 # source R files
 source('R/get_chg.R')
@@ -36,8 +37,8 @@ source('R/get_dat.R')
 source('R/get_lik.R')
 
 # base map
-ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
-map <- get_stamenmap(ext, zoom = 11, maptype = "toner-lite")
+# ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
+# get_stamenmap(ext, zoom = 11, maptype = "toner-lite", where = getwd())
 pbase <- ggmap(map) +
   theme_bw() +
   theme(
@@ -51,8 +52,19 @@ pbase <- ggmap(map) +
 
 column(width = 12, 
   
-  column(width = 6, 
+  column(width = 6,
     
+    # action button 
+    h5('Hit once on startup, once for changing inputs:'),
+    actionButton("apply", "Apply changes"),
+    
+    # model plot
+    renderPlot({plot(net())}, width = 450, height = 400)
+
+  ), 
+  
+  column(width = 6, 
+
     # which model to select
     selectInput("resgrp", label = 'Select model type:', 
                 choices = list(
@@ -60,71 +72,13 @@ column(width = 12,
                   complex = 'type'
                 ), selected = 'simple'
               ),
-
+    
     # wq year slice window
     numericInput("yrdf", "Choose year diff:", 5), 
     
     # wq site match upper limit
     numericInput("mtch", "Choose number of restoration matches:", 2),
     
-    # dynamic UI for chl thresh
-    renderUI({
-      
-      # ui rng inputs
-      uirngs <- uirngs()
-      
-      # filter for chl
-      chlrng <- uirngs %>% 
-        filter(var == 'chla')
-
-      # chl selector
-      numericInput("chlspl", label = 'Select chl lo/hi split:',
-        min = chlrng$minv, max = chlrng$maxv,
-        value = chlrng$medv
-        )
-
-      }), 
-    
-    # dynamic UI for nit thresh
-    renderUI({
-      
-      # ui rng inputs
-      uirngs <- uirngs()
-      
-      # filter for nit
-      nitrng <- uirngs %>% 
-        filter(var == 'tn')
-
-      # sal selector
-      numericInput("nitspl", label = 'Select nitrogen lo/hi split:',
-        min = nitrng$minv, max = nitrng$maxv,
-        value = nitrng$medv
-        )
-    
-      }), 
-    
-    # dynamic UI for sal thresh
-    renderUI({
-      
-      # ui rng inputs
-      uirngs <- uirngs()
-      
-      # filter for sal
-      salrng <- uirngs %>% 
-        filter(var == 'sal')
-      
-      # sal selector
-      numericInput("salspl", label = 'Select sal lo/hi split:',
-        min = salrng$minv, max = salrng$maxv,
-        value = salrng$medv
-        )
-    
-      })
-    
-  ),
-  
-  column(width = 6, 
-         
     # year slider
     sliderInput("yrs", label = 'Select year ranges:',  
           min = 1974, max = 2016, 
@@ -132,8 +86,87 @@ column(width = 12,
           sep = '', ticks = FALSE
         ), 
     
-    renderPlot({plot(net())}, width = 450, height = 400)
+    # dynamic UI for chl thresh
+    renderUI({
+      
+      req(uirngs())
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for chl
+      chlrng <- uirngs %>% 
+        filter(var == 'chval')
+      
+      # checker for default median, otherwise selected as input
+      if (is.null(input$chlspl))
+        valin <- chlrng$medv
+      else
+        valin <- input$chlspl
 
+      # chl selector
+      sliderInput("chlspl", label = 'Select chl lo/hi split:',
+        min = chlrng$minv, max = chlrng$maxv,
+        value = valin,
+        sep = '', ticks = FALSE
+        )
+
+      }), 
+    
+    # dynamic UI for nit thresh
+    renderUI({
+      
+      req('nival' %in% uirngs()$var)
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for nit
+      nitrng <- uirngs %>% 
+        filter(var == 'nival')
+  
+      # checker for default median, otherwise selected as input
+      if (is.null(input$nitspl))
+        valin <- nitrng$medv
+      else
+        valin <- input$nitspl
+      
+      # nit selector
+      sliderInput("nitspl", label = 'Select nitrogen lo/hi split:',
+        min = nitrng$minv, max = nitrng$maxv,
+        value = valin,
+        sep = '', ticks = FALSE
+        )
+    
+      }), 
+    
+    # dynamic UI for sal thresh
+    renderUI({
+      
+      req(uirngs())
+      
+      # ui rng inputs
+      uirngs <- uirngs()
+      
+      # filter for sal
+      salrng <- uirngs %>% 
+        filter(var == 'saval')
+      
+      # checker for default median, otherwise selected as input
+      if (is.null(input$salspl))
+        valin <- salrng$medv
+      else
+        valin <- input$salspl
+      
+      # sal selector
+      sliderInput("salspl", label = 'Select sal lo/hi split:',
+        min = salrng$minv, max = salrng$maxv,
+        value = valin,
+        sep = '', ticks = FALSE
+        )
+    
+      })
+    
   )
   
 )
@@ -143,7 +176,7 @@ column(width = 12,
 ## reactives
 
 # bn class reactive
-net <- reactive({
+net <- eventReactive(input$apply, { 
   
   # get net structure from model type
   resgrp <- input$resgrp
@@ -159,23 +192,23 @@ net <- reactive({
   
 })
 
-# chl and sal ranges from year inputs, for dynamic ui selector of thresholds
-uirngs <- reactive({
+# nominal category ranges from inputs, for dynamic ui selector of thresholds
+uirngs <- eventReactive(input$apply, { 
   
-  # input years
-  yrs <- input$yrs
-   
-  # get chl, sal ranges from year inputs   
-  rngs <- wqdat %>% 
-    mutate(yr = year(datetime)) %>% 
-    filter(yr >= yrs[1] & yr <= yrs[2]) %>% 
-    select(chla, sal, tn) %>% 
+  req(cdat())
+  
+  # inputs
+  cdat <- cdat()
+  
+  # get ranges from inputs   
+  rngs <- cdat %>% 
+    select(matches('^saval$|^chval$|^nival$')) %>% 
     gather('var', 'val') %>% 
     group_by(var) %>% 
     summarize(
-      minv = min(val, na.rm = T), 
+      minv = round(min(val, na.rm = T), 2),
       medv = round(quantile(val, 0.5, na.rm = T), 2),
-      maxv = max(val, na.rm = T)
+      maxv = round(max(val, na.rm = T), 2)
     )
   
   return(rngs)
@@ -183,7 +216,7 @@ uirngs <- reactive({
 })
 
 # reactives for restoration data subsets, data
-restdat_sub <- reactive({
+restdat_sub <- eventReactive(input$apply, { 
   
   out <- restdat %>% 
     filter(date >= input$yrs[1] & date <= input$yrs[2])
@@ -193,7 +226,7 @@ restdat_sub <- reactive({
 })
 
 # reactives for restoration data subsets, station lat/lon
-reststat_sub <- reactive({
+reststat_sub <- eventReactive(input$apply, { 
   
   out <- reststat %>% 
     filter(id %in% restdat_sub()$id)
@@ -203,7 +236,7 @@ reststat_sub <- reactive({
 })
 
 # wq stats matched to rest stats
-allcdat <- reactive({
+allcdat <- eventReactive(input$apply, { 
   
   # reactive inputs
   mtch <- input$mtch
@@ -214,30 +247,30 @@ allcdat <- reactive({
   salspl <- input$salspl
   restdat_sub <- restdat_sub()
   reststat_sub <- reststat_sub()
-  
+
   # get cdat and wqmtch
   out <- get_dat(resgrp, restdat_sub, reststat_sub, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl)
-  
+
   return(out)
   
 })
 
 # get conditional data for bn input
-cdat <- reactive({
+cdat <- eventReactive(input$apply, { 
 
   allcdat()$cdat
 
 })
 
 # get wqmtch for map
-wqmtch <- reactive({
+wqmtch <- eventReactive(input$apply, { 
 
   allcdat()$wqmtch
 
 })
 
 # fit simple bn model
-cdat_mod <- reactive({
+cdat_mod <- eventReactive(input$apply, {
 
   # inputs
   cdat <- cdat()
@@ -256,7 +289,7 @@ cdat_mod <- reactive({
 })
 
 # get likelihood estimates from mod, bef/aft only (no salinity)
-ests <- reactive({
+ests <- eventReactive(input$apply, {
 
   # inputs
   cdat <- cdat() # conditional data for mod input
@@ -275,8 +308,7 @@ ests <- reactive({
 ## Spatial matches
 
 ```{r}
-
-renderPlot({
+mapplo <- eventReactive(input$apply, {
 
   # reactives
   resgrp <- input$resgrp
@@ -307,14 +339,16 @@ renderPlot({
 
   return(p)
 
-}, width = 550, height = 650)
+})
+
+renderPlot({mapplo()}, width = 550, height = 650)
 
 ```
 
 ## Chl response
 
 ```{r}
-renderPlot({
+chlplo <- eventReactive(input$apply, {
 
   #inputs
   ests <- ests()
@@ -322,7 +356,10 @@ renderPlot({
   # format for plot
   toplo <- ests %>%
     mutate(event = gsub('^wtr\\_|^hab\\_|^hab\\_enh\\_|^hab\\_est\\_|^hab\\_pro\\_|^non\\_src\\_|^pnt\\_src\\_', '', event)) %>%
-    mutate(chlev = factor(chlev, levels = c('lo', 'hi'))) %>%
+    mutate(
+      chlev = factor(chlev, levels = c('lo', 'hi')),
+      salev = factor(salev, levels = c('lo', 'hi'), labels = c('Salinity lo', 'Salinity hi'))
+      ) %>%
     spread(event, est) %>%
     mutate(
       chg = 100 * (aft - bef),
@@ -342,11 +379,13 @@ renderPlot({
     xlab('Chlorophyll') +
     ylab('% change') +
     scale_fill_gradient2('% change', low = 'lightgreen', mid = "white", high = 'lightblue', midpoint = 0) +
-    facet_wrap(~ project, ncol = 1)
+    facet_grid(salev ~ project)
 
   return(p)
   
-}, width = 450, height = 600)
+})
+
+renderPlot({chlplo()}, width = 600, height = 600)
 
 ```
 
