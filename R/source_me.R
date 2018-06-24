@@ -21,11 +21,6 @@ cl<-makeCluster(ncores)
 registerDoParallel(cl)
 strt<-Sys.time()
 
-# globals
-chlspl <- 8
-nitspl <- 0.5
-salspl <- 27   
-
 # eval grid
 grds <- crossing(
   yrdf = 1:10, 
@@ -50,6 +45,11 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   source('R/get_dat.R')
   source('R/get_lik.R')
 
+  # globals
+  chlspl <- 8
+  nitspl <- 0.5
+  salspl <- 27   
+  
   # log
   sink('log.txt')
   cat(i, 'of', nrow(grds), '\n')
@@ -112,21 +112,14 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   
 }
 
-# combine results with grds
+# combine results with grds, remove scenarios that returned NA
 grdsres <- grds %>%
-  mutate(res = res) %>%
+  mutate(
+    res = res,
+    resgrp = factor(resgrp, levels = c('top', 'type'), labels = c('simple', 'complex'))
+    ) %>%
+  unite('yrs', yrstr, yrend, sep = '-') %>% 
+  filter(map_lgl(res, ~ !is.logical(.x))) %>% 
   unnest
 
 save(grdsres, file = 'data/grdsres.RData', compress = 'xz')
-
-# ggplot(grdsres, aes(x = yrdf, y = chg, colour = mtch, group = mtch)) + 
-#   # geom_line() +
-#   geom_point() + 
-#   stat_smooth(method = 'lm', se = F) +
-#   facet_grid(salev ~ project) +
-#   theme_bw() + 
-#   geom_hline(yintercept = 0)
-  
-
-
-

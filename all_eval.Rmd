@@ -6,7 +6,7 @@ self_contained: yes
 runtime: shiny
 ---
 
-# Bayesian network tool
+# Bayesian network tool {.tabset}
 
 ```{r globals, echo = T, message = F, warning = F}
 knitr::opts_chunk$set(message = F, warning = F)
@@ -29,6 +29,7 @@ data(reststat)
 data(wqdat)
 data(wqstat)
 data(map)
+data(grdsres)
 
 # source R files
 source('R/get_chg.R')
@@ -47,7 +48,9 @@ pbase <- ggmap(map) +
   )
 ```
 
-```{r}
+## Interactive {.tabset}
+
+```{r sliders}
 ## sliders
 
 column(width = 12, 
@@ -172,7 +175,7 @@ column(width = 12,
 )
 ```
 
-```{r}
+```{r reactives}
 ## reactives
 
 # bn class reactive
@@ -303,11 +306,10 @@ ests <- eventReactive(input$apply, {
 })
 ```
 
-# {.tabset}
 
-## Spatial matches
+### Spatial matches
 
-```{r}
+```{r mapplo}
 mapplo <- eventReactive(input$apply, {
 
   # reactives
@@ -345,9 +347,9 @@ renderPlot({mapplo()}, width = 550, height = 650)
 
 ```
 
-## Chl response
+### Chl response
 
-```{r}
+```{r chlplo}
 chlplo <- eventReactive(input$apply, {
 
   #inputs
@@ -389,4 +391,133 @@ renderPlot({chlplo()}, width = 600, height = 600)
 
 ```
 
+## Static
+
+```{r sliders2}
+
+column(width = 12, 
+       
+  # select model type
+  column(width = 6, 
+    
+    # select model type
+    selectInput("resgrp2", label = 'Select model type:', choices = c('simple', 'complex'), selected = 'simple'),
+    
+    # select first mtch    
+    renderUI({
+      
+      # inputs
+      resgrp2 <- input$resgrp2
+      yrgrp <- input$yrgrp
+      
+      # get yrs from model type selection
+      mtch <- grdsres %>% 
+        filter(resgrp == resgrp2) %>% 
+        filter(yrs %in% yrgrp) %>% 
+        pull(mtch) %>% 
+        unique
+    
+      selectInput("mtch1", label = 'Select number of restoration matches:', choices = mtch, selected = max(mtch))
+      
+    })
+    
+  ),
+  
+  column(width = 6, 
+         
+    # select year group     
+    renderUI({
+      
+      # inputs
+      resgrp2 <- input$resgrp2
+      
+      # get yrs from model type selection
+      yrs <- grdsres %>% 
+        filter(resgrp == resgrp2) %>% 
+        pull(yrs) %>% 
+        unique
+      
+      selectInput("yrgrp", label = 'Select year group:', choices = yrs)
+      
+    })#,
+    
+    # # select second mtch    
+    # renderUI({
+    #   
+    #   # inputs
+    #   resgrp2 <- input$resgrp2
+    #   yrgrp <- input$yrgrp
+    #   
+    #   # get yrs from model type selection
+    #   mtch <- grdsres %>% 
+    #     filter(resgrp == resgrp2) %>% 
+    #     filter(yrs %in% yrgrp) %>% 
+    #     pull(mtch) %>% 
+    #     unique
+    # 
+    #   selectInput("mtch2", label = 'Select second match:', choices = mtch, selected = max(mtch))
+    #   
+    # })
+    
+  )
+  
+)
+  
+```
+
+```{r reactives2}
+# plot data
+plosta <- reactive({
+  
+  req(input$mtch1)
+  
+  # inputs
+  resgrp2 <- input$resgrp2
+  yrgrp <- input$yrgrp
+  mtch1 <- input$mtch1
+  # mtch2 <- input$mtch2
+
+  # filter data to plot
+  plosta <- grdsres %>% 
+    filter(resgrp == resgrp2) %>% 
+    filter(yrs == yrgrp) %>% 
+    filter(mtch %in% as.numeric(mtch1)) %>% 
+    mutate(
+      salev = factor(salev, levels = c('lo', 'hi'), labels = c('Sal lo', 'Sal hi')),
+      chlev = factor(chlev, levels = c('lo', 'hi'), labels = c('Chl lo', 'Chl hi'))
+    )
+  
+  return(plosta)
+  
+})
+```
+
+Category splits for chlorophyll fixed at 8 ug/L, nitrogen at 0.5 mg/L, salinity at 27 psu.
+
+```{r plosta}
+renderPlot({
+  
+  # input
+  plosta <- plosta()
+
+  p <- ggplot(plosta, aes(x = yrdf, y = chg, group = salev, colour = salev)) +
+    geom_line() +
+    geom_point(size = 3) +
+    # stat_smooth(method = 'lm', se = F) +
+    facet_grid(chlev ~ project) +
+    theme_bw(base_size = 16) +
+    theme(
+      strip.background = element_blank(), 
+      legend.position = 'top'
+    ) + 
+    scale_colour_discrete("Salinity zone") +
+    scale_x_continuous("Year difference") +
+    scale_y_continuous("% Change after/before") +
+    geom_hline(yintercept = 0)
+  
+  return(p)
+    
+}, height = 400, width = 800)
+
+```
 
