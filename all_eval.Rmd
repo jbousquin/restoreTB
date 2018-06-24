@@ -379,7 +379,7 @@ chlplo <- eventReactive(input$apply, {
     ) +
     geom_hline(yintercept = 0) +
     xlab('Chlorophyll') +
-    ylab('% change') +
+    ylab('% Change after - before') +
     scale_fill_gradient2('% change', low = 'lightgreen', mid = "white", high = 'lightblue', midpoint = 0) +
     facet_grid(salev ~ project)
 
@@ -417,7 +417,7 @@ column(width = 12,
         pull(mtch) %>% 
         unique
     
-      selectInput("mtch1", label = 'Select first number of restoration matches:', choices = mtch, selected = max(mtch))
+      selectInput("mtch1", label = 'First number of restoration matches:', choices = mtch, selected = max(mtch))
       
     })
     
@@ -455,7 +455,7 @@ column(width = 12,
         pull(mtch) %>%
         unique
 
-      selectInput("mtch2", label = 'Select second number of restoration matches:', choices = mtch, selected = max(mtch))
+      selectInput("mtch2", label = 'Second number of restoration matches:', choices = mtch, selected = max(mtch))
 
     })
     
@@ -513,7 +513,7 @@ renderPlot({
     scale_colour_discrete("Chlorophyll zone") +
     scale_linetype_discrete('Number of restoration site matches') + 
     scale_x_continuous("Year difference") +
-    scale_y_continuous("% Change after/before") +
+    scale_y_continuous("% Change after - before") +
     geom_hline(yintercept = 0)
   
   return(p)
