@@ -500,17 +500,17 @@ renderPlot({
   # input
   plosta <- plosta()
 
-  p <- ggplot(plosta, aes(x = yrdf, y = chg, group = salev, colour = salev)) +
+  p <- ggplot(plosta, aes(x = yrdf, y = chg, group = chlev, colour = chlev)) +
     geom_line() +
     geom_point(size = 3) +
     # stat_smooth(method = 'lm', se = F) +
-    facet_grid(chlev ~ project) +
+    facet_grid(salev ~ project) +
     theme_bw(base_size = 16) +
     theme(
       strip.background = element_blank(), 
       legend.position = 'top'
     ) + 
-    scale_colour_discrete("Salinity zone") +
+    scale_colour_discrete("Chlorophyll zone") +
     scale_x_continuous("Year difference") +
     scale_y_continuous("% Change after/before") +
     geom_hline(yintercept = 0)
