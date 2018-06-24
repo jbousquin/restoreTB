@@ -417,7 +417,7 @@ column(width = 12,
         pull(mtch) %>% 
         unique
     
-      selectInput("mtch1", label = 'Select number of restoration matches:', choices = mtch, selected = max(mtch))
+      selectInput("mtch1", label = 'Select first number of restoration matches:', choices = mtch, selected = max(mtch))
       
     })
     
@@ -439,25 +439,25 @@ column(width = 12,
       
       selectInput("yrgrp", label = 'Select year group:', choices = yrs)
       
-    })#,
+    }),
     
-    # # select second mtch    
-    # renderUI({
-    #   
-    #   # inputs
-    #   resgrp2 <- input$resgrp2
-    #   yrgrp <- input$yrgrp
-    #   
-    #   # get yrs from model type selection
-    #   mtch <- grdsres %>% 
-    #     filter(resgrp == resgrp2) %>% 
-    #     filter(yrs %in% yrgrp) %>% 
-    #     pull(mtch) %>% 
-    #     unique
-    # 
-    #   selectInput("mtch2", label = 'Select second match:', choices = mtch, selected = max(mtch))
-    #   
-    # })
+    # select second mtch
+    renderUI({
+
+      # inputs
+      resgrp2 <- input$resgrp2
+      yrgrp <- input$yrgrp
+
+      # get yrs from model type selection
+      mtch <- grdsres %>%
+        filter(resgrp == resgrp2) %>%
+        filter(yrs %in% yrgrp) %>%
+        pull(mtch) %>%
+        unique
+
+      selectInput("mtch2", label = 'Select second number of restoration matches:', choices = mtch, selected = max(mtch))
+
+    })
     
   )
   
@@ -475,13 +475,13 @@ plosta <- reactive({
   resgrp2 <- input$resgrp2
   yrgrp <- input$yrgrp
   mtch1 <- input$mtch1
-  # mtch2 <- input$mtch2
+  mtch2 <- input$mtch2
 
   # filter data to plot
   plosta <- grdsres %>% 
     filter(resgrp == resgrp2) %>% 
     filter(yrs == yrgrp) %>% 
-    filter(mtch %in% as.numeric(mtch1)) %>% 
+    filter(mtch %in% as.numeric(c(mtch1, mtch2))) %>% 
     mutate(
       salev = factor(salev, levels = c('lo', 'hi'), labels = c('Sal lo', 'Sal hi')),
       chlev = factor(chlev, levels = c('lo', 'hi'), labels = c('Chl lo', 'Chl hi'))
@@ -500,8 +500,8 @@ renderPlot({
   # input
   plosta <- plosta()
 
-  p <- ggplot(plosta, aes(x = yrdf, y = chg, group = chlev, colour = chlev)) +
-    geom_line() +
+  p <- ggplot(plosta, aes(x = yrdf, y = chg, colour = chlev)) +
+    geom_line(aes(linetype = factor(mtch))) +
     geom_point(size = 3) +
     # stat_smooth(method = 'lm', se = F) +
     facet_grid(salev ~ project) +
@@ -511,13 +511,14 @@ renderPlot({
       legend.position = 'top'
     ) + 
     scale_colour_discrete("Chlorophyll zone") +
+    scale_linetype_discrete('Number of restoration site matches') + 
     scale_x_continuous("Year difference") +
     scale_y_continuous("% Change after/before") +
     geom_hline(yintercept = 0)
   
   return(p)
     
-}, height = 400, width = 800)
+}, height = 500, width = 800)
 
 ```
 
