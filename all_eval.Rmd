@@ -401,7 +401,7 @@ column(width = 12,
   column(width = 6, 
     
     # select model type
-    selectInput("resgrp2", label = 'Select model type:', choices = c('complex'), selected = 'complex'),
+    selectInput("resgrp2", label = 'Select model type:', choices = c('simple', 'complex'), selected = 'simple'),
     
     # select first mtch    
     renderUI({
@@ -501,9 +501,9 @@ renderPlot({
   plosta <- plosta()
 
   p <- ggplot(plosta, aes(x = yrdf, y = chg, colour = chlev)) +
-    geom_line(aes(linetype = factor(mtch))) +
-    geom_point(size = 3) +
-    # stat_smooth(method = 'lm', se = F, aes(linetype = factor(mtch))) +
+    # geom_line(aes(linetype = factor(mtch))) +
+    geom_point(size = 3, aes(shape = factor(mtch))) +
+    stat_smooth(method = 'lm', se = F, aes(linetype = factor(mtch))) +
     facet_grid(salev ~ project) +
     theme_bw(base_size = 16) +
     theme(

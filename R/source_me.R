@@ -34,7 +34,6 @@ grds <- crossing(
 # remove cases not to evaluate
 grds <- grds %>% 
   filter(yrend > yrstr) %>% 
-  filter(timedf < 15) %>% 
   select(-timedf) %>% 
   filter(!(resgrp == 'type' & yrstr < 1993)) #v%>%
   # filter(!(resgrp == 'top' & yrstr > 1993))
