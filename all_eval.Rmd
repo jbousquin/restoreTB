@@ -466,8 +466,8 @@ column(width = 12,
 ```
 
 ```{r reactives2}
-# plot data
-plosta <- reactive({
+# plot data matches
+plostamtc <- reactive({
   
   req(input$mtch1)
   
@@ -490,19 +490,44 @@ plosta <- reactive({
   return(plosta)
   
 })
+
+# plot data yrdf
+plostatim <- reactive({
+  
+  req(input$yrdf1)
+  
+  # inputs
+  resgrp2 <- input$resgrp2
+  yrgrp <- input$yrgrp
+  yrdf1 <- input$yrdf1
+  yrdf2 <- input$yrdf2
+
+  # filter data to plot
+  plosta <- grdsres %>% 
+    filter(resgrp == resgrp2) %>% 
+    filter(yrs == yrgrp) %>% 
+    filter(yrdf %in% as.numeric(c(yrdf1, yrdf2))) %>% 
+    mutate(
+      salev = factor(salev, levels = c('lo', 'hi'), labels = c('Sal lo', 'Sal hi')),
+      chlev = factor(chlev, levels = c('lo', 'hi'), labels = c('Chl lo', 'Chl hi'))
+    )
+  
+  return(plosta)
+  
+})
 ```
 
-Category splits for chlorophyll fixed at 8 ug/L, nitrogen at 0.5 mg/L, salinity at 27 psu.
+Category splits for chlorophyll fixed at 11 ug/L, nitrogen at 0.5 mg/L, salinity at 27 psu.
 
-```{r plosta}
+```{r plostamtc}
 renderPlot({
   
   # input
-  plosta <- plosta()
+  plostamtc <- plostamtc()
 
-  p <- ggplot(plosta, aes(x = yrdf, y = chg, colour = chlev)) +
+  p <- ggplot(plostamtc, aes(x = yrdf, y = chg, colour = chlev)) +
     # geom_line(aes(linetype = factor(mtch))) +
-    geom_point(size = 3, aes(shape = factor(mtch))) +
+    geom_point(size = 4, aes(shape = factor(mtch)), alpha = 0.7) +
     stat_smooth(method = 'lm', se = F, aes(linetype = factor(mtch))) +
     facet_grid(salev ~ project) +
     theme_bw(base_size = 16) +
@@ -512,9 +537,11 @@ renderPlot({
     ) + 
     scale_colour_discrete("Chlorophyll zone") +
     scale_linetype_discrete('Number of restoration site matches') + 
+    scale_shape_manual('Number of restoration site matches', values = c(16, 17)) + 
     scale_x_continuous("Year difference") +
     scale_y_continuous("% Change after - before") +
-    geom_hline(yintercept = 0)
+    geom_hline(yintercept = 0) +
+    ggtitle('Results by time difference')
   
   return(p)
     
@@ -522,3 +549,85 @@ renderPlot({
 
 ```
 
+```{r sliders3}
+
+column(width = 12, 
+       
+  # select model type
+  column(width = 6, 
+    
+    # select first yrdf
+    renderUI({
+
+      # inputs
+      resgrp2 <- input$resgrp2
+      yrgrp <- input$yrgrp
+
+      # get yrdf from model type selection
+      yrdf <- grdsres %>%
+        filter(resgrp == resgrp2) %>%
+        filter(yrs %in% yrgrp) %>%
+        pull(yrdf) %>%
+        unique
+
+      selectInput("yrdf1", label = 'First number of year differences:', choices = yrdf, selected = max(yrdf))
+
+    })
+    
+  ),
+  
+  column(width = 6, 
+    
+    # select second yrdf
+    renderUI({
+
+      # inputs
+      resgrp2 <- input$resgrp2
+      yrgrp <- input$yrgrp
+
+      # get yrdf from model type selection
+      yrdf <- grdsres %>%
+        filter(resgrp == resgrp2) %>%
+        filter(yrs %in% yrgrp) %>%
+        pull(yrdf) %>%
+        unique
+
+      selectInput("yrdf2", label = 'Second number of year differences:', choices = yrdf, selected = max(yrdf))
+
+    })
+    
+    
+  )
+  
+)
+```
+
+```{r plostatim}
+renderPlot({
+  
+  # input
+  plostatim <- plostatim()
+
+  p <- ggplot(plostatim, aes(x = mtch, y = chg, colour = chlev)) +
+    # geom_line(aes(linetype = factor(yrdf))) +
+    geom_point(size = 4, aes(shape = factor(yrdf)), alpha = 0.7) +
+    stat_smooth(method = 'lm', se = F, aes(linetype = factor(yrdf))) +
+    facet_grid(salev ~ project) +
+    theme_bw(base_size = 16) +
+    theme(
+      strip.background = element_blank(), 
+      legend.position = 'top'
+    ) + 
+    scale_colour_discrete("Chlorophyll zone") +
+    scale_linetype_discrete('Time differences') + 
+    scale_shape_manual('Time differences', values = c(16, 17)) + 
+    scale_x_continuous("Number of site matches") +
+    scale_y_continuous("% Change after - before") +
+    geom_hline(yintercept = 0) +
+    ggtitle('Results by site match differences')
+  
+  return(p)
+    
+}, height = 500, width = 800)
+
+```
