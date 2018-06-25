@@ -885,3 +885,8 @@ USEPA_GPRA_2008-2017,OSS_Syn_0883,McKay Bay South Oyster Reef Creation and Enhan
 USEPA_GPRA_2008-2017,OSS_Syn_0884,Palmetto Estuary Phase 2A,Manatee River,SWFWMD,Habitat_Establishment,Mangroves,2017,,27.514,-82.564,0.32,"$99,498.00 ",
 USEPA_GPRA_2008-2017,OSS_Syn_0885,Pam Callahan Nature Preserve,Old Tampa Bay,Hillsborough County,Habitat_Enhancement,Exotic_Control,2017,,27.981,-82.566,20,"$20,784.00 ",
 USEPA_GPRA_2008-2017,OSS_Syn_0886,Wolf Branch Nature Preserve,Middle Tampa Bay,Hillsborough County,Habitat_Enhancement,Exotic_Control,2017,,27.747,-82.437,78,"$18,564.00 ",
+TBEP_LEGACY,OSS_Syn_0887,Howard F. Curren Advanced Wastewater Treatment Upgrades,Hillsborough Bay,City of Tampa,Point_Source,PS_Treatment,1979,,27.911389,-82.440833,,,
+TBEP_LEGACY,OSS_Syn_0888,Albert Whitted WWTP Upgrades,Middle Tampa Bay,City of St. Petersburg,Point_Source,Increase_Reuse,1987,,27.762881,-82.623994,,,
+TBEP_LEGACY,OSS_Syn_0889,Northwest Treatment Plant Upgrades,Boca Ciega Bay,City of St. Petersburg,Point_Source,Increase_Reuse,1983,,27.794827,-82.741778,,,
+TBEP_LEGACY,OSS_Syn_0890,Southwest Treatment Plant Upgrades,Lower Tampa Bay,City of St. Petersburg,Point_Source,Increase_Reuse,1983,,27.716557,-82.681502,,,
+TBEP_LEGACY,OSS_Syn_0891,Northeast Treatment Plant Upgrades,Middle Tampa Bay,City of St. Petersburg,Point_Source,Increase_Reuse,1983,,27.825109,-82.614223,,,
