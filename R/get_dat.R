@@ -30,7 +30,7 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
   ## Summarizing effects of restoration projects on chl
   chchg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'chla', yrdf = yrdf) %>% 
     rename(chval = cval)
-  
+
   # get salinity, chlorophyll nominal split if not provided
   if(is.null(salspl)) salspl <- quantile(sachg$saval, 0.5, na.rm = T)
   if(is.null(chlspl)) chlspl <- quantile(chchg$chval, 0.5, na.rm = T)

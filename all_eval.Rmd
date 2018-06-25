@@ -503,7 +503,7 @@ renderPlot({
   p <- ggplot(plosta, aes(x = yrdf, y = chg, colour = chlev)) +
     geom_line(aes(linetype = factor(mtch))) +
     geom_point(size = 3) +
-    # stat_smooth(method = 'lm', se = F) +
+    # stat_smooth(method = 'lm', se = F, aes(linetype = factor(mtch))) +
     facet_grid(salev ~ project) +
     theme_bw(base_size = 16) +
     theme(

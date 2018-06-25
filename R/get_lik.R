@@ -7,7 +7,7 @@
 get_lik <- function(cdat, cdat_mod, bysal = T){
 
   if(bysal){
-    
+
     # get all relevant combos to query in model from cdat, separate for each salnity level
     out <- cdat %>%
       select_if(is.factor) %>%

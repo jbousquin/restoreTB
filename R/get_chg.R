@@ -29,7 +29,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
         nest %>%
         mutate(
           wqchg = map(data, function(dt){
-            
+
             # summarize before/after wq data based on restoration date
             
             # filter wq data by stat, get date bounds
@@ -109,14 +109,14 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     nest %>% 
     mutate(
       cmb = map(data, function(x){
-        
+ 
         # average each combo for the station
         out <- apply(tosel, 1, function(sel){
           
           sel <- as.character(sel)
           sub <- x[x$resgrp %in% sel, ] %>% 
             .$cval %>% 
-            mean
+            mean(na.rm = T)
           
           c(sel, sub)
           
