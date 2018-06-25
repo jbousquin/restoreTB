@@ -25,7 +25,7 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = 1:10, 
   mtch = 1:10, 
-  resgrp = c('type'), 
+  resgrp = c('type', 'top'), 
   yrstr = c(1974, 1984, 1994, 2004, 2017), 
   yrend = c(1974, 1984, 1994, 2004, 2017)
   ) %>% 
@@ -35,10 +35,9 @@ grds <- crossing(
 grds <- grds %>% 
   filter(yrend > yrstr) %>% 
   filter(timedf < 15) %>% 
-  select(-timedf)
-  # filter(!(resgrp == 'type' & yrstr == 1994)) %>% 
-  # filter(!(resgrp == 'type' & yrend == 1994)) %>% 
-  # filter(!(resgrp == 'top'& yrstr == 1974 & yrend == 2017))
+  select(-timedf) %>% 
+  filter(!(resgrp == 'type' & yrstr < 1993)) #v%>%
+  # filter(!(resgrp == 'top' & yrstr > 1993))
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
 

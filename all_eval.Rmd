@@ -401,7 +401,7 @@ column(width = 12,
   column(width = 6, 
     
     # select model type
-    selectInput("resgrp2", label = 'Select model type:', choices = c('simple', 'complex'), selected = 'simple'),
+    selectInput("resgrp2", label = 'Select model type:', choices = c('complex'), selected = 'complex'),
     
     # select first mtch    
     renderUI({
