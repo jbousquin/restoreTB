@@ -114,7 +114,7 @@ yragg <- tab %>%
   summarise(
     minv = min(val, na.rm = T),
     medv = median(val, na.rm = T), 
-    maxv = median(val, na.rm = T)
+    maxv = max(val, na.rm = T)
   ) %>% 
   rename(
     grpagg = yrs
@@ -127,7 +127,7 @@ moagg <- tab %>%
   summarise(
     minv = min(val, na.rm = T),
     medv = median(val, na.rm = T), 
-    maxv = median(val, na.rm = T)
+    maxv = max(val, na.rm = T)
   ) %>% 
   rename(
     grpagg = mos
