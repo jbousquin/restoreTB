@@ -29,6 +29,8 @@ library(sf)
 library(sp)
 library(gridExtra)
 library(ggrepel)
+library(lubridate)
+library(forcats)
 
 # functions
 source('../R/funcs.R')
@@ -79,6 +81,61 @@ In addition to legacy improvements at wastewater treatment plants, nearly 900 re
 Both project data sources were combined to provide a single dataset describing the location, year of completion, and project classification of the restoration activity. The project classifications were described in two nested categories. The first described a high-level restration classification for each project as habitat or water infrastructure.  The second was a lower-level classification for habitat projects: enhancement, establishment, and protection; and water infrastructure projects: non-point source or point source controls.  These categories were used to provide a broad characterization of restoration activites that were considered relevant for the perceived improvements in water quality over time. The nested categories were used to develop separate probabilistic models describing the likelihood of changes in water quality (described below).  The final combined dataset included 891 projects from 1971 to 2016.  Projects with incomplete information (i.e., missing date) were not included in the final dataset.
  
 Water quality data in Tampa Bay have been consistently collected since 1974 by the Environmental Protection Commission of Hillsborough County [@TBEP17].  Data were collected monthly at forty-five stations using a water sample from mid-depth or a monitoring sonde depending on the parameter.  Monitoring stations are fixed and cover the entire bay from the uppermost mesohaline sections to the lowermost euhaline portions that have direct interaction with the Gulf of Mexico. Water samples at each station are laboratory processed immediately after collection.  Measurements at each site include temperature (C), Secchi disk depth (m), dissolved oyxgen (mg/L), conductivity ($\mu$Ohms/cm), pH, salinity (psu), turbidity (Nephalometric Turbidy Units), \ac{chla} ($\mu$g/L), total nitrogen (mg/L), and total phosphorus (mg/L).  For the probabilistic models, all measurements of salinity, total nitrogen, and \ac{chla} were combined for a total of 515 monthly observations of each parameter at each station.
+
+```{r, eval = F}
+
+tab <- wqdat %>%
+  filter(!is.na(sal)) %>% 
+  mutate(
+    salgrp = cut(sal, breaks = c(-Inf, 26.5, Inf), labels = c('lo', 'hi')),
+    yrs = year(datetime),
+    mos = month(datetime),
+    mos = factor(mos),
+    mos = fct_collapse(mos, 
+                        JFM = c('1', '2', '3'),
+                        AMJ = c('4', '5', '6'),
+                        JAS = c('7', '8', '9'),
+                        OND = c('10', '11', '12')
+                        ),
+    yrs = cut(yrs, 
+              breaks = c(1977, 1987, 1997, 2007, 2018),
+              labels = c('1977-1987', '1987-1997', '1997-2007', '2007-2017')),
+    mos = as.character(mos),
+    yrs = as.character(yrs)
+    ) %>% 
+  filter(!is.na(yrs)) %>% 
+  select(-datetime, -stat, -do) %>% 
+  gather('var', 'val', chla, tn)
+
+# year grouping aggregations
+yragg <- tab %>% 
+  select(-mos) %>% 
+  group_by(salgrp, yrs, var) %>% 
+  summarise(
+    minv = min(val, na.rm = T),
+    medv = median(val, na.rm = T), 
+    maxv = median(val, na.rm = T)
+  ) %>% 
+  rename(
+    grpagg = yrs
+  )
+
+# month grouping aggregations
+moagg <- tab %>% 
+  select(-yrs) %>% 
+  group_by(salgrp, mos, var) %>% 
+  summarise(
+    minv = min(val, na.rm = T),
+    medv = median(val, na.rm = T), 
+    maxv = median(val, na.rm = T)
+  ) %>% 
+  rename(
+    grpagg = mos
+  )
+
+tab <- yragg %>% 
+  bind_rows(moagg) 
+```
 
 ## Data synthesis and analysis framework
 
