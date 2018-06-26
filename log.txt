@@ -1,2 +1,2 @@
-1300 of 1300 
-Time difference of 4.093625 mins
+400 of 400 
+Time difference of 52.98572 secs
