@@ -41,7 +41,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   # globals
   chlspl <- 11
   nitspl <- 0.5
-  salspl <- 26.5   
+  salspl <- 26   
   
   # log
   sink('log.txt')
