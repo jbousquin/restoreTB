@@ -16,7 +16,7 @@ data(wqdat)
 data(wqstat)
 
 # setup parallel backend
-ncores <- detectCores() - 1  
+ncores <- 30 # detectCores() - 1  
 cl<-makeCluster(ncores)
 registerDoParallel(cl)
 strt<-Sys.time()
@@ -25,7 +25,7 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = 1:20, 
   mtch = 1:20, 
-  resgrp = c('type', 'top'), 
+  resgrp = c('type'), 
   yrstr = c(1997), 
   yrend = c(2017)
   ) 
