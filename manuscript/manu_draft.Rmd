@@ -281,5 +281,22 @@ Bayesian network, simple models pre/post, large model whole record.
 # Discussion
 A long-term record of restoration activities and water quality data in Tampa Bay provided the underlying skeleton for developing a novel decision support tool for coastal restoration practitioners and  managers. This new tool provides a better process to understand the expected water quality improvements that could result from future restoration activities contingent upon the level of cumulative investments made toward divergent activities and the required monitoring to understand the benefits on downstream water quality at local and watershed-wide scales. This tool has broad application and extention within the Gulf Coast restoration and management community. However, several reservations on its appliction were discovered.       
 
+* 2004-2017, non-point source and habitat protection appears to have the largest effect on chlorophyll-a levels. This effect is not clear until after 5 years of monitoring and with the evaluation of multiple projects. 
+When fewer restoration activities were taking place in the Bay (i.e. 94-04) a greater monitoring time frame was necessary to identify the benefits of restoration activities (>5 years).
+
+* From 1974 - 1994, chlorophyll changes were most distinct in relation to water infrastructure projects, particularly for low salinity regions in the bay. The effect was more apparent with increasing time from the completion of a project and with evaluation of multiple projects. Habitat projects did not have a noticeable effect although, these were limited to later in the time period.
+
+* It is inherently difficult to determine any downstream water quality benefits from enhancement no matter how many sites or years. Enhancement is primarily activities such as invasive species removal which is not done with the primary goal of improving water quality. 
+
+* How can this be used to guide coastal wq management in the Gulf? 
+     * Demonstrate the benefit of Long Term monitoring
+     
+* How can this be used to inform or prioritize restoration activities in the Gulf?
+
+* What are the limitations of our analysis?
+
+* How can the analysis be applied in other locations?
+
+
 # References
 

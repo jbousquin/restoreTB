@@ -16,27 +16,19 @@ data(wqdat)
 data(wqstat)
 
 # setup parallel backend
-ncores <- detectCores() - 1  
+ncores <- 30 # detectCores() - 1  
 cl<-makeCluster(ncores)
 registerDoParallel(cl)
 strt<-Sys.time()
 
 # eval grid
 grds <- crossing(
-  yrdf = 1:10, 
-  mtch = 1:10, 
-  resgrp = c('type', 'top'), 
-  yrstr = c(1974, 1984, 1994, 2004, 2017), 
-  yrend = c(1974, 1984, 1994, 2004, 2017)
-  ) %>% 
-  mutate(timedf = yrend - yrstr)
-
-# remove cases not to evaluate
-grds <- grds %>% 
-  filter(yrend > yrstr) %>% 
-  select(-timedf) %>% 
-  filter(!(resgrp == 'type' & yrstr < 1993)) #v%>%
-  # filter(!(resgrp == 'top' & yrstr > 1993))
+  yrdf = 1:20, 
+  mtch = 1:20, 
+  resgrp = c('type'), 
+  yrstr = c(1997), 
+  yrend = c(2017)
+  ) 
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
 
@@ -49,7 +41,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   # globals
   chlspl <- 11
   nitspl <- 0.5
-  salspl <- 27   
+  salspl <- 26.5   
   
   # log
   sink('log.txt')
