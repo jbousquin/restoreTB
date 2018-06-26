@@ -279,6 +279,7 @@ Bayesian network, simple models pre/post, large model whole record.
 
 
 # Discussion
+A 40+ year record of restoration activities and water quality information in Tampa Bay provided the underlying skeleton for developing a novel decision support tool for restoration practitioners and  managers. This new tool provides the estuarine restoration and management community with a new process to better understand the expected water quality improvements that may result from future restoration activites. The 
 
 # References
 
