@@ -23,8 +23,8 @@ strt<-Sys.time()
 
 # eval grid
 grds <- crossing(
-  yrdf = 1:20, 
-  mtch = 1:20, 
+  yrdf = 1:10, 
+  mtch = 1:10, 
   resgrp = c('type'), 
   yrstr = c(1997), 
   yrend = c(2017)
