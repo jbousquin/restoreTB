@@ -23,6 +23,7 @@ library(shiny)
 library(sf)
 library(sp)
 library(gridExtra)
+library(MuMIn)
 
 data(restdat)
 data(reststat)
