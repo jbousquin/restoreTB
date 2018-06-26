@@ -113,7 +113,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
 }
 
 # combine results with grds, remove scenarios that returned NA
-grdsres <- grds %>%
+grdsreshls <- grds %>%
   mutate(
     res = res,
     resgrp = factor(resgrp, levels = c('top', 'type'), labels = c('simple', 'complex'))
@@ -122,4 +122,4 @@ grdsres <- grds %>%
   filter(map_lgl(res, ~ !is.logical(.x))) %>% 
   unnest
 
-save(grdsres, file = 'data/grdsres.RData', compress = 'xz')
+save(grdsreshls, file = 'data/grdsreshls.RData', compress = 'xz')
