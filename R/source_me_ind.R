@@ -1,3 +1,5 @@
+# same as source_me but allows bn model to run on selected stations
+
 library(tidyverse)
 library(lubridate)
 library(geosphere)
@@ -25,17 +27,17 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = 1:20, 
   mtch = 1:20, 
-  resgrp = c('type'), 
+  resgrp = c('top', 'type'), 
   yrstr = c(1997), 
   yrend = c(2017)
 )
 
-hlstat <- c(44, 70, 6, 7, 52, 55, 71, 8, 73, 80)
+indtat <- 55 #c(55, 44, 70, 6, 7, 52, 55, 71, 8, 73, 80) # HB stations
 
 wqdat <- wqdat %>% 
-  filter(stat %in% hlstat)
+  filter(stat %in% indtat)
 wqstat <- wqstat %>% 
-  filter(stat %in% hlstat)
+  filter(stat %in% indtat)
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
   
@@ -113,7 +115,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
 }
 
 # combine results with grds, remove scenarios that returned NA
-grdsreshls <- grds %>%
+grdsresind <- grds %>%
   mutate(
     res = res,
     resgrp = factor(resgrp, levels = c('top', 'type'), labels = c('simple', 'complex'))
@@ -122,4 +124,4 @@ grdsreshls <- grds %>%
   filter(map_lgl(res, ~ !is.logical(.x))) %>% 
   unnest
 
-save(grdsreshls, file = 'data/grdsreshls.RData', compress = 'xz')
+save(grdsresind, file = 'data/grdsresind.RData', compress = 'xz')

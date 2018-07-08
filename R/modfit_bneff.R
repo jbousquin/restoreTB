@@ -1,6 +1,7 @@
+library(tidyverse)
+source('R/funcs.R')
 
-
-# get models of chlorohpyll response to increasing mathces and year differences
+# fit simple models explaining chl response to mtch and yrdf combos, as fixed linear effects, no interactions
 modout <- grdsres %>% 
   filter(chlev %in% 'lo') %>% 
   group_by(resgrp, yrs, salev, project) %>% 
