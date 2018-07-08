@@ -113,6 +113,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   return(ests)
   
 }
+stopCluster(cl)
 
 # combine results with grds, remove scenarios that returned NA
 grdsresind <- grds %>%
