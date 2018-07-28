@@ -1,0 +1,299 @@
+---
+output: 
+  html_document
+self_contained: yes
+runtime: shiny
+---
+
+# Evaluating combined effects of restoration {.tabset}
+
+```{r globals, echo = F, message = F, warning = F}
+knitr::opts_chunk$set(message = F, warning = F, echo = F)
+
+library(tidyverse)
+library(ggmap)
+library(lubridate)
+library(geosphere)
+library(stringi)
+library(tibble)
+library(scales)
+library(shiny)
+library(sf)
+library(sp)
+library(gridExtra)
+
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+data(map)
+data(grdsres)
+
+# source R files
+source('R/get_chg.R')
+source('R/get_clo.R')
+source('R/get_dat.R')
+source('R/get_lik.R')
+
+# base map
+# ext <- make_bbox(wqstat$lon, wqstat$lat, f = 0.2)
+# get_stamenmap(ext, zoom = 11, maptype = "toner-lite", where = getwd())
+pbase <- ggmap(map) +
+  theme_bw(base_family = 'serif', base_size = 16) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+```
+
+```{r inpts}
+column(4, 
+       selectInput('sta', 'Select water quality station:', choices = sort(wqstat$stat), selected = 55)
+       )
+```
+
+```{r rctvs}
+# filtered wqdat by stat
+wqdatsta <- reactive({
+  
+  # inputs
+  sta <- input$sta
+  
+  wqdat %>% 
+    filter(stat %in% sta)
+  
+})
+
+# filtered wqstat by station
+wqstatsta <- reactive({
+  
+  # inputs
+  sta <- input$sta
+  
+  wqstat %>% 
+    filter(stat %in% sta)
+  
+})
+
+```
+
+```{r}
+renderPlot({
+  
+  # inputs
+  wqdatsta <- wqdatsta()
+  wqstatsta <- wqstatsta()
+  
+  # wq ts
+  p2 <- ggplot(wqdatsta, aes(x = datetime, y = chla)) + 
+    geom_line() +
+    geom_point() +
+    theme_bw(base_family = 'serif') +
+    theme(
+      axis.title.x = element_blank()
+    ) +
+    scale_y_log10('log10-Chla')
+  
+  # map
+  p1 <- pbase + 
+    geom_point(data = wqstatsta, aes(x = lon, y = lat), colour = 'tomato1', size = 8) +
+    geom_text(data = wqstat, aes(x = lon, y = lat, label = stat), size = 3)
+
+  grid.arrange(p1, p2, widths = c(0.3, 0.7), ncol = 2)
+  
+}, height = 300, width = 900)
+```
+
+```{r inptsmp}
+# wq year slice window
+column(4,
+       numericInput("yrdf", "Choose year diff:", 5)
+       ) 
+    
+# wq site match upper limit
+column(4, 
+    numericInput("mtch", "Choose restoration matches:", 2)
+)
+
+# jitr
+column(4, 
+    sliderInput("jitr", "Jitter overlap restorations:", min = 0, max = 20, value = 0)
+)
+```
+
+```{r rctvsmp}
+# wq stats matched to rest stats
+wqmtch <- reactive({
+  
+  # reactive inputs
+  mtch <- input$mtch
+  wqstatsta <- wqstatsta()
+
+  # get wqmtch
+  out <- get_clo(restdat, reststat, wqstatsta, resgrp = 'type', mtch = mtch)
+
+  return(out)
+  
+})
+
+# yr windows with matched rest sites
+yrwin <- reactive({
+  
+  # input
+  wqstatsta <- wqstatsta()
+  wqdatsta <- wqdatsta()
+  wqmtch <- wqmtch()
+  yrdf <- input$yrdf
+  
+  # get temp matches and avgs
+  yrwin <- get_chg(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T)
+  
+  return(yrwin)
+  
+})
+```
+
+# {.tabset}
+
+## Map
+
+```{r}
+renderPlot({
+  
+  # inputs
+  wqmtch <- wqmtch()
+  wqstatsta <- wqstatsta()
+  jitr <- input$jitr
+  
+  # combine lat/lon for the plot
+  toplo <- wqmtch %>%
+    left_join(wqstatsta, by = 'stat') %>%
+    left_join(reststat, by = 'id') %>%
+    rename(
+      `Restoration type` = resgrp,
+      `Distance (dd)` = dist
+    ) %>% 
+    mutate(
+      lat.y = ifelse(duplicated(lat.y), jitter(lat.y, factor = jitr), lat.y),
+      lon.y = ifelse(duplicated(lon.y), jitter(lon.y, factor = jitr), lon.y)
+      )
+      
+  # restoration project grouping column
+  restall <- left_join(restdat, reststat, by = 'id')
+  names(restall)[names(restall) %in% 'type'] <- 'Restoration type'
+  
+  # rngs
+  xrng <- range(c(toplo$lon.x, toplo$lon.y))
+  yrng <- range(c(toplo$lat.x, toplo$lat.y))
+  
+  # base extension
+  p <- pbase +
+    geom_point(data = restall, aes(x = lon, y = lat), size = 1, pch = 21) +
+    geom_segment(data = toplo, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration type`), size = 1) +
+    geom_point(data = toplo, aes(x = lon.y, y = lat.y, fill = `Restoration type`), size = 3, pch = 21) +
+    geom_point(data = wqstatsta, aes(x = lon, y = lat), size = 5, colour = 'tomato1') +
+    scale_alpha(guide = F) 
+  
+  # whole map
+  p1 <- p +
+    theme_bw(base_family = 'serif', base_size = 16) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(), 
+      legend.position = 'none'
+    )
+
+  
+  # sub map
+  p2 <- p +
+    scale_y_continuous(limits = yrng) +
+    scale_x_continuous(limits = xrng) +
+    theme_bw(base_family = 'serif', base_size = 16) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(), 
+      legend.position = 'top', 
+      legend.title = element_blank()
+    )
+
+  grid.arrange(p1, p2, ncol = 2)
+
+}, width = 900, height = 650)
+```
+
+## Time slices
+
+```{r}
+renderPlot({
+  
+  # input
+  yrwin <- yrwin()
+  wqdatsta <- wqdatsta()
+
+  # wq ts
+  p <- ggplot() + 
+    geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = -Inf, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
+    geom_line(data = wqdatsta, aes(x = datetime, y = chla)) +
+    geom_point(data = wqdatsta, aes(x = datetime, y = chla)) +
+    geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
+    theme_bw(base_family = 'serif', base_size = 20) +
+    theme(
+      axis.title.x = element_blank(), 
+      legend.position = 'none', 
+      panel.border = element_rect(fill = NA),
+      strip.background = element_blank(), 
+      axis.title.y = element_blank(), 
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(), 
+      axis.text.x = element_text(size = 8),
+      # axis.text.y = element_blank(), 
+      axis.ticks = element_blank(),
+      panel.spacing = grid::unit(0, "lines")
+    ) +
+    facet_grid(rnk ~ resgrp) #+ 
+    # scale_y_log10()
+  
+  return(p)
+  
+}, width = 900, height = 600)  
+```
+
+## Averages before/after
+
+```{r}
+renderPlot({
+  
+  # input
+  yrwin <- yrwin()
+  wqdatsta <- wqdatsta()
+
+  # to plot
+  toplo <- yrwin %>% 
+    select(rnk, resgrp, wts, bef, aft) %>% 
+    gather('var', 'val', bef, aft) %>% 
+    mutate(var = factor(var, levels = c('bef', 'aft')))
+  
+  # wq chgs bar plot
+  p <- ggplot() + 
+    geom_bar(data = toplo, stat = 'identity', aes(x = var, y = val, fill = resgrp, alpha = wts)) +
+    theme_bw(base_family = 'serif', base_size = 20) +
+    theme(
+      axis.title.x = element_blank(),
+      legend.position = 'none', 
+      panel.border = element_rect(fill = NA),
+      strip.background = element_blank(), 
+      axis.title.y = element_blank(), 
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(), 
+      axis.text.x = element_text(size = 8),
+      # axis.text.y = element_blank(), 
+      axis.ticks = element_blank(),
+      panel.spacing = grid::unit(0, "lines")
+    ) +
+    facet_grid(rnk ~ resgrp) #+ 
+    # scale_y_log10()
+  
+  return(p)
+  
+}, width = 900, height = 600)  
+```

@@ -65,7 +65,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
             }
             
             # combine/return the wq station/restoration station summary
-            out <- data.frame(bef = bef, aft = aft)
+            out <- data.frame(bef = bef, aft = aft, dtend = dtrng[1], dtaft = dtrng[2])
             
             return(out)
             
@@ -81,15 +81,18 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     }) %>%
     do.call('rbind', .) %>%
     remove_rownames() %>% 
-    dplyr::select(stat, rnk, resgrp, wts, bef, aft) %>%
+    dplyr::select(stat, rnk, resgrp, wts, bef, aft, dtend, date, dtaft)
+  
+  # return temporary chg object if T
+  if(chgout) return(chg)
+  
+  # get weighted mean by resgrps
+  chg <- chg %>%
     group_by(stat, resgrp) %>%
     summarise(
       bef = weighted.mean(bef, w = wts, na.rm = TRUE),
       aft = weighted.mean(aft, w = wts, na.rm = TRUE)
     )
-  
-  # return temporary chg object if T
-  if(chgout) return(chg)
 
   # get combinations of restoration types
   bef <- unique(chg$resgrp) %>% 
