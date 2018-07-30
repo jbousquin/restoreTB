@@ -225,7 +225,7 @@ renderPlot({
 
 ## (2) Time slices
 
-For each of `r renderText({input$mtch})` restoration project types, the water quality observations that occurred `r renderText({input$yrdf})` years before and after the completion of the project were selected. The date of completion for each project is shown with teh thick 
+For each of `r renderText({input$mtch})` restoration project types, the water quality observations that occurred `r renderText({input$yrdf})` years before and after the completion of the project were selected. The date of completion for each project is shown with the thicker vertical line. 
 
 ```{r}
 renderPlot({
@@ -344,7 +344,7 @@ renderPlot({
 
 ## (5) Average of averages
 
-Take the average of the averaged difference across the `r renderText({input$mtch})` projects per project type.
+Then the averaged differences are averaged across the `r renderText({input$mtch})` projects per project type.
 
 ```{r}
 renderPlot({
