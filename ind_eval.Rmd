@@ -96,7 +96,7 @@ renderPlot({
   
   # map
   p1 <- pbase + 
-    geom_point(data = wqstatsta, aes(x = lon, y = lat), colour = 'tomato1', size = 8) +
+    geom_point(data = wqstatsta, aes(x = lon, y = lat), colour = 'tomato1', size = 6) +
     geom_text(data = wqstat, aes(x = lon, y = lat, label = stat), size = 3)
 
   grid.arrange(p1, p2, widths = c(0.3, 0.7), ncol = 2)
@@ -112,12 +112,12 @@ column(4,
     
 # wq site match upper limit
 column(4, 
-    numericInput("mtch", "Choose restoration matches:", 2)
+    numericInput("mtch", "Choose restoration matches:", 5)
 )
 
 # jitr
 column(4, 
-    sliderInput("jitr", "Jitter overlap restorations:", min = 0, max = 20, value = 0)
+    sliderInput("jitr", "Jitter overlap restorations:", min = 0, max = 50, value = 0)
 )
 ```
 
@@ -155,7 +155,9 @@ yrwin <- reactive({
 
 # {.tabset}
 
-## Map
+## (1) Map
+
+The water quality station is matched to the closest `r renderText({input$mtch})` projects for each project type.
 
 ```{r}
 renderPlot({
@@ -221,7 +223,9 @@ renderPlot({
 }, width = 900, height = 650)
 ```
 
-## Time slices
+## (2) Time slices
+
+For each of `r renderText({input$mtch})` restoration project types, the water quality observations that occurred `r renderText({input$yrdf})` years before and after the completion of the project were selected. The date of completion for each project is shown with teh thick 
 
 ```{r}
 renderPlot({
@@ -242,24 +246,23 @@ renderPlot({
       legend.position = 'none', 
       panel.border = element_rect(fill = NA),
       strip.background = element_blank(), 
-      axis.title.y = element_blank(), 
       panel.grid.major = element_blank(), 
       panel.grid.minor = element_blank(), 
-      axis.text.x = element_text(size = 8),
-      # axis.text.y = element_blank(), 
-      axis.ticks = element_blank(),
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
       panel.spacing = grid::unit(0, "lines")
     ) +
-    facet_grid(rnk ~ resgrp) #+ 
-    # scale_y_log10()
+    facet_grid(rnk ~ resgrp) + 
+    ylab('log10-Chla')
   
   return(p)
   
 }, width = 900, height = 600)  
 ```
 
-## Averages before/after
+## (3) Before/after avg.
 
+The water quality observations for the `r renderText({input$yrdf})` years before and after the selected slices were then averaged. 
 ```{r}
 renderPlot({
   
@@ -275,25 +278,112 @@ renderPlot({
   
   # wq chgs bar plot
   p <- ggplot() + 
-    geom_bar(data = toplo, stat = 'identity', aes(x = var, y = val, fill = resgrp, alpha = wts)) +
+    geom_bar(data = toplo, stat = 'identity', aes(x = var, y = val, fill = resgrp)) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
-      axis.title.x = element_blank(),
+      axis.title.x = element_blank(), 
       legend.position = 'none', 
       panel.border = element_rect(fill = NA),
       strip.background = element_blank(), 
-      axis.title.y = element_blank(), 
       panel.grid.major = element_blank(), 
       panel.grid.minor = element_blank(), 
-      axis.text.x = element_text(size = 8),
-      # axis.text.y = element_blank(), 
-      axis.ticks = element_blank(),
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
       panel.spacing = grid::unit(0, "lines")
     ) +
-    facet_grid(rnk ~ resgrp) #+ 
-    # scale_y_log10()
+    facet_grid(rnk ~ resgrp) + 
+    ylab('log10-Chla')
   
   return(p)
   
 }, width = 900, height = 600)  
+```
+
+## (4) Before/after avg. difference
+
+The before and after averages were then differenced.
+
+```{r}
+renderPlot({
+  
+  # input
+  yrwin <- yrwin()
+  wqdatsta <- wqdatsta()
+
+  # to plot
+  toplo <- yrwin %>% 
+    select(rnk, resgrp, wts, bef, aft) %>% 
+    mutate(
+      difv = aft - bef,
+      xvr = 'Diff'
+      )
+  
+  # wq chgs bar plot
+  p <- ggplot() + 
+    geom_bar(data = toplo, stat = 'identity', aes(x = xvr, y = difv, fill = resgrp)) +
+    theme_bw(base_family = 'serif', base_size = 20) +
+    theme(
+      axis.title.x = element_blank(), 
+      legend.position = 'none', 
+      panel.border = element_rect(fill = NA),
+      strip.background = element_blank(), 
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(), 
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
+      panel.spacing = grid::unit(0, "lines")
+    ) +
+    facet_grid(rnk ~ resgrp) + 
+    ylab('log10-Chla') +
+    geom_hline(yintercept = 0, linetype = 'dotted')
+  
+  return(p)
+  
+}, width = 900, height = 600)  
+```
+
+## (5) Average of averages
+
+Take the average of the averaged difference across the `r renderText({input$mtch})` projects per project type.
+
+```{r}
+renderPlot({
+  
+  # input
+  yrwin <- yrwin()
+  wqdatsta <- wqdatsta()
+
+  # to plot
+  toplo <- yrwin %>% 
+    select(rnk, resgrp, wts, bef, aft) %>% 
+    mutate(
+      difv = aft - bef,
+      xvr = 'Diff'
+      ) %>% 
+    group_by(resgrp) %>% 
+    summarise(
+      avedf = mean(difv, na.rm = T)
+    )
+
+  # wq chgs bar plot
+  p <- ggplot() + 
+    geom_bar(data = toplo, stat = 'identity', aes(x = resgrp, y = avedf, fill = resgrp)) +
+    theme_bw(base_family = 'serif', base_size = 20) +
+    theme(
+      axis.title.x = element_blank(), 
+      legend.position = 'none', 
+      panel.border = element_rect(fill = NA),
+      strip.background = element_blank(), 
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(), 
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
+      panel.spacing = grid::unit(0, "lines")
+    ) +
+    ylab('log10-Chla') +
+    geom_hline(yintercept = 0, linetype = 'dotted')
+  
+  return(p)
+  
+}, width = 900, height = 250)  
 ```
