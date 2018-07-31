@@ -22,7 +22,7 @@ get_dat <- function(resgrp = c('top', 'type'), restdat, reststat, wqstat, wqdat,
  
   ## Distance to restoration sites
   wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
-  
+
   ## Summarizing effects of restoration projects on salinity
   sachg <- get_chg(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = yrdf) %>% 
     rename(saval = cval)

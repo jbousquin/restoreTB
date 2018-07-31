@@ -262,7 +262,8 @@ allcdat <- eventReactive(input$apply, {
 # get conditional data for bn input
 cdat <- eventReactive(input$apply, { 
 
-  allcdat()$cdat
+  allcdat()$cdat %>% 
+    select(-stat)
 
 })
 
