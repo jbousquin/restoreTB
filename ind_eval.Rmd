@@ -236,8 +236,7 @@ renderPlot({
 
   # wq ts
   p <- ggplot() + 
-    geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = -Inf, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
-    geom_line(data = wqdatsta, aes(x = datetime, y = chla)) +
+    geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
     geom_point(data = wqdatsta, aes(x = datetime, y = chla)) +
     geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
     theme_bw(base_family = 'serif', base_size = 20) +
@@ -253,7 +252,7 @@ renderPlot({
       panel.spacing = grid::unit(0, "lines")
     ) +
     facet_grid(rnk ~ resgrp) + 
-    ylab('log10-Chla')
+    scale_y_log10('log10-Chla')
   
   return(p)
   
@@ -292,7 +291,7 @@ renderPlot({
       panel.spacing = grid::unit(0, "lines")
     ) +
     facet_grid(rnk ~ resgrp) + 
-    ylab('log10-Chla')
+    scale_y_log10('log10-Chla')
   
   return(p)
   
@@ -334,7 +333,7 @@ renderPlot({
       panel.spacing = grid::unit(0, "lines")
     ) +
     facet_grid(rnk ~ resgrp) + 
-    ylab('log10-Chla') +
+    ylab('Chla difference') +
     geom_hline(yintercept = 0, linetype = 'dotted')
   
   return(p)
@@ -380,7 +379,7 @@ renderPlot({
       axis.text.x = element_text(size = 12),
       panel.spacing = grid::unit(0, "lines")
     ) +
-    ylab('log10-Chla') +
+    ylab('Chla difference, averages') +
     geom_hline(yintercept = 0, linetype = 'dotted')
   
   return(p)

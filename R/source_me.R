@@ -25,10 +25,14 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = 1:10, 
   mtch = 1:10, 
-  resgrp = c('type'), 
-  yrstr = c(2004), 
-  yrend = c(2017)
-  ) 
+  resgrp = c('top', 'type'), 
+  yrstr = c(1974, 1994, 2017), 
+  yrend = c(1974, 1994, 2017)
+)
+
+# remove cases not to evaluate
+grds <- grds %>% 
+  filter(yrend > yrstr) 
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
 

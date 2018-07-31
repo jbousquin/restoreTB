@@ -1,6 +1,7 @@
 # dat proc
 
 library(tidyverse)
+library(readxl)
 library(forcats)
 library(stringi)
 library(sf)
@@ -17,29 +18,76 @@ source('R/get_lik.R')
 ##
 # process raw water quality data
 
-# raw
-wqdat_raw <- read_csv('other/epchc_clean_data_07162017.csv')
+# URL of EPCHC's long-term dataset in Excel Spreadsheet format
+epchc_url <- "ftp://ftp.epchc.org/EPC_ERM_FTP/WQM_Reports/RWMDataSpreadsheet_ThroughCurrentReportMonth.xlsx"
+download.file(url = epchc_url, destfile = './other/epchc.xlsx', method = "libcurl", mode = "wb")
 
-# rename, select relevant columns, integrate variables across depths
-# annual averages by site, variable
-wqdat <- wqdat_raw %>% 
+# EPC data column name file
+epcnames <- readLines("./other/epchc_column_names.csv")
+
+# EPC sites within Tampa Bay used for the Annual TBEP WQ Assessment
+epcsites <- c(6, 7, 8, 44, 52, 55, 70, 71, 73, 80, 36, 38, 40, 41, 46, 47, 50, 51, 60, 63, 64, 65, 66, 67, 68, 9,               11, 81, 84, 13, 14, 32, 33, 16, 19, 28, 82, 23, 24, 25, 90, 91, 92, 93, 95)
+# Station Lists by Bay Segment
+otb_stations <- c(36, 38, 40, 41, 46, 47, 50, 51, 60, 63, 64, 65, 66, 67, 68)
+hb_stations <- c(6, 7, 8, 44, 52, 55, 70, 71, 73, 80)
+mtb_stations <- c(9, 11, 81, 84, 13, 14, 32, 33, 16, 19, 28, 82)
+ltb_stations <- c(23, 24, 25, 90, 91, 92, 93, 95)
+# Short Bay Segment Names
+bay_segments = c("OTB", "HB", "MTB", "LTB")
+
+# Import the raw dataset into R
+epcdata <- read_xlsx("./other/epchc.xlsx",
+                     sheet="RWMDataSpreadsheet",
+                     col_types = c("numeric", "numeric", "text", "text", "text", "text",
+                                   "numeric", "numeric", "text", "numeric", "numeric",
+                                   "text", "date", "text", "numeric", "text", "text",
+                                   "numeric", "numeric", "numeric", "numeric", "text",
+                                   "text", "text", "numeric", "text", "numeric", "text",
+                                   "numeric", "text", "numeric", "text", "numeric",
+                                   "text", "numeric", "text", "numeric", "text",
+                                   "numeric", "text", "numeric", "text", "numeric",
+                                   "text", "numeric", "text", "numeric", "text",
+                                   "numeric", "text", "numeric", "text", "numeric",
+                                   "text", "numeric", "text", "numeric", "text",
+                                   "numeric", "text", "numeric", "text", "numeric",
+                                   "text", "numeric", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text", "text", "text", "text",
+                                   "text", "text", "text"),
+                     col_names = epcnames,
+                     skip=1, na="")
+
+# process raw data
+wqdat <- epcdata %>%
   rename(
-    yr = YEAR,
-    mo = month,
-    dttm = SampleTime,
-    stat = epchc_station, 
+    datetime = SampleTime,
+    stat = StationNumber, 
     lat = Latitude, 
     lon = Longitude,
     sallo = Sal_Bottom_ppth, 
     salmd = Sal_Mid_ppth,
     salhi = Sal_Top_ppth, 
-    dolo = DO_Bottom_mg_L,
-    domd = DO_Mid_mg_L, 
-    dohi = DO_Top_mg_L,
-    chla = chl_a, 
-    tn = TN_TOTAL
+    dolo = DO_Bottom_mgL,
+    domd = DO_Mid_mgL, 
+    dohi = DO_Top_mgL,
+    chla = Chlorophyll_a_uncorr_ugL, 
+    tn = Total_Nitrogen_mgL
   ) %>% 
-  select(stat, yr, mo, dttm, lat, lon, sallo, salmd, salhi, dolo, domd, dohi, chla, tn) %>% 
+  filter(stat %in% epcsites) %>% 
+  select(stat, datetime, lat, lon, sallo, salmd, salhi, dolo, domd, dohi, chla, tn) %>% 
   gather('var', 'val', sallo:tn) %>% 
   mutate(val = as.numeric(val)) %>% 
   spread('var', 'val') %>% 
@@ -48,11 +96,7 @@ wqdat <- wqdat_raw %>%
     sal = mean(c(sallo, salmd, salhi), na.rm = TRUE),
     do = mean(c(dolo, domd, dohi), na.rm = TRUE)
   ) %>%
-  select(-sallo, -salmd, -salhi, -dolo, -domd, -dohi, -dttm) %>% 
-  mutate(
-    dy = 1
-  ) %>% 
-  unite('datetime', yr, mo, dy, sep = '-') %>% 
+  select(-sallo, -salmd, -salhi, -dolo, -domd, -dohi) %>% 
   mutate(
     datetime = as.Date(datetime, format = '%Y-%m-%d')
   )
