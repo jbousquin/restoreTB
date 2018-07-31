@@ -11,6 +11,7 @@ get_lik <- function(cdat, cdat_mod, bysal = T){
     # get all relevant combos to query in model from cdat, separate for each salnity level
     out <- cdat %>%
       select_if(is.factor) %>%
+      dplyr::select(-stat) %>% 
       na.omit %>%
       data.frame %>%
       dplyr::select(-matches('^nilev$')) %>%
@@ -34,6 +35,7 @@ get_lik <- function(cdat, cdat_mod, bysal = T){
     # get all relevant combos to query in model from cdat, separate for each salnity level
     out <- cdat %>%
       select_if(is.factor) %>%
+      dplyr::select(-stat) %>% 
       na.omit %>%
       data.frame %>%
       dplyr::select(-matches('^salev$|^nilev$')) %>%

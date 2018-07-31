@@ -91,6 +91,7 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   # fit simple bn model
   cdat_mod <- cdat %>%
     select_if(is.factor) %>%
+    dplyr::select(-stat) %>% 
     na.omit %>%
     data.frame %>% 
     bn.fit(net, data = .)

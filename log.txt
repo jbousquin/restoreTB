@@ -1,2 +1,2 @@
-800 of 800 
-Time difference of 20.96161 secs
+600 of 600 
+Time difference of 2.455809 mins
