@@ -170,3 +170,73 @@ data(wqstat)
 
 wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = 'top', mtch = 10)
 save(wqmtch, file = 'data/wqmtch.RData', compress = 'xz')
+
+######
+# grid search for average differences, all stations, restoration type, year window, match combos, for ind_eval
+
+library(tidyverse)
+library(lubridate)
+library(geosphere)
+library(stringi)
+library(tibble)
+library(scales)
+library(sf)
+library(sp)
+library(foreach)
+library(doParallel)
+
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+
+# setup parallel backend
+ncores <- detectCores() - 1  
+cl<-makeCluster(ncores)
+registerDoParallel(cl)
+strt<-Sys.time()
+
+grds <- crossing(
+  yrdf = 1:10, 
+  mtch = 1:10, 
+  resgrp = c('top', 'type')
+) 
+
+res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
+  
+  # source R files
+  source('R/get_chgdf.R')
+  source('R/get_clo.R')
+  
+  # log
+  sink('log.txt')
+  cat(i, 'of', nrow(grds), '\n')
+  print(Sys.time()-strt)
+  sink()
+  
+  # grid row values
+  vls <- grds[i, ]
+  
+  # inputs
+  yrdf <- vls$yrdf
+  mtch <- vls$mtch
+  resgrp <- vls$resgrp
+  
+  # get wqmtch
+  wqmtch <- get_clo(restdat, reststat, wqstat, resgrp = resgrp, mtch = mtch)
+  
+  # get differences
+  wqdf <- get_chgdf(wqdat, wqmtch, wqstat, restdat, wqvar = 'chla', yrdf = yrdf)
+  
+  return(wqdf)
+  
+}
+stopCluster(cl)
+
+# combine results with grid
+grdave <- res %>% 
+  enframe %>% 
+  bind_cols(grds,. ) %>% 
+  dplyr::select(-name)
+
+save(grdave, file = 'data/grdave.RData', compress = 'xz')

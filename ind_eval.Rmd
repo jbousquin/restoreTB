@@ -27,7 +27,7 @@ data(reststat)
 data(wqdat)
 data(wqstat)
 data(map)
-data(grdsres)
+data(grdave)
 
 # source R files
 source('R/get_chg.R')
@@ -386,3 +386,87 @@ renderPlot({
   
 }, width = 900, height = 250)  
 ```
+
+## (6) Evaluation of all differences
+
+This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches for a selected restoration project type.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.
+
+```{r}
+data(grdave)
+
+column(12, 
+       
+       column(4, 
+              selectInput('yrdfgrd', 'Select year window:', choices = unique(grdave$yrdf))
+              ),
+       
+       column(4, 
+              selectInput('mtchgrd', 'Select restoration site matches:', choices = unique(grdave$mtch))
+              ),
+       
+       column(4,  
+              selectInput('resgrpgrd', 'Select restoration group level:', choices = unique(grdave$resgrp))
+              ),
+       
+       column(4, 
+              renderUI({
+                
+                # input
+                resgrpgrd <- input$resgrpgrd
+                sels <- grdave %>% 
+                  filter(resgrp %in% resgrpgrd) %>% 
+                  select(-resgrp) %>% 
+                  unnest %>% 
+                  pull(resgrp) %>% 
+                  unique
+                
+                selectInput('prjtyp', 'Select restoration type:', choices = sels)
+
+              })
+              )
+       
+)
+
+# filter results      
+datdf <- reactive({
+  
+  # input
+  mtchgrd <- input$mtchgrd
+  yrdfgrd <- input$yrdfgrd
+  resgrpgrd <- input$resgrpgrd
+
+  out <- grdave %>% 
+    filter(yrdf %in% yrdfgrd) %>% 
+    filter(mtch %in% mtchgrd) %>% 
+    filter(resgrp %in% resgrpgrd) %>% 
+    pull(value) %>% 
+    .[[1]]
+  
+  return(out)
+  
+})
+```
+
+```{r}
+renderPlot({
+  
+  # input
+  datdf <- datdf()
+  prjtyp <- input$prjtyp
+
+  datdfeval <- datdf %>% 
+    filter(resgrp %in% prjtyp) %>% 
+    left_join(wqstat, by = 'stat') %>% 
+    rename(`Chlorophyll\nchange` = avedf)
+  
+  # map
+  p1 <- pbase + 
+    geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll\nchange`, size = abs(`Chlorophyll\nchange`)), pch = 21, colour = 'black') +
+    scale_fill_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
+    scale_size(range = c(1, 11), guide = F)
+  
+  return(p1)
+  
+}, width = 600, height = 800)
+```
+
