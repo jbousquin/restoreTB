@@ -262,9 +262,8 @@ allcdat <- eventReactive(input$apply, {
 # get conditional data for bn input
 cdat <- eventReactive(input$apply, { 
 
-  allcdat()$cdat %>% 
-    select(-stat)
-
+  allcdat()$cdat
+  
 })
 
 # get wqmtch for map
@@ -283,6 +282,7 @@ cdat_mod <- eventReactive(input$apply, {
   # format cdat for model input
   cdat_frm <- cdat %>%
     select_if(is.factor) %>%
+    dplyr::select(-stat) %>% 
     na.omit %>%
     data.frame
 
