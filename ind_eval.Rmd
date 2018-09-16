@@ -21,6 +21,7 @@ library(shiny)
 library(sf)
 library(sp)
 library(gridExtra)
+library(multcompView)
 
 data(restdat)
 data(reststat)
@@ -45,6 +46,8 @@ pbase <- ggmap(map) +
     axis.title.y = element_blank()
   )
 ```
+
+# Individual stations {.tabset}
 
 ```{r inpts}
 column(4, 
@@ -152,8 +155,6 @@ yrwin <- reactive({
   
 })
 ```
-
-# {.tabset}
 
 ## (1) Map
 
@@ -387,9 +388,9 @@ renderPlot({
 }, width = 900, height = 250)  
 ```
 
-## (6) Evaluation of all differences
+# Evaluation of all differences
 
-This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches for a selected restoration project type.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.
+This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.
 
 ```{r}
 data(grdave)
@@ -406,23 +407,6 @@ column(12,
        
        column(4,  
               selectInput('resgrpgrd', 'Select restoration group level:', choices = unique(grdave$resgrp))
-              ),
-       
-       column(4, 
-              renderUI({
-                
-                # input
-                resgrpgrd <- input$resgrpgrd
-                sels <- grdave %>% 
-                  filter(resgrp %in% resgrpgrd) %>% 
-                  select(-resgrp) %>% 
-                  unnest %>% 
-                  pull(resgrp) %>% 
-                  unique
-                
-                selectInput('prjtyp', 'Select restoration type:', choices = sels)
-
-              })
               )
        
 )
@@ -445,6 +429,82 @@ datdf <- reactive({
   return(out)
   
 })
+
+# get multiple comparison letters and overall pvalue
+letvl <- reactive({
+  
+  # input
+  datdf <- datdf()
+  
+  # anova and HSD comparison letters
+  mod <- aov(avedf ~ resgrp, data = datdf)
+  modhsd <- TukeyHSD(mod) %>% 
+    .$resgrp %>% 
+    data.frame
+  pvals <- modhsd$p.adj
+  names(pvals) <- rownames(modhsd)
+  lets <- multcompLetters(pvals)
+  if('Letters' %in% names(lets))
+    lets <- lets$Letters
+  lets <- lets %>% 
+    enframe('resgrp', 'lets')
+  
+  # get average and max chl chng for color mapping
+  datdf <- datdf %>% 
+    group_by(resgrp) %>% 
+    mutate(
+      maxdf = max(avedf, na.rm = T)
+      ) %>% 
+    ungroup
+  
+  # join lets with max dif values for labels
+  lets <- datdf %>% 
+    select(resgrp, maxdf) %>% 
+    unique %>% 
+    mutate(resgrp = as.character(resgrp)) %>% 
+    left_join(lets, by = 'resgrp')
+  
+  # overal pvalue
+  pval <- mod %>% 
+    summary %>% 
+    .[[1]] %>% 
+    .[["Pr(>F)"]] %>% 
+    .[1] %>%
+    round(2)
+  
+  out <- list(
+    lets = lets, 
+    pval = pval
+  )
+  
+  return(out)
+  
+})
+
+# test if df values diff from zero, by group
+difzr <- reactive({
+
+  # input
+  datdf <- datdf()
+  
+  tst <- datdf %>% 
+    group_by(resgrp) %>% 
+    nest %>% 
+    mutate(
+      tst = map(data, ~ t.test(x = .$avedf)),
+      pvl = map(tst, function(x){
+        
+        ifelse(x$p.value > 0.05, 'mean = 0', 
+          ifelse(x$statistic > 0, 'mean > 0', 'mean < 0'))
+       
+        })
+    ) %>% 
+    select(resgrp, pvl) %>% 
+    unnest
+  
+  return(tst)
+
+})
 ```
 
 ```{r}
@@ -452,21 +512,77 @@ renderPlot({
   
   # input
   datdf <- datdf()
-  prjtyp <- input$prjtyp
 
   datdfeval <- datdf %>% 
-    filter(resgrp %in% prjtyp) %>% 
     left_join(wqstat, by = 'stat') %>% 
-    rename(`Chlorophyll\nchange` = avedf)
-  
+    rename(`Chlorophyll change` = avedf)
+
   # map
-  p1 <- pbase + 
-    geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll\nchange`, size = abs(`Chlorophyll\nchange`)), pch = 21, colour = 'black') +
+  p1 <- ggplot() + 
+    geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black') +
     scale_fill_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
-    scale_size(range = c(1, 11), guide = F)
+    facet_grid(~ resgrp, switch = 'x') +
+    coord_map() +
+    theme_void(base_family = 'serif', base_size = 18) +
+    theme(
+      legend.position = 'top',
+      strip.placement = 'outside'
+    ) +
+    scale_size(range = c(1, 11), guide = F) +
+    guides(fill = guide_colourbar(barheight = 0.5, barwidth = 10))
   
   return(p1)
   
-}, width = 600, height = 800)
+}, height = 300)
+
+```
+
+This plot shows overall differences in chlorophyll changes as a function of restoration project types.  The model is evaluated based on the aggregated differences across all sites given the selected number of matches and year windows.  The overall p-value is the ANOVA result testing for variation in chlorophyll differences by one or more project types and the letters in the plot show groups that are significantly different based on pairwise comparisons using adjust p-values.  The additional text shows whether the mean chlorophyll differences within each group are significantly different from zero.  
+
+```{r}
+renderPlot({
+  
+  # input
+  datdf <- datdf()
+  difzr <- difzr()
+  letvl <- letvl()
+  mtchgrd <- input$mtchgrd
+  yrdfgrd <- input$yrdfgrd
+
+  # get average chl chng for color mapping
+  datdf <- datdf %>% 
+    group_by(resgrp) %>% 
+    mutate(
+      grpdf = mean(avedf, na.rm = T)
+      ) %>% 
+    ungroup
+  
+  # multiplecomparison letters and diff values from difzr
+  lets <- letvl$lets %>% 
+    left_join(difzr, by = 'resgrp') %>% 
+    unite(lets, c('lets', 'pvl'), sep = ', ')
+
+  # title 
+  titl <- letvl$pval %>% 
+    paste0('ANOVA model pval = ', ., ' based on ', mtchgrd, ' projects matched to each station, +/- ', yrdfgrd, ' years')
+  
+  # map
+  p1 <- ggplot() + 
+    geom_hline(yintercept = 0, linetype = 'dashed', size = 1) +
+    geom_boxplot(data = datdf, aes(x = resgrp, y = avedf, fill = grpdf)) +
+    scale_fill_gradient2('Within-group average', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
+    geom_text(data = lets, aes(x = resgrp, y = maxdf, label = lets), hjust = -0.1, size = 6) +
+    theme_bw(base_family = 'serif', base_size = 18) +
+    theme(
+      legend.position = 'top'
+    ) +
+    scale_y_continuous('Chlophyll change') +
+    scale_x_discrete('Restoration group') +
+    guides(fill = guide_colourbar(barheight = 0.5, barwidth = 10)) +
+    ggtitle(subtitle = titl, label = '')
+  
+  return(p1)
+  
+}, height = 450)
 ```
 

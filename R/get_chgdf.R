@@ -1,6 +1,7 @@
 #' Get weighted means of treatment, before/after difference
 #'
 #' @param yrdf year diff to summarize wq data, in years before/after restoration projects
+#' @param chgout logical indicating if only the changes before/after are returned without differences and not summarizedby number of matches
 #'
 get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, chgout = FALSE){
   
