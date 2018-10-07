@@ -68,16 +68,23 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
   
   # return temporary chg object if T
   if(chgout) return(chg)
-  
+
   # get difference before after, separate for each station, rep by project type
-  # take average of the differences
+  # take average of the differences, check if conf int includes zero (ns if yes, sig if not)
   dfout <- chg %>% 
     mutate(
       difv = aft - bef
     ) %>% 
     group_by(stat, resgrp) %>% 
     summarise(
-      avedf = mean(difv, na.rm = T)
+      avedf = mean(difv, na.rm = T),
+      inczr = ifelse(inherits(try({t.test(difv)}, silent = T), 'try-error'), NA, findInterval(0, t.test(difv)$conf.int))
+    ) %>% 
+    mutate(
+      inczr = case_when(
+        inczr %in% c(0, 2) ~ 'sig',
+        inczr == 1 ~ 'ns'
+      )
     )
  
   return(dfout)
