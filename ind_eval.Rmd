@@ -390,7 +390,7 @@ renderPlot({
 
 # Evaluation of all differences
 
-This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.
+This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.  Changes that are significantly difference from zero have black outlines, although this varies partially as a function of the number of matches.
 
 ```{r}
 data(grdave)
@@ -513,14 +513,20 @@ renderPlot({
   # input
   datdf <- datdf()
 
+  # average changes
   datdfeval <- datdf %>% 
     left_join(wqstat, by = 'stat') %>% 
     rename(`Chlorophyll change` = avedf)
+  
+  # significant average changes
+  datdfsigs <- datdfeval %>% 
+    filter(inczr %in% 'sig')
 
   # map
   p1 <- ggplot() + 
-    geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black') +
-    scale_fill_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
+    geom_point(data = datdfeval, aes(x = lon, y = lat, colour = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 19) +
+    geom_point(data = datdfsigs, aes(x = lon, y = lat, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black', fill = NA) +
+    scale_colour_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
     facet_grid(~ resgrp, switch = 'x') +
     coord_map() +
     theme_void(base_family = 'serif', base_size = 18) +
