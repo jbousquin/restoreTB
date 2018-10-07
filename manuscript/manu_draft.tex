@@ -25,7 +25,7 @@
 \usepackage{hyperref}
 \PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
 \hypersetup{unicode=true,
-            pdftitle={Using Prior Knowledge to Inform Future Restoration Activities in the Gulf of Mexico},
+            pdftitle={Assessment of the cumulative effects of restoration activities on water quality in Tampa Bay, Florida},
             colorlinks=true,
             linkcolor=Maroon,
             citecolor=Blue,
@@ -76,15 +76,16 @@
 }
 
 \setlength{\droptitle}{-2em}
-  \title{Using Prior Knowledge to Inform Future Restoration Activities in the
-Gulf of Mexico}
-  \pretitle{\vspace{\droptitle}\centering\huge}
-  \posttitle{\par}
-  \author{}
-  \preauthor{}\postauthor{}
-  \date{}
-  \predate{}\postdate{}
 
+  \title{Assessment of the cumulative effects of restoration activities on water
+quality in Tampa Bay, Florida}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{}
+    \preauthor{}\postauthor{}
+    \date{}
+    \predate{}\postdate{}
+  
 \usepackage{lineno}
 \linenumbers
 \usepackage{setspace}
@@ -161,21 +162,21 @@ Because of the difficulties in demonstrating restoration success, new
 tools are needed to help guide and support the implementation of Gulf of
 Mexico restoration activities. Here, we present an empirical framework
 for evaluating the success of investments in water quality improvement
-activities to assign a probabilistic expectation of water quality
-benefits. The framework synthesizes monitoring data across
-spatiotemporal scales to demonstrate how the cumulative effects of
-coastal restoration activities could improve water quality in an
-estuary. Data on water quality and restoration projects in the Tampa Bay
-area (Florida, USA) were used to demonstrate application of the analysis
-framework. Tampa Bay is the second largest estuary in the Gulf of Mexico
-and has been intensively monitored since the mid-1970s. The ecological
-context of water quality changes in the Bay is well-described and a
-comprehensive history of restoration projects occurring in the watershed
-is available, making Tampa Bay an ideal test case for demonstrating and
-applying a new evaluation framework. The water quality and restoration
-data were evaluated to identify 1) types of restoration activities that
-produce the greatest improvements in water quality, and 2) over which
-time frames may water quality benefits be teased out of synergistic
+activities to quantify a potential expectation for changes in water
+quality. The framework synthesizes monitoring data across spatiotemporal
+scales to demonstrate how the cumulative effects of coastal restoration
+activities could improve water quality in an estuary. Data on water
+quality and restoration projects in the Tampa Bay area (Florida, USA)
+were used to demonstrate application of the analysis framework. Tampa
+Bay is the second largest estuary in the Gulf of Mexico and has been
+intensively monitored since the mid-1970s. The ecological context of
+water quality changes in the Bay is well-described and a comprehensive
+history of restoration projects occurring in the watershed is available,
+making Tampa Bay an ideal test case for demonstrating and applying a new
+evaluation framework. The water quality and restoration data were
+evaluated to identify 1) types of restoration activities that produce
+the greatest improvements in water quality, and 2) over which time
+frames may water quality benefits be teased out of synergistic
 restoration acitvities. Changes in chlorophyll-a concentrations, a proxy
 for negative eutrophication effects within Tampa Bay (H. S. Greening et
 al. \protect\hyperlink{ref-Greening2014}{2014}), were used to develop
@@ -289,10 +290,10 @@ projects: non-point source or point source controls. These categories
 were used to provide a broad characterization of restoration activites
 that were considered relevant for the perceived improvements in water
 quality over time. The nested categories were used to develop separate
-probabilistic models describing the likelihood of changes in water
-quality (described below). The final combined dataset included 891
-projects from 1971 to 2016. Projects with incomplete information (i.e.,
-missing date) were not included in the final dataset.
+models describing the likelihood of changes in water quality (described
+below). The final combined dataset included 891 projects from 1971 to
+2016. Projects with incomplete information (i.e., missing date) were not
+included in the final dataset.
 
 Water quality data in Tampa Bay have been consistently collected since
 1974 by the Environmental Protection Commission of Hillsborough County
@@ -307,9 +308,9 @@ Measurements at each site include temperature (C), Secchi disk depth
 (m), dissolved oyxgen (mg/L), conductivity (\(\mu\)Ohms/cm), pH,
 salinity (psu), turbidity (Nephalometric Turbidy Units), \ac{chla}
 (\(\mu\)g/L), total nitrogen (mg/L), and total phosphorus (mg/L). For
-the probabilistic models, all measurements of salinity, total nitrogen,
-and \ac{chla} were combined for a total of 515 monthly observations of
-each parameter at each station.
+the models, all measurements of salinity, total nitrogen, and \ac{chla}
+were combined for a total of 515 monthly observations of each parameter
+at each station.
 
 \begin{table}[!tbp]
 \caption{Summary of total nitrogen and chlorophyll-a observations from monitoring stations in Tampa Bay.  Minimum, median, and maximum observed values for low and high salinity conditions are shown for seasonal and annual aggregations of water quality observations at all monitoring stations (See \cref{fig:map}).  Low or high salinity is based on values below or above 26.5 psu. JFM: January, February, March; AMJ: April, May, June; JAS: July, August, September; OND: October, November, December.\label{tab:statsum}} 
@@ -321,24 +322,24 @@ each parameter at each station.
 \multicolumn{1}{l}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}\tabularnewline
 \hline
 {\bfseries Low}&&&&&&&\tabularnewline
-~~JFM&$0.03$&$0.45$&$2.69$&&$1$&$ 6.0$&$ 41$\tabularnewline
-~~AMJ&$0.03$&$0.58$&$3.03$&&$2$&$ 8.5$&$ 55$\tabularnewline
-~~JAS&$0.02$&$0.64$&$3.02$&&$2$&$13.5$&$102$\tabularnewline
-~~OND&$0.03$&$0.57$&$4.14$&&$1$&$ 9.0$&$ 62$\tabularnewline
-~~1977-1987&$0.02$&$0.75$&$3.03$&&$1$&$13.0$&$ 92$\tabularnewline
-~~1987-1997&$0.05$&$0.73$&$4.14$&&$1$&$ 9.5$&$ 60$\tabularnewline
-~~1997-2007&$0.12$&$0.54$&$2.89$&&$2$&$ 6.0$&$ 44$\tabularnewline
-~~2007-2017&$0.03$&$0.43$&$2.75$&&$1$&$ 8.0$&$102$\tabularnewline
+~~JFM&$0.00$&$0.46$&$2.69$&&$0.12$&$ 5.30$&$114.40$\tabularnewline
+~~AMJ&$0.03$&$0.60$&$3.03$&&$0.20$&$ 8.40$&$183.40$\tabularnewline
+~~JAS&$0.02$&$0.65$&$3.02$&&$0.50$&$13.82$&$266.60$\tabularnewline
+~~OND&$0.03$&$0.57$&$4.14$&&$0.00$&$10.00$&$192.14$\tabularnewline
+~~1977-1987&$0.02$&$0.88$&$3.03$&&$0.10$&$13.40$&$266.60$\tabularnewline
+~~1987-1997&$0.05$&$0.73$&$4.14$&&$0.00$&$ 8.78$&$192.14$\tabularnewline
+~~1997-2007&$0.00$&$0.54$&$2.89$&&$0.12$&$ 7.86$&$261.90$\tabularnewline
+~~2007-2017&$0.03$&$0.41$&$2.75$&&$0.50$&$ 7.30$&$220.60$\tabularnewline
 \hline
 {\bfseries High}&&&&&&&\tabularnewline
-~~JFM&$0.02$&$0.43$&$1.65$&&$1$&$ 4.0$&$ 43$\tabularnewline
-~~AMJ&$0.02$&$0.49$&$1.95$&&$1$&$ 6.0$&$ 47$\tabularnewline
-~~JAS&$0.02$&$0.54$&$3.16$&&$1$&$ 8.0$&$ 56$\tabularnewline
-~~OND&$0.02$&$0.43$&$2.43$&&$1$&$ 5.0$&$ 37$\tabularnewline
-~~1977-1987&$0.02$&$0.52$&$1.92$&&$1$&$ 8.0$&$ 47$\tabularnewline
-~~1987-1997&$0.02$&$0.54$&$2.43$&&$1$&$ 5.0$&$ 26$\tabularnewline
-~~1997-2007&$0.02$&$0.55$&$3.16$&&$1$&$ 5.0$&$ 25$\tabularnewline
-~~2007-2017&$0.03$&$0.34$&$1.80$&&$1$&$ 5.0$&$ 56$\tabularnewline
+~~JFM&$0.03$&$0.43$&$1.65$&&$0.00$&$ 3.20$&$ 55.80$\tabularnewline
+~~AMJ&$0.02$&$0.48$&$1.95$&&$0.10$&$ 5.43$&$ 74.90$\tabularnewline
+~~JAS&$0.03$&$0.55$&$3.16$&&$0.10$&$ 7.30$&$333.40$\tabularnewline
+~~OND&$0.02$&$0.43$&$2.43$&&$0.00$&$ 4.67$&$142.90$\tabularnewline
+~~1977-1987&$0.02$&$0.57$&$1.92$&&$0.30$&$ 7.30$&$136.80$\tabularnewline
+~~1987-1997&$0.02$&$0.54$&$2.43$&&$0.00$&$ 5.11$&$142.90$\tabularnewline
+~~1997-2007&$0.02$&$0.56$&$3.16$&&$0.00$&$ 4.80$&$ 72.30$\tabularnewline
+~~2007-2017&$0.03$&$0.33$&$1.80$&&$0.80$&$ 3.70$&$333.40$\tabularnewline
 \hline
 \end{tabular}\end{center}
 \end{table}
@@ -409,25 +410,28 @@ weaker signal. The total change in water quaility for a project type was
 simply the difference in weighted averages.
 
 The combined water quality and restoration data were used as input for
-developing the probabilistic models. Two parameters in \cref{eq:wqdif}
-affected the synthesis of the datasets which directly controlled the
-ability to identify an effect of each restoration project type, 1)
-\(n\), the number of spatially-matched restoration projects used to
-average the cumulative effect of each project type, and 2) \(win\), the
-time windows before and after a project completion date that were used
-to subset each water quality time series. Identifying the two values
-that maximized the difference between before and after water quality
-measurements was necessary to quantify how many projects induced a
-change in water quality, the time within which a change is expected, and
-the magnitude of a change differed between project types.
-
-Bayesian network, simple models pre/post, large model whole record.
-
-\begin{figure}
-\centerline{\includegraphics[width = 0.8\textwidth]{figs/flow_chrts.pdf}}
-\caption{Networks developed with Bayesian models showing a large model (top) using the complete time series from 1994 - 2016 and two simple models (bottom) for 1974 - 1993 and 1994 - 2016. Inputs to each network are water treatment and habitat restoration projects.  Intermediate nodes in the network are salinity and/or nitrogen depending on the model.  Chlorophyll is the terminal response endpoint for water quality in each model.}
-\label{fig:bys_flo}
-\end{figure}
+developing the models. Two parameters in \cref{eq:wqdif} affected the
+synthesis of the datasets which directly controlled the ability to
+characterize associations of each restoration project type with water
+quality changes, 1) \(n\), the number of spatially-matched restoration
+projects used to average the cumulative effect of each project type, and
+2) \(win\), the time windows before and after a project completion date
+that were used to subset each water quality time series. Identifying the
+two values that maximized the difference between before and after water
+quality measurements was necessary to quantify how many projects induced
+a change in water quality, the time within which a change is expected,
+and the magnitude of a change differed between project types. Moreover,
+two additional factors were also considered that defined the data used
+as input in \cref{eq:wqdif}, 1) the total length of the water quality
+time series, and 2) the spatial boundaries of the water quality
+stations. We evaluated the effects of the length of the time series
+(e.g., 1974 to 2017, 1974 to 1994, 1994 to 2017) and the spatial extent
+(e.g., whole bay or separate bay segments) to develop a more
+comprehensive assessment of the relative associations of each
+restoration project type with changes in water quality. This approach
+was used given the uneven distribution of restoration projects in space
+and time balanced with the known spatiotemporal changes in water quality
+in different segments of the Bay.
 
 \section{Results}\label{results}
 
@@ -443,24 +447,21 @@ Conditions}\label{observed-water-quality-conditions}
 
 Table showing seasonal
 
-\subsection{Bayesian Probability
-Outcomes}\label{bayesian-probability-outcomes}
-
 \subsubsection{}\label{section}
 
 \section{Discussion}\label{discussion}
 
 A long-term record of restoration activities and water quality data in
-Tampa Bay provided the underlying skeleton for developing a novel
-decision support tool for coastal restoration practitioners and
-managers. This new tool provides an improved process to understand the
-expected water quality improvements that could result from future
-restoration activities contingent upon the level of cumulative
-investments made toward divergent activities and the required monitoring
-to understand downstream water quality benefits at local to
-watershed-wide scales. This tool has broad application and extention
-within the Gulf Coast restoration and management community. However,
-several reservations on its appliction were discovered.
+Tampa Bay provided the foundation to develop a novel decision support
+tool for coastal restoration practitioners and managers. This new tool
+provides an improved process to understand the expected water quality
+improvements that could result from future restoration activities
+contingent upon the level of cumulative investments made toward
+divergent activities and the required monitoring to understand
+downstream water quality benefits at local to watershed-wide scales.
+This tool has broad application and extention within the Gulf Coast
+restoration and management community. However, several reservations on
+its appliction were discovered.
 
 \begin{itemize}
 \item
