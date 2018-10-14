@@ -45,6 +45,11 @@ pbase <- ggmap(map) +
     axis.title.x = element_blank(),
     axis.title.y = element_blank()
   )
+
+# restoration project type levels, labels and colors
+typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
+typelab <- c('Habitat enhance', 'Habitat establish', 'Habitat protect', 'Nonpoint control', 'Point control')
+typecol <- c('#31a354', '#74c476' , '#c7e9c0', '#3182bd', '#9ecae1')
 ```
 
 # Individual stations {.tabset}
@@ -193,8 +198,9 @@ renderPlot({
   p <- pbase +
     geom_point(data = restall, aes(x = lon, y = lat), size = 1, pch = 21) +
     geom_segment(data = toplo, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration type`), size = 1) +
-    geom_point(data = toplo, aes(x = lon.y, y = lat.y, fill = `Restoration type`), size = 3, pch = 21) +
-    geom_point(data = wqstatsta, aes(x = lon, y = lat), size = 5, colour = 'tomato1') +
+    geom_point(data = toplo, aes(x = lon.y, y = lat.y, fill = `Restoration type`), size = 5, pch = 21) +
+    geom_point(data = wqstatsta, aes(x = lon, y = lat), size = 7, colour = 'tomato1') +
+    scale_fill_manual(values = typecol) +
     scale_alpha(guide = F) 
   
   # whole map
@@ -240,6 +246,8 @@ renderPlot({
     geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
     geom_point(data = wqdatsta, aes(x = datetime, y = chla)) +
     geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
+    scale_fill_manual(values = typecol) +
+    scale_colour_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
       axis.title.x = element_blank(), 
@@ -279,6 +287,7 @@ renderPlot({
   # wq chgs bar plot
   p <- ggplot() + 
     geom_bar(data = toplo, stat = 'identity', aes(x = var, y = val, fill = resgrp)) +
+    scale_fill_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
       axis.title.x = element_blank(), 
@@ -321,6 +330,7 @@ renderPlot({
   # wq chgs bar plot
   p <- ggplot() + 
     geom_bar(data = toplo, stat = 'identity', aes(x = xvr, y = difv, fill = resgrp)) +
+    scale_fill_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
       axis.title.x = element_blank(), 
@@ -368,6 +378,7 @@ renderPlot({
   # wq chgs bar plot
   p <- ggplot() + 
     geom_bar(data = toplo, stat = 'identity', aes(x = resgrp, y = avedf, fill = resgrp)) +
+    scale_fill_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
       axis.title.x = element_blank(), 
