@@ -32,6 +32,7 @@ library(ggrepel)
 library(lubridate)
 library(forcats)
 library(Hmisc)
+library(maps)
 
 # functions
 source('../R/funcs.R')
@@ -50,6 +51,11 @@ load(file = '../data/reststat.RData')
 load(file = '../data/wqstat.RData')
 load(file = '../data/wqdat.RData')
 load(file = '../data/wqmtch.RData')
+
+# restoration project type levels, labels and colors
+typelev <- c('non_src', 'pnt_src', 'hab_enh', 'hab_est', 'hab_pro')
+typelab <- c('Nonpoint control', 'Point control', 'Habitat enhance', 'Habitat establish', 'Habitat protect')
+typecol <- c('#3182bd', '#9ecae1', '#31a354', '#74c476' , '#c7e9c0')
 ```
 
 # Introduction
@@ -70,7 +76,7 @@ Tampa Bay is located on the west-central Gulf coast of Florida and its watershed
 
 \begin{figure}
 \centerline{\includegraphics[width = 0.8\textwidth]{figs/tbrest_map.pdf}}
-\caption{Water quality stations and restoration projects in the Tampa Bay area.  Water qualtiy stations have been monitored monthly since 1974.  Locations of restoration projects represent 891 records of habitat or water infrastructure projects from 1971 to present.}
+\caption{Water quality stations and restoration projects in the Tampa Bay area.  Water quality stations have been monitored monthly since 1974.  Locations of restoration projects represent 891 records of habitat or water infrastructure projects from 1971 to present.}
 \label{fig:map}
 \end{figure}
  
@@ -80,7 +86,71 @@ Current water quality in Tampa Bay is dramatically improved from historical cond
 
 In addition to legacy improvements at wastewater treatment plants, nearly 900 restoration projects have been documented in the Tampa Bay area since 1971.  Several databases were synthesized to provide a comprehensive history of projects that have occurred in Tampa Bay and its watershed.  The first dataset was obtained from the Tampa Bay Water Atlas (version 2.3, [http://maps.wateratlas.usf.edu/tampabay/](http://maps.wateratlas.usf.edu/tampabay/), @TBEP17) maintained as a joint resource by the University of South Florida and the \ac{tbep}.  This database included 253 projects from 1971 to 2007 that were primarily focused on habitat establishment, enhancement, or protection in the nearshore areas of the Bay or the larger watershed (e.g., planting of *Spartina alterniflora*, exotic vegetation control, etc.). Information on more recent projects (2008-2017) acquired from the US EPA's National Estuary Program Mapper ([https://gispub2.epa.gov/NEPmap/](https://gispub2.epa.gov/NEPmap/)) added an additional 265 projects. This database was limited to basic information, such as year of completion, geographic coordinates, general activities, and areal coverage.  The last database was obtained from the \ac{tbep} Action Plan Database Portal ([https://apdb.tbeptech.org/index.php](https://apdb.tbeptech.org/index.php)) to describe locations of broader infrastructure improvement projects and structural best management practices.  This database included 368 projects from 1992 to 2016 for county, municipal or industrial activities, such as implementation of best management practices at treatment plants, creation of stormwater retention or treatment controls, or site-specific controls of point sources. 
 
-Both project data sources were combined to provide a single dataset describing the location, year of completion, and project classification of the restoration activity. The project classifications were described in two nested categories. The first described a high-level restration classification for each project as habitat or water infrastructure.  The second was a lower-level classification for habitat projects: enhancement, establishment, and protection; and water infrastructure projects: non-point source or point source controls.  These categories were used to provide a broad characterization of restoration activites that were considered relevant for the perceived improvements in water quality over time. The nested categories were used to develop separate models describing the likelihood of changes in water quality (described below).  The final combined dataset included 891 projects from 1971 to 2016.  Projects with incomplete information (i.e., missing date) were not included in the final dataset.
+Both project data sources were combined to provide a single dataset describing the location, year of completion, and project classification of the restoration activity. The project classifications were described in two nested categories. The first described a high-level restration classification for each project as habitat or water infrastructure.  The second was a lower-level classification for habitat projects: enhancement, establishment, and protection; and water infrastructure projects: non-point source or point source controls.  These categories were used to provide a broad characterization of restoration activites that were considered relevant for the perceived improvements in water quality over time. The nested categories were used to develop separate models describing the likelihood of changes in water quality (described below).  The final combined dataset included 891 projects from 1971 to 2017 (\cref{fig:restyrs}).  Projects with incomplete information (i.e., missing date) were not included in the final dataset.
+
+```{r restyrs, fig.height = 6.5, fig.width = 8, fig.cap = "Counts (top) and locations (bottom) of restoration project types over time in the Tampa Bay watershed.  Restorations were categorized as water infrastructure (nonpoint source controls, point source controls) and habitat (enhancements, establishments, protection) projects.  The compiled restoration database included records of project types and locations from 1971 to 2017."}
+
+# number of projects by year, type
+toplo1 <- restdat %>% 
+  left_join(reststat, by = 'id') %>% 
+  group_by(date, type) %>% 
+  summarise(
+    cnt = n()
+  ) %>% 
+  ungroup %>% 
+  mutate(
+    type = factor(type, levels = typelev, labels = typelab)
+  ) %>% 
+  filter(date <= 2017)
+
+# bar plot of project counts by year
+p1 <- ggplot(toplo1, aes(x = date, y  = cnt, fill = type)) +
+  geom_bar(stat ='identity', colour = 'darkgrey') +
+  scale_fill_manual(values = typecol) +
+  theme_bw(base_family = 'serif') +
+  theme(
+    legend.position = c(0.12, 0.75), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank()
+  ) +
+  ylab('Count') +
+  scale_x_continuous(expand = c(0, 0)) + 
+  ggtitle('(a) Counts of restoration project types over time')
+
+# year categories 
+toplo2 <- restdat %>% 
+  left_join(reststat, by = 'id') %>% 
+  filter(date <= 2017) %>% 
+  mutate(
+    type = factor(type, levels = typelev, labels = typelab),
+    date_cat = cut(date, 
+                   breaks = c(-Inf, 1980, 1990, 2000, 2010, Inf), 
+                   labels = c('1971 - 1980', '1980 - 1990', '1990 - 2000', '2000 - 2010', '2010 - 2017'))
+  )
+flbound <- map_data('state', region = 'florida')
+
+# map of projects by year categories
+p2 <- ggplot() +
+  geom_polygon(data = flbound, aes(x = long, y = lat, group = group), fill = '#ffffb2', alpha = 0.5) +
+  geom_path(data = flbound, aes(x = long, y = lat, group = group), alpha = 0.6, size = 0.25) +
+  geom_point(data = toplo2, aes(x = lon, y = lat, fill = type), colour = 'darkgrey', pch = 21, size = 1.5) + 
+  coord_map(ylim = c(27.37, 28.28), xlim = c(-82.9, -81.9)) + 
+  facet_wrap(~date_cat, ncol = 5, strip.position = 'bottom') + 
+  scale_fill_manual(values = typecol) + 
+  theme_bw(base_family = 'serif') +
+  theme(
+    axis.title = element_blank(), 
+    legend.position = 'none',
+    strip.background = element_blank(), 
+    strip.placement = 'outside', 
+    axis.text.y = element_text(size = 7),
+    axis.text.x = element_text(size = 7, angle = 45, hjust = 1, vjust = 1) 
+  ) + 
+  ggtitle('(b) Locations of restoration project types over time')
+
+# combine plots
+grid.arrange(p1, p2, ncol = 1, heights = c(1, 0.7))
+```
  
 Water quality data in Tampa Bay have been consistently collected since 1974 by the Environmental Protection Commission of Hillsborough County [@TBEP17].  Data were collected monthly at forty-five stations using a water sample from mid-depth or a monitoring sonde depending on the parameter.  Monitoring stations are fixed and cover the entire bay from the uppermost mesohaline sections to the lowermost euhaline portions that have direct interaction with the Gulf of Mexico. Water samples at each station are laboratory processed immediately after collection.  Measurements at each site include temperature (C), Secchi disk depth (m), dissolved oyxgen (mg/L), conductivity ($\mu$Ohms/cm), pH, salinity (psu), turbidity (Nephalometric Turbidy Units), \ac{chla} ($\mu$g/L), total nitrogen (mg/L), and total phosphorus (mg/L).  For the models, all measurements of salinity, total nitrogen, and \ac{chla} were combined for a total of 515 monthly observations of each parameter at each station.
 
