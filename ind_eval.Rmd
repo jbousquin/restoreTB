@@ -244,7 +244,7 @@ renderPlot({
   # wq ts
   p <- ggplot() + 
     geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
-    geom_point(data = wqdatsta, aes(x = datetime, y = chla)) +
+    geom_line(data = wqdatsta, aes(x = datetime, y = chla), size = 0.3, alpha = 0.7) +
     geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
     scale_fill_manual(values = typecol) +
     scale_colour_manual(values = typecol) +
@@ -372,12 +372,15 @@ renderPlot({
       ) %>% 
     group_by(resgrp) %>% 
     summarise(
-      avedf = mean(difv, na.rm = T)
+      avedf = mean(difv, na.rm = T), 
+      conlo = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[1]),
+      conhi = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[2])
     )
 
   # wq chgs bar plot
   p <- ggplot() + 
     geom_bar(data = toplo, stat = 'identity', aes(x = resgrp, y = avedf, fill = resgrp)) +
+    geom_errorbar(data = toplo, aes(x = resgrp, ymin = conlo, ymax = conhi), width = 0) +
     scale_fill_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
     theme(
