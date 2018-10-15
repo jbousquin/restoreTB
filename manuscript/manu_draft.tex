@@ -412,8 +412,21 @@ a weighted average of the before-after effects of each project that was
 inversely related to the distance from a water quality station. A
 weighted average by distance was used based on the assumption that
 restoration projects farther from a water quality station will have a
-weaker signal. The total change in water quaility for a project type was
-simply the difference in weighted averages.
+weaker signal. The total change in water quality for a project type was
+simply the difference in weighted averages. This process was repeated
+for every station and a graphical example of \cref{eq:wqdif} is shown in
+\cref{fig:statex}
+
+\begin{verbatim}
+## pdf 
+##   2
+\end{verbatim}
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.95\textwidth]{figs/statex.pdf}}
+\caption{Steps to estimate cumulative effects of water quality changes at a single station relative to a selected number of projects and time windows. Subplot (a) shows station 23 in Middle Tampa Bay matched to the five nearest restoration projects for each of five types.  The time slices of the water quality observations for +/- ten years before and after the completion of each project are shown in (b), ordered from near to far.  The before/after water quality averages for the slices are shown in (c) and the differences between the two are shown in (d).  Finally, the weighted averages for the five closest matches by project type are shown in (e) with 95\% confidence intervals. }
+\label{fig:statex}
+\end{figure}
 
 The combined water quality and restoration data were used as input for
 developing the models. Two parameters in \cref{eq:wqdif} affected the

@@ -19,7 +19,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
       date = as.Date(date, format = '%Y-%m-%d'), 
       wts = dist / min(dist),
       wts = 1 / wts, 
-      slcs = pmap(list(stat, date), function(stat, date){
+      slcs = purrr::pmap(list(stat, date), function(stat, date){
  
         # summarize before/after wq data based on restoration date
         date <- as.Date(date, origin = '1970-01-01')
@@ -94,7 +94,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
     group_by(stat) %>% 
     nest %>% 
     mutate(
-      cmb = map(data, function(x){
+      cmb = purrr::map(data, function(x){
  
         # average each combo for the station
         out <- apply(tosel, 1, function(sel){
@@ -111,7 +111,7 @@ get_chg <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, ch
         return(out)
         
       }), 
-      cmb = map(cmb, ~ t(.x) %>% data.frame(., stringsAsFactors = FALSE))
+      cmb = purrr::map(cmb, ~ t(.x) %>% data.frame(., stringsAsFactors = FALSE))
     ) %>%
     dplyr::select(-data) %>%
     unnest

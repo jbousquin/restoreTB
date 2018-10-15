@@ -34,8 +34,8 @@ get_pldat <- function(modin, cvar, pos = c('left', 'right'), fct = NULL){
     .[, -1] %>% 
     data.frame %>% 
     as.list %>% 
-    map(range) %>%
-    map(function(x) seq(x[1], x[2], length = 100))
+    purrr::map(range) %>%
+    purrr::map(function(x) seq(x[1], x[2], length = 100))
   
   # quantiles for cvar
   x[[cvar]] <- modin$model[[cvar]]%>% quantile(., c(0, 1))

@@ -19,7 +19,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
       date = as.Date(date, format = '%Y-%m-%d'), 
       wts = dist / min(dist),
       wts = 1 / wts, 
-      slcs = pmap(list(stat, date), function(stat, date){
+      slcs = purrr::pmap(list(stat, date), function(stat, date){
         
         # summarize before/after wq data based on restoration date
         date <- as.Date(date, origin = '1970-01-01')

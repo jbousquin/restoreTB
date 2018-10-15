@@ -48,8 +48,8 @@ get_clo <- function(restdat, reststat, wqstat, resgrp = 'top', mtch = 10){
     group_by(stat) %>% 
     nest %>% 
     mutate(
-      clo = map(data, function(sta){
-        
+      clo = purrr::map(data, function(sta){
+
         # get top mtch closest restoration projects to each station
         # grouped by resgrp column
         dists <- rbind(sta, restall[, c('lon', 'lat')]) %>%
@@ -68,8 +68,8 @@ get_clo <- function(restdat, reststat, wqstat, resgrp = 'top', mtch = 10){
           arrange(dist) %>% 
           nest %>%
           mutate(
-            data = map(data, function(x) x[1:mtch, ]),
-            rnk = map(data, function(x) seq(1:nrow(x)))
+            data = purrr::map(data, function(x) x[1:mtch, ]),
+            rnk = purrr::map(data, function(x) seq(1:nrow(x)))
           ) %>% 
           unnest %>% 
           mutate(dist = dist / 1000) # to km

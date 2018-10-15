@@ -28,6 +28,10 @@ knitr::opts_chunk$set(fig.path = 'figs/', warning = F, message = F, echo = F, ca
 # libraries
 library(ggmap)
 library(tidyverse)
+library(geosphere)
+library(stringi)
+library(scales)
+library(tibble)
 library(vegan)
 library(sf)
 library(sp)
@@ -36,7 +40,8 @@ library(ggrepel)
 library(lubridate)
 library(forcats)
 library(Hmisc)
-library(maps)
+library(multcompView)
+library(patchwork)
 
 # functions
 source('../R/funcs.R')
@@ -57,9 +62,9 @@ load(file = '../data/wqdat.RData')
 load(file = '../data/wqmtch.RData')
 
 # restoration project type levels, labels and colors
-typelev <- c('non_src', 'pnt_src', 'hab_enh', 'hab_est', 'hab_pro')
-typelab <- c('Nonpoint control', 'Point control', 'Habitat enhance', 'Habitat establish', 'Habitat protect')
-typecol <- c('#3182bd', '#9ecae1', '#31a354', '#74c476' , '#c7e9c0')
+typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
+typelab <- c('Habitat\nenhance', 'Habitat\nestablish', 'Habitat\nprotect', 'Nonpoint\ncontrol', 'Point\ncontrol')
+typecol <- c('#31a354', '#74c476' , '#c7e9c0', '#3182bd', '#9ecae1')
 ```
 
 # Introduction
@@ -438,7 +443,233 @@ Change in water quality relative to each type of restoration project was estimat
 \delta WQ = \frac{\sum_{i = 1}^{n} \hat{wq} \in win + proj_{i, dt}}{n \cdot dist_{i \in n}} - \frac{\sum_{i = 1}^{n} \hat{wq} \in proj_{i, dt} - win}{n \cdot dist_{i \in n}}
 \label{eq:wqdif}
 \end{equation}
-where $\delta WQ$ was the difference between the after and before averages for each of $n$ spatially  matched restoration projects.  For each $i$ of $n$ projects ($proj$), the average water quality ($\hat{wq}$) within the window ($win$) either before ($proj_{i, dt} - win$) or after ($win + proj_{i, dt}$) the completion date ($dt$) for project $i$ was summed.  The summation of water quality before and after each project was then divided by the total number of $n$ matched projects, muliplied by the distance of the projects from a water quality station ($dist_{i \in n}$). This created a weighted average of the before-after effects of each project that was inversely related to the distance from a water quality station. A weighted average by distance was used based on the assumption that restoration projects farther from a water quality station will have a weaker signal. The total change in water quaility for a project type was simply the difference in weighted averages.
+where $\delta WQ$ was the difference between the after and before averages for each of $n$ spatially  matched restoration projects.  For each $i$ of $n$ projects ($proj$), the average water quality ($\hat{wq}$) within the window ($win$) either before ($proj_{i, dt} - win$) or after ($win + proj_{i, dt}$) the completion date ($dt$) for project $i$ was summed.  The summation of water quality before and after each project was then divided by the total number of $n$ matched projects, muliplied by the distance of the projects from a water quality station ($dist_{i \in n}$). This created a weighted average of the before-after effects of each project that was inversely related to the distance from a water quality station. A weighted average by distance was used based on the assumption that restoration projects farther from a water quality station will have a weaker signal. The total change in water quality for a project type was simply the difference in weighted averages.  This process was repeated for every station and a graphical example of \cref{eq:wqdif} is shown in \cref{fig:statex}
+
+```{r statex}
+# globals
+sta <- 23
+yrdf <- 10
+mtch <- 5
+jitr <- 0
+bssz <- 10
+txsz <- 8
+
+# filtered wqdat by stat
+wqdatsta <- wqdat %>% 
+    filter(stat %in% sta)
+  
+# filtered wqstat by station
+wqstatsta <- wqstat %>% 
+    filter(stat %in% sta)
+
+# wq stats matched to rest stats
+wqmtch <- get_clo(restdat, reststat, wqstatsta, resgrp = 'type', mtch = mtch) %>% 
+  mutate(
+    resgrp = factor(resgrp, levels = typelev, labels = typelab)
+  )
+
+# change factor levels in restdat
+restdat <- restdat %>% 
+  mutate(type = factor(type, levels = typelev, labels = typelab))
+
+# yr windows with matched rest sites
+yrwin <- get_chg(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T) 
+
+## Map
+
+# combine lat/lon for the plot
+toplo <- wqmtch %>%
+  left_join(wqstatsta, by = 'stat') %>%
+  left_join(reststat, by = 'id') %>%
+  rename(
+    `Restoration type` = resgrp,
+    `Distance (dd)` = dist
+  ) %>% 
+  mutate(
+    lat.y = ifelse(duplicated(lat.y), jitter(lat.y, factor = jitr), lat.y),
+    lon.y = ifelse(duplicated(lon.y), jitter(lon.y, factor = jitr), lon.y)
+  )
+  
+# restoration project grouping column
+restall <- left_join(restdat, reststat, by = 'id') %>% 
+  mutate(type = factor(type, levels = typelev, labels = typelab))
+names(restall)[names(restall) %in% 'type'] <- 'Restoration type'
+
+# rngs
+xrng <- range(c(toplo$lon.x, toplo$lon.y))
+yrng <- range(c(toplo$lat.x, toplo$lat.y))
+
+# base map
+ext <- make_bbox(xrng, yrng, f = 0.2)
+map <- get_stamenmap(ext, zoom = 11, maptype = "toner-lite")
+pbase <- ggmap(map) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+# base extension
+pbase <- pbase +
+  # geom_point(data = restall, aes(x = lon, y = lat), size = 1, pch = 21) +
+  geom_segment(data = toplo, aes(x = lon.x, y = lat.x, xend = lon.y, yend = lat.y, alpha = -`Distance (dd)`, linetype = `Restoration type`), size = 1) +
+  geom_point(data = toplo, aes(x = lon.y, y = lat.y, fill = `Restoration type`), size = 5, pch = 21) +
+  geom_point(data = wqstatsta, aes(x = lon, y = lat), size = 7, colour = 'tomato1') +
+  scale_fill_manual(values = typecol) +
+  scale_alpha(guide = F) 
+
+# sub map
+p1 <- pbase +
+  scale_y_continuous(limits = yrng) +
+  scale_x_continuous(limits = xrng) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(), 
+    legend.position = 'none',
+    legend.title = element_blank()
+  ) +
+  ggtitle('(a) Example station match with restoration projects')
+
+## Time slices
+
+# wq ts
+p2 <- ggplot() + 
+  geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
+  geom_line(data = wqdatsta, aes(x = datetime, y = chla), size = 0.3, alpha = 0.7) +
+  geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
+  scale_fill_manual(values = typecol) +
+  scale_colour_manual(values = typecol) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = 'none', 
+    panel.border = element_rect(fill = NA),
+    strip.background = element_blank(), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.y = element_text(size = txsz),
+    axis.text.x = element_text(size = 7),
+    panel.spacing = grid::unit(0, "lines")
+  ) +
+  facet_grid(rnk ~ resgrp) + 
+  scale_y_log10('log10-Chla') + 
+  ggtitle('(b) Chlorophyll time slices')
+
+## Before/after avg.
+
+# to plot
+toplo <- yrwin %>% 
+  select(rnk, resgrp, wts, bef, aft) %>% 
+  gather('var', 'val', bef, aft) %>% 
+  mutate(var = factor(var, levels = c('bef', 'aft')))
+
+# wq chgs bar plot
+p3 <- ggplot() + 
+  geom_bar(data = toplo, stat = 'identity', aes(x = var, y = val, fill = resgrp)) +
+  scale_fill_manual(values = typecol) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = 'top', 
+    legend.title = element_blank(),
+    panel.border = element_rect(fill = NA),
+    strip.background = element_blank(), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.y = element_text(size = txsz),
+    axis.text.x = element_text(size = txsz),
+    panel.spacing = grid::unit(0, "lines")
+  ) +
+  facet_grid(rnk ~ resgrp) + 
+  scale_y_log10('log10-Chla') +
+  ggtitle('(c) Before/after averages')
+
+# legend
+pleg <- g_legend(p3) 
+p3 <- p3 + theme(legend.position = 'none')
+
+## Before/after avg. difference
+
+# to plot
+toplo <- yrwin %>% 
+  select(rnk, resgrp, wts, bef, aft) %>% 
+  mutate(
+    difv = aft - bef,
+    xvr = 'Diff'
+  )
+
+# wq chgs bar plot
+p4 <- ggplot() + 
+  geom_bar(data = toplo, stat = 'identity', aes(x = xvr, y = difv, fill = resgrp)) +
+  scale_fill_manual(values = typecol) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = 'none', 
+    panel.border = element_rect(fill = NA),
+    strip.background = element_blank(), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.y = element_text(size = txsz),
+    axis.text.x = element_text(size = txsz),
+    panel.spacing = grid::unit(0, "lines")
+  ) +
+  facet_grid(rnk ~ resgrp) + 
+  ylab('log10-Chla difference') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  ggtitle('(d) Before/after differences')
+
+## Average of averages
+
+# to plot
+toplo <- yrwin %>% 
+  select(rnk, resgrp, wts, bef, aft) %>% 
+  mutate(
+    difv = aft - bef,
+    xvr = 'Diff'
+  ) %>% 
+  group_by(resgrp) %>% 
+  summarise(
+    avedf = mean(difv, na.rm = T), 
+    conlo = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[1]),
+    conhi = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[2])
+  )
+
+# wq chgs bar plot
+p5 <- ggplot() + 
+  geom_bar(data = toplo, stat = 'identity', aes(x = resgrp, y = avedf, fill = resgrp)) +
+  geom_errorbar(data = toplo, aes(x = resgrp, ymin = conlo, ymax = conhi), width = 0) +
+  scale_fill_manual(values = typecol) +
+  theme_bw(base_family = 'serif', base_size = bssz) +
+  theme(
+    axis.title.x = element_blank(), 
+    legend.position = 'none', 
+    panel.border = element_rect(fill = NA),
+    strip.background = element_blank(), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(), 
+    axis.text.y = element_text(size = txsz),
+    axis.text.x = element_text(size = txsz),
+    panel.spacing = grid::unit(0, "lines")
+  ) +
+  ylab('log10-Chla difference, averages') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
+  ggtitle(expression(paste('(e) Combined estimated effects, ', delta, italic(WQ), ' in eq. (1) for each of five project types')))
+
+pdf('figs/statex.pdf', height = 10.25, width = 8.5, family = 'serif')
+wrap_plots(pleg) + {
+  p1 + p2  + p3 + p4 + plot_layout(ncol = 2)} + 
+  p5 +
+  plot_layout(ncol = 1, heights = c(0.05, 1, 0.2))
+dev.off()
+```
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.95\textwidth]{figs/statex.pdf}}
+\caption{Steps to estimate cumulative effects of water quality changes at a single station relative to a selected number of projects and time windows. Subplot (a) shows station 23 in Middle Tampa Bay matched to the five nearest restoration projects for each of five types.  The time slices of the water quality observations for +/- ten years before and after the completion of each project are shown in (b), ordered from near to far.  The before/after water quality averages for the slices are shown in (c) and the differences between the two are shown in (d).  Finally, the weighted averages for the five closest matches by project type are shown in (e) with 95\% confidence intervals. }
+\label{fig:statex}
+\end{figure}
 
 The combined water quality and restoration data were used as input for developing the models. Two parameters in \cref{eq:wqdif} affected the synthesis of the datasets which directly controlled the ability to characterize associations of each restoration project type with water quality changes, 1) $n$, the number of spatially-matched restoration projects used to average the cumulative effect of each project type, and 2) $win$, the time windows before and after a project completion date that were used to subset each water quality time series.  Identifying the two values that maximized the difference between before and after water quality measurements was necessary to quantify how many projects induced a change in water quality, the time within which a change is expected, and the magnitude of a change differed between project types. Moreover, two additional factors were also considered that defined the data used as input in \cref{eq:wqdif}, 1) the total length of the water quality time series, and 2) the spatial boundaries of the water quality stations.  We evaluated the effects of the length of the time series (e.g., 1974 to 2017, 1974 to 1994, 1994 to 2017) and the spatial extent (e.g., whole bay or separate bay segments) to develop a more comprehensive assessment of the relative associations of each restoration project type with changes in water quality.  This approach was used given the uneven distribution of restoration projects in space and time balanced with the known changes in water quality in different segments of the Bay.
 

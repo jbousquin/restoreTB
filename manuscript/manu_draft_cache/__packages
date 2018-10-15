@@ -22,3 +22,8 @@ Formula
 Hmisc
 maps
 bindrcpp
+patchwork
+geosphere
+stringi
+scales
+multcompView

@@ -7,7 +7,7 @@ modout <- grdsres %>%
   group_by(resgrp, yrs, salev, project) %>% 
   nest %>% 
   mutate(
-    mod = map(data, function(x){
+    mod = purrr::map(data, function(x){
       # browser()
       # model only
       datin <<- na.omit(x)
@@ -20,7 +20,7 @@ modout <- grdsres %>%
       return(modsel)
       
     }),
-    prd = map(mod, function(x){
+    prd = purrr::map(mod, function(x){
       
       datin <- crossing(
         mtch = 1:10, 
@@ -38,7 +38,7 @@ modout <- grdsres %>%
       return(prdout)
       
     }), 
-    coef = map(mod, function(x){
+    coef = purrr::map(mod, function(x){
       
       out <- summary(x)$coefficients %>% 
         data.frame %>% 
