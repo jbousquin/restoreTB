@@ -64,7 +64,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
       })
     ) %>%
     unnest %>% 
-    dplyr::select(stat, rnk, resgrp, wts, bef, aft, dtend, date, dtaft) 
+    dplyr::select(stat, rnk, resgrp, dist, wts, bef, aft, dtend, date, dtaft) 
   
   # return temporary chg object if T
   if(chgout) return(chg)
@@ -78,7 +78,9 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
     group_by(stat, resgrp) %>% 
     summarise(
       avedf = mean(difv, na.rm = T),
-      inczr = ifelse(inherits(try({t.test(difv)}, silent = T), 'try-error'), NA, findInterval(0, t.test(difv)$conf.int))
+      inczr = ifelse(inherits(try({t.test(difv)}, silent = T), 'try-error'), NA, findInterval(0, t.test(difv)$conf.int)),
+      avedists = mean(dist, na.rm = T),
+      avecompl = mean(lubridate::decimal_date(date))
     ) %>% 
     mutate(
       inczr = case_when(

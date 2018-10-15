@@ -240,3 +240,112 @@ grdave <- res %>%
   dplyr::select(-name)
 
 save(grdave, file = 'data/grdave.RData', compress = 'xz')
+
+######
+# similar to grdave but addition of subsets by bay segment, early/late/full time series, and only 5/10 combos for slice and mtches
+# for manuscript maybe
+
+library(tidyverse)
+library(lubridate)
+library(geosphere)
+library(stringi)
+library(tibble)
+library(scales)
+library(sf)
+library(sp)
+library(foreach)
+library(doParallel)
+
+data(restdat)
+data(reststat)
+data(wqdat)
+data(wqstat)
+
+# setup parallel backend
+ncores <- detectCores() - 1  
+cl<-makeCluster(ncores)
+registerDoParallel(cl)
+strt<-Sys.time()
+
+# search grids
+grds <- crossing(
+  yrdf = c(5, 10), 
+  mtch = c(5, 10), 
+  yrstr = c(1974, 1997), 
+  yrend = c(1997, 2017),
+  locs = c('OTB', 'HB', 'MTB', 'LTB', 'all')
+) %>% 
+  filter(yrstr < yrend)
+
+res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere', 'lubridate')) %dopar% {
+  
+  # source R files
+  source('R/get_chgdf.R')
+  source('R/get_clo.R')
+  
+  # log
+  sink('log.txt')
+  cat(i, 'of', nrow(grds), '\n')
+  print(Sys.time()-strt)
+  sink()
+  
+  # station locations
+  stas <- list(
+    OTB = c(36, 38, 40, 41, 46, 47, 50, 51, 60, 63, 64, 65, 66, 67, 68),
+    HB = c(6, 7, 8, 44, 52, 55, 70, 71, 73, 80),
+    MTB = c(9, 11, 81, 84, 13, 14, 32, 33, 16, 19, 28, 82),
+    LTB = c(23, 24, 25, 90, 91, 92, 93, 95)
+  )
+  stas$all <- unlist(stas)
+  
+  # grid row values
+  vls <- grds[i, ]
+  
+  # inputs
+  yrdf <- vls$yrdf
+  mtch <- vls$mtch
+  yrstr <- vls$yrstr
+  yrend <- vls$yrend
+  locs <- vls$locs
+  
+  # stations to mod, filter by locations and years
+  wqstatsub <- wqstat %>% 
+    filter(stat %in% stas[[locs]])
+  wqdatsub <- wqdat %>% 
+    filter(stat %in% stas[[locs]]) %>% 
+    filter(year(datetime) >= yrstr & year(datetime) <= yrend)
+  
+  # filter restorations by years
+  restdatsub <- restdat %>% 
+    filter(date >= yrstr & date <= yrend)
+  reststatsub <- reststat %>% 
+    filter(id %in% restdatsub$id)
+  
+  # remove habitat protection projects if yrend < 1998 and mtch > 5
+  if(yrend == 1997 & mtch > 5){
+    restdatsub <- restdatsub %>% 
+      filter(!type %in% 'hab_pro') %>% 
+      mutate(type = forcats::fct_drop(type))
+    reststatsub <- reststatsub %>% 
+      filter(id %in% reststatsub$id)
+  }
+  
+  # get wqmtch
+  wqmtch <- get_clo(restdatsub, reststatsub, wqstatsub, resgrp = 'type', mtch = mtch)
+  
+  # get differences
+  wqdf <- get_chgdf(wqdatsub, wqmtch, wqstatsub, restdatsub, wqvar = 'chla', yrdf = yrdf)
+  
+  return(wqdf)
+  
+}
+stopCluster(cl)
+
+# combine results with grid
+grdavemanu <- res %>% 
+  enframe %>% 
+  bind_cols(grds,. ) %>% 
+  dplyr::select(-name)
+
+save(grdavemanu, file = 'data/grdavemanu.RData', compress = 'xz')
+

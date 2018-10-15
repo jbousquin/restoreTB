@@ -445,7 +445,7 @@ Change in water quality relative to each type of restoration project was estimat
 \end{equation}
 where $\delta WQ$ was the difference between the after and before averages for each of $n$ spatially  matched restoration projects.  For each $i$ of $n$ projects ($proj$), the average water quality ($\hat{wq}$) within the window ($win$) either before ($proj_{i, dt} - win$) or after ($win + proj_{i, dt}$) the completion date ($dt$) for project $i$ was summed.  The summation of water quality before and after each project was then divided by the total number of $n$ matched projects, muliplied by the distance of the projects from a water quality station ($dist_{i \in n}$). This created a weighted average of the before-after effects of each project that was inversely related to the distance from a water quality station. A weighted average by distance was used based on the assumption that restoration projects farther from a water quality station will have a weaker signal. The total change in water quality for a project type was simply the difference in weighted averages.  This process was repeated for every station and a graphical example of \cref{eq:wqdif} is shown in \cref{fig:statex}
 
-```{r statex}
+```{r statex, results = 'hide'}
 # globals
 sta <- 23
 yrdf <- 10
@@ -658,6 +658,7 @@ p5 <- ggplot() +
   ggtitle(expression(paste('(e) Combined estimated effects, ', delta, italic(WQ), ' in eq. (1) for each of five project types')))
 
 pdf('figs/statex.pdf', height = 10.25, width = 8.5, family = 'serif')
+# png('figs/statex.png', height = 10.25, width = 8.5, units = 'in', family = 'serif', res = 300)
 wrap_plots(pleg) + {
   p1 + p2  + p3 + p4 + plot_layout(ncol = 2)} + 
   p5 +
