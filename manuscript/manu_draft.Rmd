@@ -45,7 +45,7 @@ library(patchwork)
 
 # functions
 source('../R/funcs.R')
-source('../R/get_chg.R')
+source('../R/get_chgdf.R')
 source('../R/get_clo.R')
 source('../R/get_dat.R')
 source('../R/get_lik.R')
@@ -473,7 +473,11 @@ restdat <- restdat %>%
   mutate(type = factor(type, levels = typelev, labels = typelab))
 
 # yr windows with matched rest sites
-yrwin <- get_chg(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T) 
+yrwin <- get_chgdf(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T) 
+
+# add one year prior to dtaft
+yrwin <- yrwin %>% 
+  mutate(dtaftstr = dtaft - 365)
 
 ## Map
 
@@ -535,9 +539,10 @@ p1 <- pbase +
 
 # wq ts
 p2 <- ggplot() + 
-  geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
+    geom_rect(data = yrwin, aes(xmin = dtend, xmax = date, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.8) +
+    geom_rect(data = yrwin, aes(xmin = dtaftstr, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.8) +
   geom_line(data = wqdatsta, aes(x = datetime, y = chla), size = 0.3, alpha = 0.7) +
-  geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
+  # geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
   scale_fill_manual(values = typecol) +
   scale_colour_manual(values = typecol) +
   theme_bw(base_family = 'serif', base_size = bssz) +
@@ -684,7 +689,12 @@ Figure showing restoration types through time.
 ### Observed Water Quality Conditions
 Table showing seasonal 
 
-### 
+## Assocations of restoration projects with water quality changes
+
+A figure showing estimated changes across all sites 5, 10 yr windows, 5, 10 projects, maps and boxplots like ind_eval, repeat for individual segments but maybe as table? 
+```{r}
+
+```
 
 
 # Discussion

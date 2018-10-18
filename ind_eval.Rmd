@@ -28,10 +28,10 @@ data(reststat)
 data(wqdat)
 data(wqstat)
 data(map)
-data(grdave)
+data(grdavemanu)
 
 # source R files
-source('R/get_chg.R')
+source('R/get_chgdf.R')
 source('R/get_clo.R')
 source('R/get_dat.R')
 source('R/get_lik.R')
@@ -154,7 +154,7 @@ yrwin <- reactive({
   yrdf <- input$yrdf
   
   # get temp matches and avgs
-  yrwin <- get_chg(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T)
+  yrwin <- get_chgdf(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = yrdf, chgout = T)
   
   return(yrwin)
   
@@ -240,12 +240,17 @@ renderPlot({
   # input
   yrwin <- yrwin()
   wqdatsta <- wqdatsta()
+  
+  # add one year prior to dtaft
+  toplo <- yrwin %>% 
+    mutate(dtaftstr = dtaft - 365)
 
   # wq ts
   p <- ggplot() + 
-    geom_rect(data = yrwin, aes(xmin = dtend, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
+    geom_rect(data = toplo, aes(xmin = dtend, xmax = date, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
+    geom_rect(data = toplo, aes(xmin = dtaftstr, xmax = dtaft, ymin = 0, ymax = Inf, group = resgrp, fill = resgrp), alpha = 0.7) +
     geom_line(data = wqdatsta, aes(x = datetime, y = chla), size = 0.3, alpha = 0.7) +
-    geom_vline(data = yrwin, aes(xintercept = date, colour = resgrp)) +
+    geom_vline(data = toplo, aes(xintercept = date, colour = resgrp)) +
     scale_fill_manual(values = typecol) +
     scale_colour_manual(values = typecol) +
     theme_bw(base_family = 'serif', base_size = 20) +
@@ -372,7 +377,7 @@ renderPlot({
       ) %>% 
     group_by(resgrp) %>% 
     summarise(
-      avedf = mean(difv, na.rm = T), 
+      avedf = weighted.mean(difv, w = wts, na.rm = T), 
       conlo = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[1]),
       conhi = ifelse(length(na.omit(difv)) <= 1, 0, t.test(difv)$conf.int[2])
     )
@@ -407,20 +412,19 @@ renderPlot({
 This map shows a summary of all average difference values in Chlorophyll for selected year window and number of restoration project matches.  The restoration project grouping (simple: top, complex: type) can also be toggled.  The points are displayed by size to show magnitude of the change and color to show direction of the change (red is increase, green is decrease). These are the same values that are shown in tab 5 but mapped to all stations for any variable combination from the selection tabs.  Changes that are significantly difference from zero have black outlines, although this varies partially as a function of the number of matches.
 
 ```{r}
-data(grdave)
 
 column(12, 
        
        column(4, 
-              selectInput('yrdfgrd', 'Select year window:', choices = unique(grdave$yrdf))
+              selectInput('yrdfgrd', 'Select year window:', choices = unique(grdavemanu$yrdf))
               ),
        
        column(4, 
-              selectInput('mtchgrd', 'Select restoration site matches:', choices = unique(grdave$mtch))
+              selectInput('mtchgrd', 'Select restoration site matches:', choices = unique(grdavemanu$mtch))
               ),
        
        column(4,  
-              selectInput('resgrpgrd', 'Select restoration group level:', choices = unique(grdave$resgrp))
+              selectInput('locsgrd', 'Select area:', choices = unique(grdavemanu$locs))
               )
        
 )
@@ -431,12 +435,12 @@ datdf <- reactive({
   # input
   mtchgrd <- input$mtchgrd
   yrdfgrd <- input$yrdfgrd
-  resgrpgrd <- input$resgrpgrd
+  locsgrd <- input$locsgrd
 
-  out <- grdave %>% 
+  out <- grdavemanu %>% 
     filter(yrdf %in% yrdfgrd) %>% 
     filter(mtch %in% mtchgrd) %>% 
-    filter(resgrp %in% resgrpgrd) %>% 
+    filter(locs %in% locsgrd) %>% 
     pull(value) %>% 
     .[[1]]
   
@@ -584,7 +588,7 @@ renderPlot({
 
   # title 
   titl <- letvl$pval %>% 
-    paste0('ANOVA model pval = ', ., ' based on ', mtchgrd, ' projects matched to each station, +/- ', yrdfgrd, ' years')
+    paste0('ANOVA model pval = ', ., ' based on ', mtchgrd, ' projects matched to each station, + ', yrdfgrd, ' years')
   
   # map
   p1 <- ggplot() + 
