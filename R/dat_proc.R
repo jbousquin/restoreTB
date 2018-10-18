@@ -271,8 +271,8 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = seq(1:10), 
   mtch = seq(1:10), 
-  yrstr = c(1974, 1997), 
-  yrend = c(1997, 2017),
+  yrstr = c(1974), 
+  yrend = c(2017),
   locs = c('OTB', 'HB', 'MTB', 'LTB', 'all')
 ) %>% 
   filter(yrstr < yrend)

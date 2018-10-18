@@ -27,10 +27,10 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
         # filter wq data by stat, get date bounds
         statdat <- wqdat[wqdat$stat %in% stat, ]
         orrng <- range(statdat$datetime)
-        
+        browser()
         # get date range +/- restoration proj defined by yrdf
-        dtrng <- c(date - yrdf * 365, date + yrdf * 365)
-        # dtrng <- c(date - 365, date + yrdf * 365)
+        # dtrng <- c(date - yrdf * 365, date + yrdf * 365)
+        dtrng <- c(date - 365, date + yrdf * 365 - 365, date + yrdf * 365)
         
         ## get values within window in dtrng, only if dates available
         ## values are summarized as mean before/after
@@ -47,17 +47,17 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
         }
         
         # after
-        if(dtrng[2] <= orrng[2]){
+        if(dtrng[3] <= orrng[2]){
           
           # summarize values after
-          aft <- filter(statdat, datetime <= dtrng[2] & datetime >= date) %>%
+          aft <- filter(statdat, datetime <= dtrng[3] & datetime >= dtrng[2]) %>%
             .$wqvar %>% 
             mean(na.rm = TRUE)
           
         }
         
         # combine/return the wq station/restoration station summary
-        out <- data.frame(bef = bef, aft = aft, dtend = dtrng[1], dtaft = dtrng[2])
+        out <- data.frame(bef = bef, aft = aft, dtend = dtrng[1], dtaft = dtrng[3])
         
         return(out)
         
@@ -68,7 +68,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
   
   # return temporary chg object if T
   if(chgout) return(chg)
-
+  
   # get difference before after, separate for each station, rep by project type
   # take average of the differences, check if conf int includes zero (ns if yes, sig if not)
   dfout <- chg %>% 
@@ -88,7 +88,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
         inczr == 1 ~ 'ns'
       )
     )
- 
+  
   return(dfout)
   
 }
