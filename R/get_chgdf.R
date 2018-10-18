@@ -77,7 +77,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
     ) %>% 
     group_by(stat, resgrp) %>% 
     summarise(
-      avedf = mean(difv, na.rm = T),
+      avedf = weighted.mean(difv, wts = wts, na.rm = T),
       inczr = ifelse(inherits(try({t.test(difv)}, silent = T), 'try-error'), NA, findInterval(0, t.test(difv)$conf.int)),
       avedists = mean(dist, na.rm = T),
       avecompl = mean(lubridate::decimal_date(date))
