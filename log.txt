@@ -1,2 +1,2 @@
-500 of 500 
-Time difference of 43.63665 secs
+499 of 500 
+Time difference of 58.60546 secs
