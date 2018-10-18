@@ -110,13 +110,6 @@ wqstat <- wqdat %>%
 wqdat <- wqdat %>% 
   select(-lon, -lat)
 
-# smooth chla for wdat
-wqdat <- wqdat %>% 
-  arrange(stat, datetime) %>% 
-  mutate(
-    chla = stats::filter(chla, filter = rep(1, 12) / 12, sides = 1, method = 'convolution')
-  )
-
 save(wqstat, file= 'data/wqstat.RData', compress = 'xz')
 save(wqdat, file = 'data/wqdat.RData', compress = 'xz')
 
