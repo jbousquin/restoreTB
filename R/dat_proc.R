@@ -269,8 +269,8 @@ strt<-Sys.time()
 
 # search grids
 grds <- crossing(
-  yrdf = c(5, 10), 
-  mtch = c(5, 10), 
+  yrdf = seq(1:10), 
+  mtch = seq(1:10), 
   yrstr = c(1974, 1997), 
   yrend = c(1997, 2017),
   locs = c('OTB', 'HB', 'MTB', 'LTB', 'all')
