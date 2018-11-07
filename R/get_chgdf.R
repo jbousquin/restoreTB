@@ -27,7 +27,7 @@ get_chgdf <- function(wqdat, wqmtch, statdat, restdat, wqvar = 'sal', yrdf = 5, 
         # filter wq data by stat, get date bounds
         statdat <- wqdat[wqdat$stat %in% stat, ]
         orrng <- range(statdat$datetime)
-        browser()
+
         # get date range +/- restoration proj defined by yrdf
         # dtrng <- c(date - yrdf * 365, date + yrdf * 365)
         dtrng <- c(date - 365, date + yrdf * 365 - 365, date + yrdf * 365)

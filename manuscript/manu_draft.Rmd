@@ -42,6 +42,8 @@ library(forcats)
 library(Hmisc)
 library(multcompView)
 library(patchwork)
+library(grid)
+library(gridExtra)
 
 # functions
 source('../R/funcs.R')
@@ -60,6 +62,8 @@ load(file = '../data/reststat.RData')
 load(file = '../data/wqstat.RData')
 load(file = '../data/wqdat.RData')
 load(file = '../data/wqmtch.RData')
+load(file = '../data/grdavemanu.RData')
+load(file = '../data/tb_seg.RData')
 
 # restoration project type levels, labels and colors
 typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
@@ -691,8 +695,12 @@ Table showing seasonal
 
 ## Assocations of restoration projects with water quality changes
 
-A figure showing estimated changes across all sites 5, 10 yr windows, 5, 10 projects, maps and boxplots like ind_eval, repeat for individual segments but maybe as table? 
-```{r}
+A figure showing estimated changes across all sites 5, 10 yr windows, 5, 10 projects, maps and boxplots like ind_eval, repeat for individual segments but maybe as table? Also develop narrative result about number of projects, expected time, and distances from sites. 
+
+Slight trend of longer time window and more project matches with number of significant changes at  site (\cref{fig:prjsig}a),  Significant increases were observed at some sites but this is a by-product of the method, there are likely other changes occuring over tiem that are not strictly realted to restoratoin project effects.  \Cref{fig:prjsig}b shows that at the bay scale point control projects had the largest association with chlorophyll reductions.  Non-point controls were also significant but only when more projects were considered.  Habitat protection was also important at all combinations, habitat establish only important with more projects and time, whereas habitat enhancement had a negligible association no matter the comparison parameters.
+
+```{r prjsig, fig.height = 8, fig.width = 9, fig.cap = 'Associations of restoration projects with chlorophyll changes at all sites in Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station (subfigures a-d).  The left plots show the estimated changes at each site (green decreasing, red increasing) for each restoration project type, with significant changes at a site outlined in black.  The right plots show the aggregated site changes for each project type.  Overall differences were evaluated by ANOVA F-tests (bottom left corner), whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types within each subfigure that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.', results = 'hide'}
+
 yrdfin <- c(5, 10)
 mtchin <- c(5, 10)
 locsin <- 'all'
@@ -704,7 +712,7 @@ alldat <- grdavemanu %>%
   mutate(
     subttl = letters[1:nrow(.)], 
     subttllng = paste0('(', subttl, ') ', yrdf, ' year window, ', mtch, ' closest projects'),
-    mod = map(datdf, function(datdf){
+    mod = purrr::map(datdf, function(datdf){
 
       # anova model
       mod <- aov(avedf ~ resgrp, data = datdf)
@@ -712,8 +720,8 @@ alldat <- grdavemanu %>%
       return(mod)
       
     }), 
-    lets = pmap(list(mod, datdf), function(mod, datdf){
-      
+    lets = purrr::pmap(list(mod, datdf), function(mod, datdf){
+
       # get significance letters for multiple comparisons
       modhsd <- TukeyHSD(mod) %>% 
         .$resgrp %>% 
@@ -746,8 +754,8 @@ alldat <- grdavemanu %>%
         group_by(resgrp) %>% 
         nest %>% 
         mutate(
-          tst = map(data, ~ t.test(x = .$avedf)),
-          pvl = map(tst, function(x){
+          tst = purrr::map(data, ~ t.test(x = .$avedf)),
+          pvl = purrr::map(tst, function(x){
             
             ifelse(x$p.value > 0.05, 'mean = 0', 
                    ifelse(x$statistic > 0, 'mean > 0', 'mean < 0'))
@@ -766,7 +774,7 @@ alldat <- grdavemanu %>%
       return(lets)
       
     }),
-    anosum = map(mod, function(mod){
+    anosum = purrr::map(mod, function(mod){
       
       # anova summary stats
       modsum <- mod %>% 
@@ -776,100 +784,155 @@ alldat <- grdavemanu %>%
       pval <- modsum %>% 
         .[["Pr(>F)"]] %>% 
         .[1] %>%
-        round(2) 
+        p_ast(.) 
         
       fstat <- modsum %>% 
         .[['F value']] %>% 
         .[1] %>% 
         round(2)
 
-      out <- paste0('F = ', fstat, ', p = ', pval)
+      out <- paste0('F = ', fstat, ', p ', pval)
       
       return(out)
       
-      })
+      }),
+    p1plos = purrr::pmap(list(subttl, subttllng, datdf), function(subttl, subttllng, datdf){
+      
+      # average changes
+      datdfeval <- datdf %>% 
+        left_join(wqstat, by = 'stat') %>%
+        rename(`Chlorophyll change` = avedf) %>% 
+        mutate(resgrp = factor(resgrp, levels = typelev, labels = typelab))
+      
+      # significant average changes
+      datdfsigs <- datdfeval %>%
+        filter(inczr %in% 'sig')
+      
+      # map
+      p1 <- ggplot() +
+        geom_sf(data = tb_seg, fill = 'gray95', colour = 'gray80') + 
+        geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), colour = 'gray80', pch = 21) +
+        geom_point(data = datdfsigs, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black') +
+        scale_fill_gradient2('Chlorophyll change (ug/L), by site', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0, limits = c(-8.44, 10.63)) +
+        facet_grid(~ resgrp, switch = 'x') +
+        coord_sf(datum = NA) +
+        theme_void(base_family = 'serif', base_size = 10) +
+        theme(
+          legend.position = 'none',
+          strip.placement = 'outside',
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank()
+        ) +
+        scale_size(range = c(1, 6), guide = F) +
+        guides(fill = guide_colourbar(barheight = 0.5, barwidth = 6)) +
+        ggtitle(subttllng)
+      
+      if(!'d' == subttl)
+        p1 <- p1 + theme(strip.text = element_blank())
+      
+      return(p1)
+      
+    }), 
+    p2plos = purrr::pmap(list(subttl, lets, datdf, anosum), function(subttl, lets, datdf, anosum){
+
+      # get average chl chng for color mapping
+      datdf <- datdf %>% 
+        group_by(resgrp) %>%
+        mutate(
+          grpdf = mean(avedf, na.rm = T)
+        ) %>%
+        ungroup %>% 
+        mutate(
+          resgrp = factor(resgrp, levels = typelev, labels = typelab)
+        )
+      
+      lets <- lets %>% 
+        mutate(resgrp = factor(resgrp, levels = typelev, labels = typelab))
+
+      anosum <- data.frame(anosum = anosum, y = -7.75, x = 1, stringsAsFactors = F)
+      
+      # distributions
+      p2 <- ggplot() +
+        geom_hline(yintercept = 0, linetype = 'dashed', size = 1) +
+        geom_violin(data = datdf, aes(x = resgrp, y = avedf, fill = grpdf), draw_quantiles = 0.5, alpha = 0.9) +
+        scale_fill_gradient2('Within-group average (ug/L), aggregated sites', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0, limits = c(-2.66, 0.62)) +
+        geom_label(data = lets, aes(x = resgrp, y = maxdf, label = lets), size = 2.5, hjust = 0.5, family = 'serif', label.size = NA) +
+        theme_bw(base_family = 'serif', base_size = 9) +
+        theme(
+          legend.position = 'none',
+          axis.title = element_blank(),
+          axis.text.x = element_text(size = 8, colour = 'black'), #, vjust = -1),
+          strip.background = element_blank(),
+          plot.title = element_text(family = 'serif', face = 'italic')
+        ) +
+        scale_y_continuous(limits = c(-8, 10)) + 
+        geom_label(data = anosum, aes(y = y, x = x, label = anosum), fontface = 'italic', family = 'serif', size = 3, label.size = NA) +
+        scale_x_discrete('Restoration group') +
+        guides(fill = guide_colourbar(barheight = 0.5, barwidth = 6)) +
+        ggtitle('\n')
+
+      if(!'d' == subttl)
+        p2 <- p2 + theme(axis.text.x = element_blank())
+      
+      return(p2)
+
+    })
   )
 
-# site changes by location with sig vals
+##
+# legends (also use these to get color limits)
 
-# plot title
-allttls <- alldat %>% 
-  select(yrdf, mtch, subttl, subttllng)
-  
-
-# average changes
 datdfeval <- alldat %>% 
-  select(yrdf, mtch, subttl, subttllng, datdf) %>% 
+  select(subttl, datdf) %>% 
   unnest %>% 
   left_join(wqstat, by = 'stat') %>%
   rename(`Chlorophyll change` = avedf)
 
-# significant average changes
-datdfsigs <- datdfeval %>%
-  filter(inczr %in% 'sig')
+# range(datdfeval$`Chlorophyll change`, na.rm = T)
 
-# map
-p1 <- ggplot() +
-  geom_sf(data = tb_seg, fill = 'gray95', colour = 'gray70') + 
-  geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), colour = 'lightgrey', pch = 21) +
-  geom_point(data = datdfsigs, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black') +
-  # geom_point(data = datdfsigs, aes(x = lon, y = lat, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black', fill = NA) +
-  scale_fill_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) +
-  facet_grid(subttl ~ resgrp, switch = 'x') +
-  coord_sf(datum = NA) +
+p1leg <- ggplot() +
+  geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`), pch = 21) +
+  scale_fill_gradient2('\nChlorophyll change (ug/L), by site', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0, limits = c(-8.44, 10.63)) +
   theme_void(base_family = 'serif', base_size = 10) +
   theme(
-    legend.position = 'top',
-    strip.placement = 'outside',
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank()
+    legend.position = 'top'
   ) +
-  scale_size(range = c(1, 9), guide = F) +
-  guides(fill = guide_colourbar(barheight = 0.5, barwidth = 10)) +
-  ggtitle(subttl)
-
-# get average chl chng for color mapping
-datdf <- alldat %>% 
-  select(yrdf, mtch, subttl, datdf) %>% 
-  unnest %>% 
-  group_by(yrdf, mtch, subttl, resgrp) %>% 
-  mutate(
-    grpdf = mean(avedf, na.rm = T)
-  ) %>% 
-  ungroup
-
-# multiplecomparison letters and diff values from difzr
-lets <- alldat %>% 
-  select(yrdf, mtch, subttl, lets) %>% 
-  unnest 
-
-# anova sum stats
-anosum <- alldat %>% 
-  select(yrdf, mtch, subttl, anosum) %>% 
-  unnest(anosum) %>% 
-  unique
-  
-# map
-p2 <- ggplot() + 
-  geom_hline(yintercept = 0, linetype = 'dashed', size = 1) +
-  geom_boxplot(data = datdf, aes(x = resgrp, y = avedf, fill = grpdf)) +
-  scale_fill_gradient2('Within-group average', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
-  geom_label(data = lets, aes(x = resgrp, y = maxdf, label = lets), hjust = 0.5, family = 'serif', label.size = NA) +
-  geom_label(data = anosum, aes(y = -8, x = 1, label = anosum), fontface = 'italic', family = 'serif', label.size = NA) +
-  theme_bw(base_family = 'serif', base_size = 9) +
-  theme(
-    legend.position = 'top', 
-    axis.title.x = element_blank(), 
-    strip.background = element_blank()
-  ) +
-  facet_grid(subttl~.) +
-  scale_y_continuous('Chlorophyll change') +
-  scale_x_discrete('Restoration group') +
   guides(fill = guide_colourbar(barheight = 0.5, barwidth = 6)) 
 
-# grid.arrange(p1, p2, ncol = 2)
-# 
-# p1 + p2 + plot_layout(ncol = 1)
+p1leg <- g_legend(p1leg)
+
+datdf <- alldat %>%
+  select(yrdf, mtch, subttl, datdf) %>%
+  unnest %>%
+  group_by(yrdf, mtch, subttl, resgrp) %>%
+  mutate(
+    grpdf = mean(avedf, na.rm = T)
+  ) %>%
+  ungroup
+
+# range(datdf$`grpdf`, na.rm = T)
+
+p2leg <- ggplot() +
+  geom_violin(data = datdf, aes(x = resgrp, y = avedf, fill = grpdf), draw_quantiles = 0.5, alpha = 0.9) +
+  scale_fill_gradient2('Within-group average (ug/L), aggregated sites', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0, limits = c(-2.66, 0.62)) +
+  theme_bw(base_family = 'serif', base_size = 9) +
+  theme(
+    legend.position = 'top'
+  ) +
+  facet_grid(subttl ~ .) +
+  guides(fill = guide_colourbar(barheight = 0.5, barwidth = 6))
+
+p2leg <- g_legend(p2leg)
+
+grid.arrange(
+  arrangeGrob(p1leg, alldat$p1plos[[1]], alldat$p1plos[[2]], alldat$p1plos[[3]], alldat$p1plos[[4]], 
+              heights = c(0.2, 1, 1, 1, 1.1), ncol = 1), 
+  arrangeGrob(p2leg, alldat$p2plos[[1]], alldat$p2plos[[2]], alldat$p2plos[[3]], alldat$p2plos[[4]], 
+              heights = c(0.2, 1, 1, 1, 1.1), ncol = 1,
+              left = textGrob('Chlorophyll change (ug/L), by project group', rot = 90, gp = gpar(fontfamily = 'serif' , fontsize = 8))), 
+  ncol = 2, widths = c(1.3, 1)
+  
+)
 ```
 
 
