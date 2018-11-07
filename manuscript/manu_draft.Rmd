@@ -693,7 +693,183 @@ Table showing seasonal
 
 A figure showing estimated changes across all sites 5, 10 yr windows, 5, 10 projects, maps and boxplots like ind_eval, repeat for individual segments but maybe as table? 
 ```{r}
+yrdfin <- c(5, 10)
+mtchin <- c(5, 10)
+locsin <- 'all'
 
+# baywide associations
+alldat <- grdavemanu %>% 
+  rename(datdf = value) %>% 
+  filter(yrdf %in% yrdfin & mtch %in% mtchin & locs %in% locsin) %>% 
+  mutate(
+    subttl = letters[1:nrow(.)], 
+    subttllng = paste0('(', subttl, ') ', yrdf, ' year window, ', mtch, ' closest projects'),
+    mod = map(datdf, function(datdf){
+
+      # anova model
+      mod <- aov(avedf ~ resgrp, data = datdf)
+      
+      return(mod)
+      
+    }), 
+    lets = pmap(list(mod, datdf), function(mod, datdf){
+      
+      # get significance letters for multiple comparisons
+      modhsd <- TukeyHSD(mod) %>% 
+        .$resgrp %>% 
+        data.frame
+      pvals <- modhsd$p.adj
+      names(pvals) <- rownames(modhsd)
+      lets <- multcompLetters(pvals)
+      if('Letters' %in% names(lets))
+        lets <- lets$Letters
+      lets <- lets %>% 
+        enframe('resgrp', 'lets')
+      
+      # get average and max chl chng for color mapping
+      datdf <- datdf %>% 
+        group_by(resgrp) %>% 
+        mutate(
+          maxdf = 10 #max(avedf, na.rm = T)
+        ) %>% 
+        ungroup
+      
+      # join lets with max dif values for labels
+      lets <- datdf %>% 
+        select(resgrp, maxdf) %>% 
+        unique %>% 
+        mutate(resgrp = as.character(resgrp)) %>% 
+        left_join(lets, by = 'resgrp')
+      
+      # test if df values diff from zero, by group
+      difzr <- datdf %>% 
+        group_by(resgrp) %>% 
+        nest %>% 
+        mutate(
+          tst = map(data, ~ t.test(x = .$avedf)),
+          pvl = map(tst, function(x){
+            
+            ifelse(x$p.value > 0.05, 'mean = 0', 
+                   ifelse(x$statistic > 0, 'mean > 0', 'mean < 0'))
+            
+          })
+        ) %>% 
+        select(resgrp, pvl) %>% 
+        unnest %>% 
+        mutate(resgrp = as.character(resgrp)) 
+      
+      # multiplecomparison letters and diff values from difzr
+      lets <- lets %>% 
+        left_join(difzr, by = 'resgrp') %>% 
+        unite(lets, c('lets', 'pvl'), sep = ', ')
+      
+      return(lets)
+      
+    }),
+    anosum = map(mod, function(mod){
+      
+      # anova summary stats
+      modsum <- mod %>% 
+        summary %>% 
+        .[[1]]
+        
+      pval <- modsum %>% 
+        .[["Pr(>F)"]] %>% 
+        .[1] %>%
+        round(2) 
+        
+      fstat <- modsum %>% 
+        .[['F value']] %>% 
+        .[1] %>% 
+        round(2)
+
+      out <- paste0('F = ', fstat, ', p = ', pval)
+      
+      return(out)
+      
+      })
+  )
+
+# site changes by location with sig vals
+
+# plot title
+allttls <- alldat %>% 
+  select(yrdf, mtch, subttl, subttllng)
+  
+
+# average changes
+datdfeval <- alldat %>% 
+  select(yrdf, mtch, subttl, subttllng, datdf) %>% 
+  unnest %>% 
+  left_join(wqstat, by = 'stat') %>%
+  rename(`Chlorophyll change` = avedf)
+
+# significant average changes
+datdfsigs <- datdfeval %>%
+  filter(inczr %in% 'sig')
+
+# map
+p1 <- ggplot() +
+  geom_sf(data = tb_seg, fill = 'gray95', colour = 'gray70') + 
+  geom_point(data = datdfeval, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), colour = 'lightgrey', pch = 21) +
+  geom_point(data = datdfsigs, aes(x = lon, y = lat, fill = `Chlorophyll change`, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black') +
+  # geom_point(data = datdfsigs, aes(x = lon, y = lat, size = abs(`Chlorophyll change`)), pch = 21, colour = 'black', fill = NA) +
+  scale_fill_gradient2(low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) +
+  facet_grid(subttl ~ resgrp, switch = 'x') +
+  coord_sf(datum = NA) +
+  theme_void(base_family = 'serif', base_size = 10) +
+  theme(
+    legend.position = 'top',
+    strip.placement = 'outside',
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank()
+  ) +
+  scale_size(range = c(1, 9), guide = F) +
+  guides(fill = guide_colourbar(barheight = 0.5, barwidth = 10)) +
+  ggtitle(subttl)
+
+# get average chl chng for color mapping
+datdf <- alldat %>% 
+  select(yrdf, mtch, subttl, datdf) %>% 
+  unnest %>% 
+  group_by(yrdf, mtch, subttl, resgrp) %>% 
+  mutate(
+    grpdf = mean(avedf, na.rm = T)
+  ) %>% 
+  ungroup
+
+# multiplecomparison letters and diff values from difzr
+lets <- alldat %>% 
+  select(yrdf, mtch, subttl, lets) %>% 
+  unnest 
+
+# anova sum stats
+anosum <- alldat %>% 
+  select(yrdf, mtch, subttl, anosum) %>% 
+  unnest(anosum) %>% 
+  unique
+  
+# map
+p2 <- ggplot() + 
+  geom_hline(yintercept = 0, linetype = 'dashed', size = 1) +
+  geom_boxplot(data = datdf, aes(x = resgrp, y = avedf, fill = grpdf)) +
+  scale_fill_gradient2('Within-group average', low = 'lightgreen', mid = 'white',  high = 'tomato1', midpoint = 0) + 
+  geom_label(data = lets, aes(x = resgrp, y = maxdf, label = lets), hjust = 0.5, family = 'serif', label.size = NA) +
+  geom_label(data = anosum, aes(y = -8, x = 1, label = anosum), fontface = 'italic', family = 'serif', label.size = NA) +
+  theme_bw(base_family = 'serif', base_size = 9) +
+  theme(
+    legend.position = 'top', 
+    axis.title.x = element_blank(), 
+    strip.background = element_blank()
+  ) +
+  facet_grid(subttl~.) +
+  scale_y_continuous('Chlorophyll change') +
+  scale_x_discrete('Restoration group') +
+  guides(fill = guide_colourbar(barheight = 0.5, barwidth = 6)) 
+
+# grid.arrange(p1, p2, ncol = 2)
+# 
+# p1 + p2 + plot_layout(ncol = 1)
 ```
 
 
