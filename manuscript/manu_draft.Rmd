@@ -162,7 +162,7 @@ p2 <- ggplot() +
 
 # combine plots
 pdf('figs/restyrs.pdf', family = 'serif', height = 5.5, width = 9)
-grid.arrange(p1, p2, ncol = 1, heights = c(1.19, 1))
+p1 + p2 + plot_layout(ncol = 1, heights = c(1.19, 1))
 dev.off()
 ```
  
@@ -935,6 +935,133 @@ grid.arrange(
 )
 ```
 
+```{r prjsigres, results = 'asis', echo = F}
+yrdfin <- c(5, 10)
+mtchin <- c(5, 10)
+locsin <- c('OTB', 'HB', 'MTB', 'LTB')
+
+# baywide associations
+alldat <- grdavemanu %>% 
+  rename(datdf = value) %>% 
+  filter(yrdf %in% yrdfin & mtch %in% mtchin & locs %in% locsin) %>% 
+  mutate(
+    subttl = letters[1:nrow(.)], 
+    subttllng = paste0('(', subttl, ') ', yrdf, ' year window, ', mtch, ' closest projects'),
+    mod = map(datdf, function(datdf){
+
+      # anova model
+      mod <- aov(avedf ~ resgrp, data = datdf)
+      
+      return(mod)
+      
+    }), 
+    lets = pmap(list(mod, datdf), function(mod, datdf){
+      
+      # get significance letters for multiple comparisons
+      modhsd <- TukeyHSD(mod) %>% 
+        .$resgrp %>% 
+        data.frame
+      pvals <- modhsd$p.adj
+      names(pvals) <- rownames(modhsd)
+      lets <- multcompLetters(pvals)
+      if('Letters' %in% names(lets))
+        lets <- lets$Letters
+      lets <- lets %>% 
+        enframe('resgrp', 'lets')
+      
+      # get average and max chl chng for color mapping
+      datdf <- datdf %>% 
+        group_by(resgrp) %>% 
+        mutate(
+          maxdf = 10 #max(avedf, na.rm = T)
+        ) %>% 
+        ungroup
+      
+      # join lets with max dif values for labels
+      lets <- datdf %>% 
+        select(resgrp, maxdf) %>% 
+        unique %>% 
+        mutate(resgrp = as.character(resgrp)) %>% 
+        left_join(lets, by = 'resgrp')
+      
+      # test if df values diff from zero, by group
+      difzr <- datdf %>% 
+        group_by(resgrp) %>% 
+        nest %>% 
+        mutate(
+          tst = map(data, ~ t.test(x = .$avedf)),
+          pvl = map(tst, function(x){
+            
+            ifelse(x$p.value > 0.05, '0', 
+                   ifelse(x$statistic > 0, '> 0', '< 0'))
+            
+          })
+        ) %>% 
+        select(resgrp, pvl) %>% 
+        unnest %>% 
+        mutate(resgrp = as.character(resgrp)) 
+      
+      # multiplecomparison letters and diff values from difzr
+      lets <- lets %>% 
+        left_join(difzr, by = 'resgrp') %>% 
+        unite(lets, c('lets', 'pvl'), sep = ', ')
+      
+      return(lets)
+      
+    }),
+    anosum = map(mod, function(mod){
+      
+      # anova summary stats
+      modsum <- mod %>% 
+        summary %>% 
+        .[[1]]
+        
+      pval <- modsum %>% 
+        .[["Pr(>F)"]] %>% 
+        .[1] %>%
+        p_ast(.) 
+        
+      fstat <- modsum %>% 
+        .[['F value']] %>% 
+        .[1] %>% 
+        round(2)
+
+      out <- paste0('F = ', fstat, ', p ', pval)
+      
+      return(out)
+      
+      })
+  )
+
+##
+# legends (also use these to get color limits)
+
+totab <- alldat %>% 
+  select(yrdf, mtch, locs, lets, anosum) %>% 
+  unnest(anosum) %>% 
+  unnest() %>% 
+  mutate(resgrp = factor(resgrp, levels = typelev, labels = typelab)) %>% 
+  spread(resgrp, lets) %>% 
+  select(-maxdf) %>% 
+  unite('yrdf_mtch', yrdf, mtch, sep = ', ')
+
+cap.val <- 'test'
+latex(
+  totab[, -1],
+  file = '',
+  caption.loc = 'top',
+  caption = cap.val,
+  rowlabel = 'Year window, no. of closest projects',
+  rowname = totab$locs,
+  rgroup = unique(totab$yrdf_mtch),
+  n.rgroup = c(4, 4, 4, 4),
+  cgroup = c('', 'Restoration projects'),
+  n.cgroup = c(2, 5),
+  # colheads = rep(c('Min', 'Median', 'Max'), 2),
+  label = 'tab:segres',
+  col.just = rep('l', ncol(totab))
+)
+```
 
 # Discussion
 A long-term record of restoration activities and water quality data in Tampa Bay provided the foundation to develop a novel decision support tool for coastal restoration practitioners and  managers. This new tool provides an improved process to understand the expected water quality improvements that could result from future restoration activities contingent upon the level of cumulative investments made toward divergent activities and the required monitoring to understand downstream water quality benefits at local to watershed-wide scales. This tool has broad application and extention within the Gulf Coast restoration and management community. However, several reservations on its appliction were discovered.
