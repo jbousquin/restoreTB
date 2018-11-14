@@ -1058,7 +1058,7 @@ totab <- alldat %>%
 
 foot.val<-'\\footnotesize HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay. \\textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}' 
 cap.val <- 'Associations of restoration projects with chlorophyll changes for different segments of Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station within each segment. Overall differences in chlorophyll changes between restoration project types by segment and year/project number combinations were evaluated by ANOVA F-tests, whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.'
-latex(
+out <- capture.output({latex(
   totab[, -c(1, 2)],
   file = '',
   caption.loc = 'top',
@@ -1072,7 +1072,10 @@ latex(
   label = 'tab:prjsigseg',
   col.just = rep('l', ncol(totab)),
   insert.bottom = foot.val
-)
+)})
+out <- paste(out, collapse = '\n')
+out <- gsub('^.*(\\\\begin\\{table.*$)', '\\1', out)
+cat(out)
 ```
 
 # Discussion
