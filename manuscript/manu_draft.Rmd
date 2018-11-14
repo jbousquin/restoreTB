@@ -699,6 +699,8 @@ A figure showing estimated changes across all sites 5, 10 yr windows, 5, 10 proj
 
 Slight trend of longer time window and more project matches with number of significant changes at  site (\cref{fig:prjsig}a),  Significant increases were observed at some sites but this is a by-product of the method, there are likely other changes occuring over tiem that are not strictly realted to restoratoin project effects.  \Cref{fig:prjsig}b shows that at the bay scale point control projects had the largest association with chlorophyll reductions.  Non-point controls were also significant but only when more projects were considered.  Habitat protection was also important at all combinations, habitat establish only important with more projects and time, whereas habitat enhancement had a negligible association no matter the comparison parameters.
 
+Segment results in \cref{tab:prjsigseg}.
+
 ```{r prjsig, fig.height = 8, fig.width = 9, fig.cap = 'Associations of restoration projects with chlorophyll changes at all sites in Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station (subfigures a-d).  The left plots show the estimated changes at each site (green decreasing, red increasing) for each restoration project type, with significant changes at a site outlined in black.  The right plots show the aggregated site changes for each project type.  Overall differences were evaluated by ANOVA F-tests (bottom left corner), whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types within each subfigure that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.', results = 'hide'}
 
 yrdfin <- c(5, 10)
@@ -935,7 +937,7 @@ grid.arrange(
 )
 ```
 
-```{r prjsigres, results = 'asis', echo = F}
+```{r prjsigseg, results = 'asis', echo = F}
 yrdfin <- c(5, 10)
 mtchin <- c(5, 10)
 locsin <- c('OTB', 'HB', 'MTB', 'LTB')
@@ -947,7 +949,7 @@ alldat <- grdavemanu %>%
   mutate(
     subttl = letters[1:nrow(.)], 
     subttllng = paste0('(', subttl, ') ', yrdf, ' year window, ', mtch, ' closest projects'),
-    mod = map(datdf, function(datdf){
+    mod = purrr::map(datdf, function(datdf){
 
       # anova model
       mod <- aov(avedf ~ resgrp, data = datdf)
@@ -955,7 +957,7 @@ alldat <- grdavemanu %>%
       return(mod)
       
     }), 
-    lets = pmap(list(mod, datdf), function(mod, datdf){
+    lets = purrr::pmap(list(mod, datdf), function(mod, datdf){
       
       # get significance letters for multiple comparisons
       modhsd <- TukeyHSD(mod) %>% 
@@ -989,11 +991,11 @@ alldat <- grdavemanu %>%
         group_by(resgrp) %>% 
         nest %>% 
         mutate(
-          tst = map(data, ~ t.test(x = .$avedf)),
-          pvl = map(tst, function(x){
+          tst = purrr::map(data, ~ t.test(x = .$avedf)),
+          pvl = purrr::map(tst, function(x){
             
             ifelse(x$p.value > 0.05, '0', 
-                   ifelse(x$statistic > 0, '> 0', '< 0'))
+                   ifelse(x$statistic > 0, '$>$ 0', '$<$ 0'))
             
           })
         ) %>% 
@@ -1009,7 +1011,7 @@ alldat <- grdavemanu %>%
       return(lets)
       
     }),
-    anosum = map(mod, function(mod){
+    anosum = purrr::map(mod, function(mod){
       
       # anova summary stats
       modsum <- mod %>% 
@@ -1026,7 +1028,7 @@ alldat <- grdavemanu %>%
         .[1] %>% 
         round(2)
 
-      out <- paste0('F = ', fstat, ', p ', pval)
+      out <- paste0('F = ', fstat, ', ', pval)
       
       return(out)
       
@@ -1035,31 +1037,41 @@ alldat <- grdavemanu %>%
 
 ##
 # legends (also use these to get color limits)
+typelabbrk <- gsub('\n', '\\\\\\\\', typelab) %>% 
+  paste0('\\thead{', ., '}')
 
 totab <- alldat %>% 
   select(yrdf, mtch, locs, lets, anosum) %>% 
   unnest(anosum) %>% 
   unnest() %>% 
-  mutate(resgrp = factor(resgrp, levels = typelev, labels = typelab)) %>% 
+  mutate(
+    resgrp = factor(resgrp, levels = typelev, labels = typelabbrk),
+    yrdf = paste(yrdf, 'years'), 
+    mtch = paste(mtch, 'projects'), 
+    anosum = paste0('\\textit{', anosum, '}')
+    ) %>% 
+  rename(ANOVA = anosum) %>% 
   spread(resgrp, lets) %>% 
   select(-maxdf) %>% 
-  unite('yrdf_mtch', yrdf, mtch, sep = ', ')
+  unite('yrdf_mtch', yrdf, mtch, sep = ', ') %>% 
+  arrange(desc(yrdf_mtch))
 
-cap.val <- 'test'
+foot.val<-'\\footnotesize HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay. \\textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}' 
+cap.val <- 'Associations of restoration projects with chlorophyll changes for different segments of Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station within each segment. Overall differences in chlorophyll changes between restoration project types by segment and year/project number combinations were evaluated by ANOVA F-tests, whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.'
 latex(
-  totab[, -1],
+  totab[, -c(1, 2)],
   file = '',
   caption.loc = 'top',
   caption = cap.val,
-  rowlabel = 'Year window, no. of closest projects',
+  rowlabel = 'Bay segment',
   rowname = totab$locs,
   rgroup = unique(totab$yrdf_mtch),
   n.rgroup = c(4, 4, 4, 4),
   cgroup = c('', 'Restoration projects'),
-  n.cgroup = c(2, 5),
-  # colheads = rep(c('Min', 'Median', 'Max'), 2),
-  label = 'tab:segres',
-  col.just = rep('l', ncol(totab))
+  n.cgroup = c(1, 5),
+  label = 'tab:prjsigseg',
+  col.just = rep('l', ncol(totab)),
+  insert.bottom = foot.val
 )
 ```
 

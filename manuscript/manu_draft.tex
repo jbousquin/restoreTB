@@ -92,6 +92,7 @@ quality in Tampa Bay, Florida}
 \linespread{2}
 \usepackage{cleveref}
 \usepackage{acronym}
+\usepackage{makecell}
 \acrodef{tbep}[TBEP]{Tampa Bay Estuary Program}
 \acrodef{chla}[chl-\textit{a}]{chlorophyll \textit{a}}
 
@@ -487,9 +488,54 @@ protection was also important at all combinations, habitat establish
 only important with more projects and time, whereas habitat enhancement
 had a negligible association no matter the comparison parameters.
 
+Segment results in \cref{tab:prjsigseg}.
+
 \begin{figure}
 \includegraphics[width=1\linewidth]{figs/prjsig} \caption{Associations of restoration projects with chlorophyll changes at all sites in Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station (subfigures a-d).  The left plots show the estimated changes at each site (green decreasing, red increasing) for each restoration project type, with significant changes at a site outlined in black.  The right plots show the aggregated site changes for each project type.  Overall differences were evaluated by ANOVA F-tests (bottom left corner), whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types within each subfigure that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.}\label{fig:prjsig}
 \end{figure}
+
+\%latex.default(totab{[}, -c(1, 2){]}, file = ``'', caption.loc =
+``top'', caption = cap.val, rowlabel = ``Bay segment'', rowname =
+totab\(locs, rgroup = unique(totab\)yrdf\_mtch), n.rgroup = c(4, 4, 4,
+4), cgroup = c(``'', ``Restoration projects''), n.cgroup = c(1, 5),
+label = ``tab:prjsigseg'', col.just = rep(``l'', ncol(totab)),
+insert.bottom = foot.val)\%
+
+\begin{table}[!tbp]
+\caption{Associations of restoration projects with chlorophyll changes for different segments of Tampa Bay from 1974 to 2017.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station within each segment. Overall differences in chlorophyll changes between restoration project types by segment and year/project number combinations were evaluated by ANOVA F-tests, whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.\label{tab:prjsigseg}} 
+\begin{center}
+\begin{tabular}{llclllll}
+\hline\hline
+\multicolumn{1}{l}{\bfseries Bay segment}&\multicolumn{1}{c}{\bfseries }&\multicolumn{1}{c}{\bfseries }&\multicolumn{5}{c}{\bfseries Restoration projects}\tabularnewline
+\cline{4-8}
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{ANOVA}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{\thead{Habitat\\enhance}}&\multicolumn{1}{c}{\thead{Habitat\\establish}}&\multicolumn{1}{c}{\thead{Habitat\\protect}}&\multicolumn{1}{c}{\thead{Nonpoint\\control}}&\multicolumn{1}{c}{\thead{Point\\control}}\tabularnewline
+\hline
+{\bfseries 5 years, 5 projects}&&&&&&&\tabularnewline
+~~HB&\textit{F = 1.09, ns}&&a, 0&a, 0&a, $\textless $ 0&a, 0&a, 0\tabularnewline
+~~LTB&\textit{F = 17.37, **}&&a, 0&a, 0&a, 0&a, 0&b, $\textless $ 0\tabularnewline
+~~MTB&\textit{F = 13.5, **}&&b, 0&ab, 0&a, $\textless $ 0&ab, $\textless $ 0&c, $\textless $ 0\tabularnewline
+~~OTB&\textit{F = 1.5, ns}&&a, 0&a, 0&a, 0&a, 0&a, 0\tabularnewline
+\hline
+{\bfseries 5 years, 10 projects}&&&&&&&\tabularnewline
+~~HB&\textit{F = 0.66, ns}&&a, 0&a, 0&a, 0&a, 0&a, 0\tabularnewline
+~~LTB&\textit{F = 2.64, ns}&&ab, $\textless $ 0&ab, $\textless $ 0&ab, $\textless $ 0&a, 0&b, $\textless $ 0\tabularnewline
+~~MTB&\textit{F = 18.75, **}&&a, 0&a, 0&a, $\textless $ 0&a, $\textless $ 0&b, $\textless $ 0\tabularnewline
+~~OTB&\textit{F = 3.11, *}&&ab, 0&a, 0&ab, 0&b, $\textless $ 0&a, 0\tabularnewline
+\hline
+{\bfseries 10 years, 5 projects}&&&&&&&\tabularnewline
+~~HB&\textit{F = 2.9, *}&&ab, 0&ab, 0&ab, $\textless $ 0&a, 0&b, $\textless $ 0\tabularnewline
+~~LTB&\textit{F = 6.13, **}&&a, 0&a, 0&a, 0&ab, 0&b, $\textless $ 0\tabularnewline
+~~MTB&\textit{F = 14.11, **}&&a, 0&a, 0&a, 0&a, 0&b, $\textless $ 0\tabularnewline
+~~OTB&\textit{F = 3.15, *}&&b, 0&ab, 0&ab, 0&a, $\textless $ 0&a, $\textless $ 0\tabularnewline
+\hline
+{\bfseries 10 years, 10 projects}&&&&&&&\tabularnewline
+~~HB&\textit{F = 2.42, ns}&&a, 0&a, 0&a, 0&a, 0&a, $\textless $ 0\tabularnewline
+~~LTB&\textit{F = 1.78, ns}&&a, 0&a, $\textless $ 0&a, $\textless $ 0&a, 0&a, $\textless $ 0\tabularnewline
+~~MTB&\textit{F = 11.79, **}&&a, 0&a, $\textless $ 0&a, 0&a, 0&b, $\textless $ 0\tabularnewline
+~~OTB&\textit{F = 2.35, ns}&&b, 0&ab, $\textless $ 0&ab, 0&a, $\textless $ 0&ab, $\textless $ 0\tabularnewline
+\hline
+\end{tabular}\end{center}
+\footnotesize HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}\end{table}
 
 \hypertarget{discussion}{%
 \section{Discussion}\label{discussion}}
