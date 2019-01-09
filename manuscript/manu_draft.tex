@@ -301,7 +301,7 @@ activity. Because the types of projects differed, a classification
 scheme was developed that first described projects broadly as habitat or
 water infrastructure improvements and secondarily as a lower-level
 classification for habitat projects: enhancement, establishment, and
-protection; and water infrastructure projects: non-point source or point
+protection; and water infrastructure projects: nonpoint source or point
 source controls. These categories were used to provide a broad
 characterization of restoration activities that were considered relevant
 for the perceived improvements in water quality over time. The five
@@ -365,7 +365,7 @@ the Euclidean distances between each water quality station and each
 restoration project were quantified. The spatial matches were used to
 create a ranking of project sites from each water quality station based
 on distance. The distances were also grouped by the five restoration
-project types (i.e., habitat protection, non-point source control, etc.)
+project types (i.e., habitat protection, nonpoint source control, etc.)
 such that the closest \(n\) sites of a given project type could be
 identified for any water quality station (\cref{fig:spmtch}).
 
@@ -431,7 +431,7 @@ association of a restoration type with chlorophyll is estimated for one
 water quality station, whereas estimates from several water quality
 stations can be combined to develop an overall description of a
 particular restoration type as it applies to an areal unit of interest.
-For example, estimated associations of point-source control projects
+For example, estimated associations of point source control projects
 with each water quality station in the bay can be combined to develop an
 overall narrative of how these projects could positively effect
 environmental change in the bay. The examples in
@@ -539,54 +539,122 @@ point source controls) were found in the database, whereas 70 habitat
 projects were observed (50 habitat establishment, 20 habitat
 enhancement). From 1995 and on, nearly ten times as many restoration
 projects were observed in the record (806 total) with notable increases
-in the number of non-point source controls (245) and habitat protection
+in the number of nonpoint source controls (245) and habitat protection
 projects (45). For the entire record, 275 (31\% of total) habitat
 enhancement, 259 (29\%) habitat establishment, 45 (5\%) habitat
-protection, 248 (28\%) non-point source, and 60 (7\%) point source
+protection, 248 (28\%) nonpoint source, and 60 (7\%) point source
 control projects were observed.
 
-A simple comparison of chlorophyll concentrations versus the cumulative
-number of restoration projects over time showed\ldots{}
-\cref{fig:cumprj}
+\hypertarget{relationships-of-restoration-projects-with-water-quality}{%
+\subsection{Relationships of restoration projects with water
+quality}\label{relationships-of-restoration-projects-with-water-quality}}
+
+A simple comparison of water quality measurements versus the cumulative
+number of restoration projects over time showed a decrease in both total
+nitrogen and chlorophyll with additional restoration. \Cref{fig:cumprj}
+shows median water quality estimates across all monitoroing stations for
+a given year against the total number of cumulative restoration projects
+for the current and all preceding years. Significant relationships were
+observed between water quality and number of projects for all project
+types (\(\alpha\) = 0.05), although the strength of association varied.
+Overall, stronger assocations with number of projects were observed for
+total nitrogen and relatively weaker assocations were observed for
+chlorophyll. Decreases in total nitrogen were most strongly associated
+with water infrastructure projects for nonpoint source
+(\(F=65.5, df = 1, 23, p < 0.005\)) and point source controls
+(\(F=60.8, df = 1, 21, p < 0.005\)), as expected. Habitat protection
+projects were also strongly associated with decreases in total nitrogen
+(\(F=34.8, df = 1, 14, p < 0.005\)). For chlorophyll, the strongest
+associations were observed with habitat establishment
+(\(F=20.8, df = 1, 35, p< 0.005\)) and point source control
+(\(F=13.7, df = 1, 22, p < 0.005\)) projects. A weak but marginally
+significant association was observed between chlorophyll and habitat
+protection projects (\(F=4.6, df = 1, 14, p = 0.049\)).
 
 \begin{figure}
 \centerline{\includegraphics[width = 0.95\textwidth]{figs/cumprj.pdf}}
-\caption{Relationship between cumulative number of restoration projects over time and water quality observations in Tampa Bay. The plot shows median total nitrogen (mg/L) and chlorophyll ($\mu$g/L) across all monitoring stations for each year against the cumulative number of projects for all preceding years.  Points are sized by year to show the progression of water quality and number of projects over time.  Summary statistics are shown in the bottom left corner as the signifcance of the regression and R-squared value. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}}
+\caption{Relationships between cumulative number of restoration projects over time and water quality observations in Tampa Bay. The plot shows median total nitrogen (mg/L) and chlorophyll ($\mu$g/L) across all monitoring stations for each year against the cumulative number of projects for all preceding years.  Points are sized and shaded by year to show the progression of water quality and number of projects over time.  Summary statistics are shown in the bottom left corner as the significance of the linear regression and R-squared value. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}}
 \label{fig:cumprj}
 \end{figure}
 
-\hypertarget{chronology-of-restoration-activities}{%
-\subsubsection{Chronology of Restoration
-Activities}\label{chronology-of-restoration-activities}}
+An obvious limitation of the above analysis is the confounding effect of
+almost all restoration projects increasing through time. Although
+significant assocations were observed with improvements in water quality
+and increasing cumulative number of projects, the comparisons in
+\cref{fig:cumprj} do not provide a means to distinguish effects of
+different project types. For example, the separate effects of habitat
+establishment and point source projects on chlorophyll reductions cannot
+be separated through simple linear analyses because both increase over
+time. An assocation of chlorophyll with one project type could b an
+artifact of an assocation with another project type. Likewise, a weak
+assocation (e.g., habitat protection and chlorophyll) does not provide
+strong evidence that a particular project type is unimportant for water
+quality improvements. Our formal approach that uses spatial-temporal
+matching between restoration projects and water quality stations is
+meant to overcome these challenges and results from the simple analysis
+above provides a basis of comparison for how our approach could lead to
+new insights.
 
-Figure showing restoration types through time.
+Baywide estimates of the potential effects of restoration projects using
+spatial-temporal matching differed depending on the year windows and
+number of closest restoration projects that were matched to each water
+quality station. The results are shown in \cref{fig:prjsig} where the
+estimated associations of different projects types with chlorophyll at
+individual stations are shown on the left maps and the aggregate
+assocations across all stations for a given project type are shown in
+the right plots. That is, station points in the maps correspond to an
+estimate for the year window and closest project type selections for
+each project type that were obtained through the steps in
+\cref{fig:statex} and \cref{eq:wqdif}. Water quality stations outlined
+in black show where the estimated change is significant (i.e., the
+standard error lines in the botom plot of \cref{fig:statex} do not
+include zero, green points where chlorophyll was lower, red points where
+higher). The plots on the right are based on the distributions of the
+estimated water quality changes for each station for the corresponding
+project types in the maps on the left. The plots on the right also
+include statistical summaries for 1) an analysis of variance (ANOVA)
+F-test to compare the distribution of water quality changes between
+project types, 2) individual t-tests for each projct type to evaluate
+changes that were different from zero, and 3) a multiple comparison test
+denoted by letters to identify which projects types had changes that
+were different from each other.
 
-\hypertarget{observed-water-quality-conditions}{%
-\subsubsection{Observed Water Quality
-Conditions}\label{observed-water-quality-conditions}}
+For site-specific estimates of water quality changes, a slight trend of
+longer time windows and more project matches with the number of
+monitoring stations that had significant changes was observed (i.e.,
+more black circles in the maps \cref{fig:prjsig}d, compared to
+\cref{fig:prjsig}a). This was particularly true for habitat protection
+projects where no significant associations were observed for the 5 year
+window, 5 closest projects combination, but twelve stations had
+significant assocations for the 10 year window, 10 closest projects
+combination. A similar trend was observed for point source control
+projects where more stations had more significant reductions in
+chlorophyll with the 10 year window, 10 closest projects. The largest
+number of stations (n = 13) with significant improvements in water
+quality for nonpoint source projects was observed for the 5 year window,
+10 closest projects. Associations of habitat enhancement and habitat
+establishment projects with water quality stations were inconsistent,
+with some sites showing an increase or decrease that varied by the year
+window, closest project combinations. Spatial patterns among stations
+regarding associations with different project types were not clear,
+although point source controls were more commonly associated with
+mid-bay stations (Middle Tampa Bay).
 
-Table showing seasonal
+The estimated baywide effects for each project type showed that point
+source controls were more strongly associated with reductions in
+chlorophyll than the other project types (\cref{fig:prjsig}, right
+plots). This assocation was particularly strong for the ten year window
+combinations (\cref{fig:prjsig}c, d), where the results suggested an
+overall baywide reduction in chlorophyll of aproximately 2 \(\mu\)g/L
+(based on the median change across all sites, reduction of 2.7
+\(\mu\)g/L for 10 years, 5 closest projects and 1.6 \(\mu\)g/L for 10
+years, 10 closest projects).
 
-\hypertarget{associations-of-restoration-projects-with-water-quality-changes}{%
-\subsection{Associations of restoration projects with water quality
-changes}\label{associations-of-restoration-projects-with-water-quality-changes}}
-
-A figure showing estimated changes across all sites 5, 10 yr windows, 5,
-10 projects, maps and boxplots like ind\_eval, repeat for individual
-segments but maybe as table? Also develop narrative result about number
-of projects, expected time, and distances from sites.
-
-Slight trend of longer time window and more project matches with number
-of significant changes at site (\cref{fig:prjsig}a), Significant
-increases were observed at some sites but this is a by-product of the
-method, there are likely other changes occurring over tiem that are not
-strictly related to restoration project effects. \Cref{fig:prjsig}b
-shows that at the bay scale point control projects had the largest
-association with chlorophyll reductions. Non-point controls were also
-significant but only when more projects were considered. Habitat
-protection was also important at all combinations, habitat establish
-only important with more projects and time, whereas habitat enhancement
-had a negligible association no matter the comparison parameters.
+Nonpoint controls were also significant but only when more projects were
+considered. Habitat protection was also important at all combinations,
+habitat establish only important with more projects and time, whereas
+habitat enhancement had a negligible association no matter the
+comparison parameters.
 
 Segment results in \cref{tab:prjsigseg}.
 
@@ -647,7 +715,7 @@ its application were discovered.
 
 \begin{itemize}
 \item
-  2004-2017, non-point source and habitat protection appears to have the
+  2004-2017, nonpoint source and habitat protection appears to have the
   largest effect on chlorophyll-a levels. This effect is not clear until
   after 5 years of monitoring and with the evaluation of multiple
   projects. When fewer restoration activities were taking place in the
@@ -661,6 +729,19 @@ its application were discovered.
   from the completion of a project and with evaluation of multiple
   projects. Habitat projects did not have a noticeable effect although,
   these were limited to later in the time period.
+\item
+  Our analysis of the different year window, number of matches provided
+  an approach to separately evaluate the effect of temporal signals and
+  spatial signals on water quality improvements. Explain\ldots{}
+\item
+  What can we really say with this analysis? Above this text, describe
+  in bullet points the key conclusions, but here we can describe what
+  they really mean, e.g.~why did some sites have reduction in water
+  quality with projects? These are noisy relationships\ldots{}. Our
+  approach provides a tradeoff between the noise and ability to
+  disentangle cumulative effects but it's messy. The figures on the
+  right in figure 7 provide one approach to identify the signal to wash
+  out what may be errors.
 \item
   It is inherently difficult to determine any downstream water quality
   benefits from enhancement no matter how many sites or years.
