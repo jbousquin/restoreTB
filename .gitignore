@@ -2,6 +2,5 @@
 *.Rhistory
 *.RData
 *.Ruserdata
-
-mauscript/manu_draft_cache/
+mauscript/manu_draft_cache/*
 .Rproj.user

@@ -87,12 +87,13 @@ quality in Tampa Bay, Florida}
     \predate{}\postdate{}
   
 \usepackage{lineno}
-\linenumbers
+% \linenumbers
 \usepackage{setspace}
 \linespread{2}
 \usepackage{cleveref}
 \usepackage{acronym}
 \usepackage{makecell}
+\usepackage{float}
 \acrodef{tbep}[TBEP]{Tampa Bay Estuary Program}
 \acrodef{chla}[chl-\textit{a}]{chlorophyll \textit{a}}
 
@@ -224,12 +225,6 @@ Advanced wastewater treatment operations were implemented at municipal
 plants by the early 1980s. These efforts were successful in reducing
 nutrients loads to the Bay by as much as 90\%.
 
-\begin{figure}
-\centerline{\includegraphics[width = 0.8\textwidth]{figs/tbrest_map.pdf}}
-\caption{Water quality stations and restoration projects in the Tampa Bay area.  Water quality stations have been monitored monthly since 1974.  Locations of restoration projects represent 887 records that are generally categorized as habitat or water infrastructure projects from 1971 to present.  Bay segments as management units of interest are shown in the upper right inset. HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay.}
-\label{fig:map}
-\end{figure}
-
 Current water quality in Tampa Bay is dramatically improved from
 historical conditions. Most notably, seagrass coverage in 2016 was
 reported as 16,857 hectares baywide, surpassing the restoration goal of
@@ -312,12 +307,6 @@ type (described below). The final combined dataset included 887 projects
 from 1971 to 2017 (\cref{fig:restyrs}). Projects with incomplete
 information (i.e., missing date) were not included in the final dataset.
 
-\begin{figure}
-\centerline{\includegraphics[width = \textwidth]{figs/restyrs.pdf}}
-\caption{Counts (top) and locations (bottom) of restoration project types over time in the Tampa Bay watershed.  Restorations were categorized as water infrastructure (blue; nonpoint source controls, point source controls) and habitat (green; enhancements, establishments, protection) projects.  The compiled restoration database included records of 887 project types and locations from 1971 to 2017.}
-\label{fig:restyrs}
-\end{figure}
-
 Water quality data in Tampa Bay have been consistently collected since
 1974 by the Environmental Protection Commission of Hillsborough County
 (Sherwood et al. \protect\hyperlink{ref-Sherwood16}{2016}; TBEP (Tampa
@@ -351,14 +340,6 @@ on changes in water quality. Water quality monitoring sites were matched
 to the closest selected restoration projects and changes in the water
 quality data were evaluated relative to the completion dates of the
 selected projects.
-
-\begin{figure}
-\includegraphics[width=\textwidth]{figs/spmtch} \caption{Spatial matching of water quality stations with restoration projects. Spatial matches of each water quality station (blue dots) with habitat (solid line to grey dots) and water infrastucture (dashed line to black dots) projects are shown as the closest single match by type on the left and the "n" closest matches on the right.  The spatial matches were made for the five restoration project types within the broader habitat and water categories shown in the figure.}\label{fig:spmtch}
-\end{figure}
-
-\begin{figure}
-\includegraphics[width=\textwidth]{figs/tmmtch} \caption{Temporal matching of restoration project types with time series data at a water quality station.  The restoration project locations that are spatially matched with a water quality station (a) are used to create a temporal slice of the water quality data within a window of time before and after the completion date of each restoration project (b).  Slices are based on the closest "n" restoration projects by type (n = 2 in this example) to a water quality station.  The two broad categories of habitat and water infrastructure projects are shown in the figure as an example, whereas the analysis evaluated all five restoration sub-categories.}\label{fig:tmmtch}
-\end{figure}
 
 The matching between the two datasets began with a spatial join where
 the Euclidean distances between each water quality station and each
@@ -403,12 +384,6 @@ weaker association with potential changes in chlorophyll. The total
 change in water quality for a project type was simply the difference in
 weighted averages. This process was repeated for every station and a
 graphical example of \cref{eq:wqdif} is shown in \cref{fig:statex}
-
-\begin{figure}
-\centerline{\includegraphics[width = 0.95\textwidth]{figs/statex.pdf}}
-\caption{Steps to estimate cumulative effects of water quality changes at a single station relative to a selected number of projects and time windows. Subplot (a) shows station 23 in Middle Tampa Bay matched to the five nearest restoration projects for each of five types.  The time slices of the water quality observations for +/- ten years before and after the completion of each project are shown in (b), ordered from near to far.  The before/after water quality averages for the slices are shown in (c) and the differences between the two are shown in (d).  Finally, the weighted averages for the five closest matches by project type are shown in (e) with 95\% confidence intervals. }
-\label{fig:statex}
-\end{figure}
 
 There are key assumptions made by the above approach regarding how the
 analysis was conducted and what information is obtained from the result.
@@ -494,38 +469,6 @@ concentrations were relatively constant at approximately 0.55 mg/L from
 1987 to 2007. Seasonally, nitrogen peaked in the late summer/early fall
 period.
 
-\begin{table}[!tbp]
-\caption{Summary of total nitrogen and chlorophyll-a observations from monitoring stations in Tampa Bay.  Minimum, median, and maximum observed values for low and high salinity conditions are shown for seasonal and annual aggregations of water quality observations at all monitoring stations (See \cref{fig:map}).  Low or high salinity is based on values below or above the long-term baywide median (26.5 psu). JFM: January, February, March; AMJ: April, May, June; JAS: July, August, September; OND: October, November, December.\label{tab:statsum}} 
-\begin{center}
-\begin{tabular}{llllclll}
-\hline\hline
-\multicolumn{1}{l}{\bfseries Time period}&\multicolumn{3}{c}{\bfseries Total nitrogen}&\multicolumn{1}{c}{\bfseries }&\multicolumn{3}{c}{\bfseries Chlorophyll-a}\tabularnewline
-\cline{2-4} \cline{6-8}
-\multicolumn{1}{l}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}\tabularnewline
-\hline
-{\bfseries Low}&&&&&&&\tabularnewline
-~~JFM&$0.00$&$0.46$&$2.69$&&$0.12$&$ 5.30$&$114.40$\tabularnewline
-~~AMJ&$0.03$&$0.59$&$3.03$&&$0.20$&$ 8.40$&$183.40$\tabularnewline
-~~JAS&$0.02$&$0.64$&$3.02$&&$0.50$&$13.80$&$266.60$\tabularnewline
-~~OND&$0.03$&$0.57$&$4.14$&&$0.00$&$10.00$&$192.14$\tabularnewline
-~~1977-1987&$0.02$&$0.88$&$3.03$&&$0.10$&$13.40$&$266.60$\tabularnewline
-~~1987-1997&$0.05$&$0.73$&$4.14$&&$0.00$&$ 8.78$&$192.14$\tabularnewline
-~~1997-2007&$0.00$&$0.54$&$2.89$&&$0.12$&$ 7.86$&$261.90$\tabularnewline
-~~2007-2017&$0.03$&$0.42$&$2.75$&&$0.50$&$ 7.40$&$220.60$\tabularnewline
-\hline
-{\bfseries High}&&&&&&&\tabularnewline
-~~JFM&$0.03$&$0.43$&$1.65$&&$0.00$&$ 3.20$&$ 55.80$\tabularnewline
-~~AMJ&$0.02$&$0.48$&$1.95$&&$0.10$&$ 5.40$&$ 74.90$\tabularnewline
-~~JAS&$0.03$&$0.54$&$3.16$&&$0.10$&$ 7.23$&$333.40$\tabularnewline
-~~OND&$0.02$&$0.43$&$2.43$&&$0.00$&$ 4.67$&$142.90$\tabularnewline
-~~1977-1987&$0.02$&$0.57$&$1.92$&&$0.30$&$ 7.30$&$136.80$\tabularnewline
-~~1987-1997&$0.02$&$0.54$&$2.43$&&$0.00$&$ 5.11$&$142.90$\tabularnewline
-~~1997-2007&$0.02$&$0.56$&$3.16$&&$0.00$&$ 4.80$&$ 72.30$\tabularnewline
-~~2007-2017&$0.03$&$0.33$&$1.80$&&$0.80$&$ 3.70$&$333.40$\tabularnewline
-\hline
-\end{tabular}\end{center}
-\end{table}
-
 The consistent decline in chlorophyll concentrations were opposite to
 the observed trends in the number and types of restoration projects in
 the watershed. As shown in \cref{fig:restyrs}, less projects were
@@ -570,12 +513,6 @@ associations were observed with habitat establishment
 (\(F=13.7, df = 1, 22, p < 0.005\)) projects. A weak but marginally
 significant association was observed between chlorophyll and cumulative
 habitat protection projects (\(F=4.6, df = 1, 14, p = 0.049\)).
-
-\begin{figure}
-\centerline{\includegraphics[width = 0.95\textwidth]{figs/cumprj.pdf}}
-\caption{Relationships between cumulative number of restoration projects over time and water quality observations in Tampa Bay. The plot shows median total nitrogen (mg/L) and chlorophyll ($\mu$g/L) across all monitoring stations for each year against the cumulative number of projects for all preceding years.  Points are sized and shaded by year to show the progression of water quality and number of projects over time.  Summary statistics are shown in the bottom left corner as the significance of the linear regression (stars) and R-squared value. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}}
-\label{fig:cumprj}
-\end{figure}
 
 An obvious limitation of the above analysis is the confounding effect of
 almost all restoration projects increasing through time. Although
@@ -663,10 +600,6 @@ associated with baywide changes in chlorophyll, with the exception of
 habitat establishment for the 10 year window, 10 closest projects
 combination (0.9 \(\mu\)g/L reduction).
 
-\begin{figure}
-\includegraphics[width=1\linewidth]{figs/prjsig} \caption{Associations of restoration projects with chlorophyll changes at all sites in Tampa Bay.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station (subfigures a-d).  The left plots show the estimated changes at each site (green decreasing, red increasing) for each restoration project type, with significant changes at a site outlined in black.  The right plots show the aggregated site changes for each project type.  Overall differences were evaluated by ANOVA F-tests (bottom left corner), whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types within each subfigure that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.}\label{fig:prjsig}
-\end{figure}
-
 The above analysis was repeated for individual bay segments to identify
 spatial variation in associations of restoration projects with water
 quality changes. This analysis also demonstrated flexibility in how the
@@ -689,6 +622,256 @@ Hillsborough Bay where the relationship was not significant. Chlorophyll
 changes in Lower Tampa Bay were significantly associated with habitat
 enhancement and establishment projects for the 5 year window, 10 closest
 projects combination.
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+A long-term record of restoration activities and water quality data in
+Tampa Bay provided the foundation to develop a novel decision support
+tool for coastal restoration practitioners and managers. This new tool
+provides a unique process to understand the expected water quality
+improvements that could result from future restoration activities
+contingent upon the level of cumulative investments in different
+activities and the required monitoring to understand downstream water
+quality benefits at local to watershed scales. This tool has potentially
+broad application and extension within the Gulf Coast restoration and
+management community.
+
+Several conclusions can be made from the results that are supported by
+known changes in water quality over the history of long-term monitoring
+in Tampa Bay. As expected, water infrastructure projects related to
+point and nonpoint source controls were consistently associated with
+improvements in water quality. The observed record of restoration
+projects included key point control efforts that occurred in the upper
+portion of Tampa Bay (Hillsborough Bay) that were successful in reducing
+nutrient loads during the first two decades of observation. These
+outcomes were expected and the ability of the results to clearly
+demonstrate these long-term effects provided a proof of concept for the
+overall approach. Moreover, efforts focused on mitigating effects of
+nonpoint sources of pollution were more common in the latter half of
+record after 1990 and our results provide evidence that suggests these
+projects have been effective in improving water quality baywide.
+Nonpoint control efforts described broady described several activities
+that included, among others, street sweeping, education/outreach
+efforts, and various best management practices for stormwater,
+agricultural, and wetland programs. The ability to document effects of
+nonpoint control efforts on water quality relative to end-of-pipe
+controls is challenging (Hassett et al.
+\protect\hyperlink{ref-Hassett05}{2005}; Meals, Dressing, and Davenport
+\protect\hyperlink{ref-Meals10}{2010}) and the results suggest that out
+approach is capable of detecting improvements in water quality from
+these projects.
+
+Habitat restoration projects were also associated with reductions in
+chlorophyll, although less so than those associated with water
+infrastructure projects. Our categorization of habitat projects as
+enhancement, establishment, and protection were developed to better
+understand potential effect on water quality related to the type and
+intensity of actions for each group. Specifically, the categories
+represented extremes from low to high intensity effort, where protection
+was low effort (e.g., direct land acquisition), establishment was high
+effort (e.g., mangrove/seagrass plantings, creation of oyster reefs),
+and enhancement was moderate effort depending on the activity
+(hydrologic restoration for wetlands, exotic species control). The
+categorization by effort combined with the associated estimates of water
+quality improvements provides a coarse cost-benefit analysis. For
+example, habitat protection was consistently linked to chlorophyll
+reductions independent of year windows and number of projects and the
+effort for land acquisition is minimal relative to the other habitat
+restoration projects. Conversely, habitat enhancement was not strongly
+associated with baywide improvements in water quality and such projects
+require intensive effort. Based on these results, habitat protection is
+a more cost-effective approach than habitat establishment if evaluating
+the effects on overall bay conditions.
+
+Our results also provide an approach to identify an expected range of
+time and number of projects that are associated with potential
+improvements in water quality. This information was included as an
+explicit component in \cref{eq:wqdif} to quantify tradeoffs for
+different restoration activites based on how results varied by time and
+effort, similar to the categorization for habitat projects. Water
+quality improvements that are observed after a short period of time
+since project completion and with fewer projects (e.g., 5 year window, 5
+closest project) may be more cost-effective than those where
+improvements are observed after longer periods of time and with more
+projects (e.g., 10 year window, 10 closest projects). Given this logic,
+both habitat protection and point source controls seem more
+cost-effective, whereas other projects may be less cost-effective if
+improvements are observed only if additional time passes or more
+projects are included (e.g., nonpoint source controls, habitat
+enhancement). However, this approach assumes that immediate improvements
+with minimal effort are desirable and implicitly discounts the long-term
+effects that may or may not persist for a given project type. System
+hysteresis may indicate an initial improvement of water quality
+associated from a particular project, although degraded conditions may
+persist long-term if additional restoration projects are not pursued or
+underlying problems are not addressed (i.e., Scheffer et al.
+\protect\hyperlink{ref-Scheffer98}{1998}; Borja et al.
+\protect\hyperlink{ref-Borja10}{2010}). As an example, habitat
+enhancement projects were associated with improvements in Lower Tampa
+Bay only during the five year window with ten projects; reductions in
+chloropyll were not observed at the ten year window.
+
+There are several assumptions and limitations of our approach that
+affect the interpretation of the results. These assumptions and
+limitations are a reflection of 1) the inherent uncertainty in
+quantifying baywide effects of restoration projects that vary
+considerably in mecanisms through space and time, and 2) explicit
+construction of the approach to best account for this uncertainty. Our
+results, at best, provide a v
+
+Regardless, our results provided confirmation of previously and
+well-described xyz that suggests there is some validity in the approach
+that goes beyond a simple comparison of wq changes vs cumulative number
+of projects.
+
+\begin{itemize}
+\item
+  Our analysis of the different year window, number of matches provided
+  an approach to separately evaluate the effect of temporal signals and
+  spatial signals on water quality improvements. Explain\ldots{}
+\item
+  What can we really say with this analysis? Above this text, describe
+  in bullet points the key conclusions, but here we can describe what
+  they really mean, e.g.~why did some sites have reduction in water
+  quality with projects? These are noisy relationships\ldots{}. Our
+  approach provides a tradeoff between the noise and ability to
+  disentangle cumulative effects but it's messy. The figures on the
+  right in figure 7 provide one approach to identify the signal to wash
+  out what may be errors.
+\item
+  What does a 2ug/L reduction in chlorophyll mean for figure 7? This is
+  a highly aggregated estimate across years and baywide - what does it
+  mean really in narrative terms? Also, how might value change by
+  spatial and/or temporal contexts (e.g., segment estimates in the
+  table). This demonstrates value of the approach - its flexible.
+\item
+  It is inherently difficult to determine any downstream water quality
+  benefits from enhancement no matter how many sites or years.
+  Enhancement is primarily activities such as invasive species removal
+  which is not done with the primary goal of improving water quality.
+\item
+  How can this be used to guide coastal wq management in the Gulf?
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Demonstrate the benefit of Long Term monitoring
+  \end{itemize}
+\item
+  How can this be used to inform or prioritize restoration activities in
+  the Gulf?
+\item
+  How can the analysis be applied in other locations?
+\end{itemize}
+
+\hypertarget{limitations-of-analysis}{%
+\subsection{Limitations of analysis}\label{limitations-of-analysis}}
+
+\begin{itemize}
+\item
+  More restoration projects later in the time series could be from
+  inconsistent data collection early in the time series
+\item
+  Associative by design - does not empirically link cause and effect,
+  actual relationships are very complex
+\item
+  Our treatment of projects only considered completion date, location,
+  and type - constrained by data but other metrics could be more
+  informative, e.g., acreage restored.
+\end{itemize}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.8\textwidth]{figs/tbrest_map.pdf}}
+\caption{Water quality stations and restoration projects in the Tampa Bay area.  Water quality stations have been monitored monthly since 1974.  Locations of restoration projects represent 887 records that are generally categorized as habitat or water infrastructure projects from 1971 to present.  Bay segments as management units of interest are shown in the upper right inset. HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay.}
+\label{fig:map}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = \textwidth]{figs/restyrs.pdf}}
+\caption{Counts (top) and locations (bottom) of restoration project types over time in the Tampa Bay watershed.  Restorations were categorized as water infrastructure (blue; nonpoint source controls, point source controls) and habitat (green; enhancements, establishments, protection) projects.  The compiled restoration database included records of 887 project types and locations from 1971 to 2017.}
+\label{fig:restyrs}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = \textwidth]{figs/spmtch.pdf}}
+\caption{Spatial matching of water quality stations with restoration projects. Spatial matches of each water quality station (blue dots) with habitat (solid line to grey dots) and water infrastucture (dashed line to black dots) projects are shown as the closest single match by type on the left and the "n" closest matches on the right.  The spatial matches were made for the five restoration project types within the broader habitat and water categories shown in the figure.}
+\label{fig:spmtch}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = \textwidth]{figs/tmmtch.pdf}}
+\caption{Temporal matching of restoration project types with time series data at a water quality station.  The restoration project locations that are spatially matched with a water quality station (a) are used to create a temporal slice of the water quality data within a window of time before and after the completion date of each restoration project (b).  Slices are based on the closest "n" restoration projects by type (n = 2 in this example) to a water quality station.  The two broad categories of habitat and water infrastructure projects are shown in the figure as an example, whereas the analysis evaluated all five restoration sub-categories.}
+\label{fig:tmmtch}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.95\textwidth]{figs/statex.pdf}}
+\caption{Steps to estimate cumulative effects of water quality changes at a single station relative to a selected number of projects and time windows. Subplot (a) shows station 23 in Middle Tampa Bay matched to the five nearest restoration projects for each of five types.  The time slices of the water quality observations for +/- ten years before and after the completion of each project are shown in (b), ordered from near to far.  The before/after water quality averages for the slices are shown in (c) and the differences between the two are shown in (d).  Finally, the weighted averages for the five closest matches by project type are shown in (e) with 95\% confidence intervals. }
+\label{fig:statex}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.95\textwidth]{figs/cumprj.pdf}}
+\caption{Relationships between cumulative number of restoration projects over time and water quality observations in Tampa Bay. The plot shows median total nitrogen (mg/L) and chlorophyll ($\mu$g/L) across all monitoring stations for each year against the cumulative number of projects for all preceding years.  Points are sized and shaded by year to show the progression of water quality and number of projects over time.  Summary statistics are shown in the bottom left corner as the significance of the linear regression (stars) and R-squared value. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}}
+\label{fig:cumprj}
+\end{figure}
+
+\clearpage
+
+\begin{figure}
+\centerline{\includegraphics[width = 0.95\textwidth]{figs/prjsig.pdf}}
+\caption{Associations of restoration projects with chlorophyll changes at all sites in Tampa Bay.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station (subfigures a-d).  The left plots show the estimated changes at each site (green decreasing, red increasing) for each restoration project type, with significant changes at a site outlined in black.  The right plots show the aggregated site changes for each project type.  Overall differences were evaluated by ANOVA F-tests (bottom left corner), whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types within each subfigure that are not significantly different share a letter and significance of the within-group mean relative to zero is also shown.}
+\label{fig:prjsig}
+\end{figure}
+
+\clearpage
+
+\begin{table}[!tbp]
+\caption{Summary of total nitrogen and chlorophyll-a observations from monitoring stations in Tampa Bay.  Minimum, median, and maximum observed values for low and high salinity conditions are shown for seasonal and annual aggregations of water quality observations at all monitoring stations (See \cref{fig:map}).  Low or high salinity is based on values below or above the long-term baywide median (26.5 psu). JFM: January, February, March; AMJ: April, May, June; JAS: July, August, September; OND: October, November, December.\label{tab:statsum}} 
+\begin{center}
+\begin{tabular}{llllclll}
+\hline\hline
+\multicolumn{1}{l}{\bfseries Time period}&\multicolumn{3}{c}{\bfseries Total nitrogen}&\multicolumn{1}{c}{\bfseries }&\multicolumn{3}{c}{\bfseries Chlorophyll-a}\tabularnewline
+\cline{2-4} \cline{6-8}
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{Min}&\multicolumn{1}{c}{Median}&\multicolumn{1}{c}{Max}\tabularnewline
+\hline
+{\bfseries Low}&&&&&&&\tabularnewline
+~~JFM&$0.00$&$0.46$&$2.69$&&$0.12$&$ 5.30$&$114.40$\tabularnewline
+~~AMJ&$0.03$&$0.59$&$3.03$&&$0.20$&$ 8.40$&$183.40$\tabularnewline
+~~JAS&$0.02$&$0.64$&$3.02$&&$0.50$&$13.80$&$266.60$\tabularnewline
+~~OND&$0.03$&$0.57$&$4.14$&&$0.00$&$10.00$&$192.14$\tabularnewline
+~~1977-1987&$0.02$&$0.88$&$3.03$&&$0.10$&$13.40$&$266.60$\tabularnewline
+~~1987-1997&$0.05$&$0.73$&$4.14$&&$0.00$&$ 8.78$&$192.14$\tabularnewline
+~~1997-2007&$0.00$&$0.54$&$2.89$&&$0.12$&$ 7.86$&$261.90$\tabularnewline
+~~2007-2017&$0.03$&$0.42$&$2.75$&&$0.50$&$ 7.40$&$220.60$\tabularnewline
+\hline
+{\bfseries High}&&&&&&&\tabularnewline
+~~JFM&$0.03$&$0.43$&$1.65$&&$0.00$&$ 3.20$&$ 55.80$\tabularnewline
+~~AMJ&$0.02$&$0.48$&$1.95$&&$0.10$&$ 5.40$&$ 74.90$\tabularnewline
+~~JAS&$0.03$&$0.54$&$3.16$&&$0.10$&$ 7.23$&$333.40$\tabularnewline
+~~OND&$0.02$&$0.43$&$2.43$&&$0.00$&$ 4.67$&$142.90$\tabularnewline
+~~1977-1987&$0.02$&$0.57$&$1.92$&&$0.30$&$ 7.30$&$136.80$\tabularnewline
+~~1987-1997&$0.02$&$0.54$&$2.43$&&$0.00$&$ 5.11$&$142.90$\tabularnewline
+~~1997-2007&$0.02$&$0.56$&$3.16$&&$0.00$&$ 4.80$&$ 72.30$\tabularnewline
+~~2007-2017&$0.03$&$0.33$&$1.80$&&$0.80$&$ 3.70$&$333.40$\tabularnewline
+\hline
+\end{tabular}\end{center}
+\end{table}
+
+\clearpage
 
 \begin{table}[!tbp]
 \caption{Associations of restoration projects with chlorophyll changes for different segments of Tampa Bay.  Associations were evaluated based on different year windows (5, 10) since completion of restoration projects and number of closest restoration projects (5, 10) to each monitoring station within each segment. Overall differences in chlorophyll changes between restoration project types by segment and year/project number combinations were evaluated by ANOVA F-tests, whereas pairwise differences between project types were evaluated by t-tests with corrected p-values for multiple comparisons.  Chlorophyll changes by project types that are not significantly different share a letter (comparisons are only valid within rows) and significance of the within-group mean relative to zero is also shown.\label{tab:prjsigseg}} 
@@ -726,89 +909,7 @@ projects combination.
 \end{tabular}\end{center}
 \footnotesize HB: Hillsborough Bay, LTB: Lower Tampa Bay, MTB: Middle Tampa Bay, OTB: Old Tampa Bay. \textit{p > 0.05 ns, p < 0.05 *, p < 0.005 **}\end{table}
 
-\hypertarget{discussion}{%
-\section{Discussion}\label{discussion}}
-
-A long-term record of restoration activities and water quality data in
-Tampa Bay provided the foundation to develop a novel decision support
-tool for coastal restoration practitioners and managers. This new tool
-provides an improved process to understand the expected water quality
-improvements that could result from future restoration activities
-contingent upon the level of cumulative investments made toward
-divergent activities and the required monitoring to understand
-downstream water quality benefits at local to watershed-wide scales.
-This tool has broad application and extension within the Gulf Coast
-restoration and management community. However, several reservations on
-its application were discovered.
-
-\begin{itemize}
-\item
-  2004-2017, nonpoint source and habitat protection appears to have the
-  largest effect on chlorophyll-a levels. This effect is not clear until
-  after 5 years of monitoring and with the evaluation of multiple
-  projects. When fewer restoration activities were taking place in the
-  Bay (i.e.~94-04) a greater monitoring time frame was necessary to
-  identify the benefits of restoration activities (\textgreater{}5
-  years).
-\item
-  From 1974 - 1994, chlorophyll changes were most distinct in relation
-  to water infrastructure projects, particularly for low salinity
-  regions in the bay. The effect was more apparent with increasing time
-  from the completion of a project and with evaluation of multiple
-  projects. Habitat projects did not have a noticeable effect although,
-  these were limited to later in the time period.
-\item
-  Our analysis of the different year window, number of matches provided
-  an approach to separately evaluate the effect of temporal signals and
-  spatial signals on water quality improvements. Explain\ldots{}
-\item
-  What can we really say with this analysis? Above this text, describe
-  in bullet points the key conclusions, but here we can describe what
-  they really mean, e.g.~why did some sites have reduction in water
-  quality with projects? These are noisy relationships\ldots{}. Our
-  approach provides a tradeoff between the noise and ability to
-  disentangle cumulative effects but it's messy. The figures on the
-  right in figure 7 provide one approach to identify the signal to wash
-  out what may be errors.
-\item
-  What does a 2ug/L reduction in chlorophyll mean for figure 7? This is
-  a highly aggregated estimate across years and baywide - what does it
-  mean really in narrative terms? Also, how might value change by
-  spatial and/or temporal contexts (e.g., segment estimates in the
-  table). This demonstrates value of the approach - its flexible.
-\item
-  It is inherently difficult to determine any downstream water quality
-  benefits from enhancement no matter how many sites or years.
-  Enhancement is primarily activities such as invasive species removal
-  which is not done with the primary goal of improving water quality.
-\item
-  How can this be used to guide coastal wq management in the Gulf?
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Demonstrate the benefit of Long Term monitoring
-  \end{itemize}
-\item
-  How can this be used to inform or prioritize restoration activities in
-  the Gulf?
-\item
-  What are the limitations of our analysis?
-\item
-  How can the analysis be applied in other locations?
-\end{itemize}
-
-\hypertarget{limitations-of-analysis}{%
-\subsection{Limitations of analysis}\label{limitations-of-analysis}}
-
-\begin{itemize}
-\item
-  More restoration projects later in the time series could be from
-  inconsistent data collection early in the time series
-\item
-  Associative by design - does not empirically link cause and effect,
-  actual relationships are very complex
-\end{itemize}
+\clearpage
 
 \hypertarget{references}{%
 \section*{References}\label{references}}
@@ -844,6 +945,12 @@ Tracy K. Collier. 2016. ``Environmental effects of the Deepwater Horizon
 oil spill: A review.'' \emph{Marine Pollution Bulletin} 110 (1):28--51.
 \url{https://doi.org/10.1016/j.marpolbul.2016.06.027}.
 
+\leavevmode\hypertarget{ref-Borja10}{}%
+Borja, A., D. M. Dauer, M. Elliott, and C. A. Simenstad. 2010. ``Median-
+and Long-Term Recovery of Estuarine and Coastal Ecosystems: Patterns,
+Rates and Restoration Effectiveness.'' \emph{Estuaries and Coasts}
+33:1249--60. \url{https://doi.org/10.1007/s12237-010-9347-5}.
+
 \leavevmode\hypertarget{ref-Borja16}{}%
 Borja, Ángel, Guillem Chust, José G. Rodríguez, Juan Bald,
 M\textordfeminine Jesús Belzunce-Segarra, Javier Franco, Joxe Mikel
@@ -877,6 +984,13 @@ estuary: Tampa Bay, Florida, USA.'' \emph{Estuarine, Coastal and Shelf
 Science} 151 (December):A1--A16.
 \url{https://doi.org/10.1016/j.ecss.2014.10.003}.
 
+\leavevmode\hypertarget{ref-Hassett05}{}%
+Hassett, B., M. Palmer, E. Bernhardt, S. Smith, J. Carr, and D. Hart.
+2005. ``Restoring Watersheds Project by Project: Trends in Chesapeake
+Bay Tributary Restoration.'' \emph{Frontiers in Ecology and the
+Environment} 3 (5):259--67.
+\href{https://doi.org/10.1890/1540-9295(2005)003\%5B0259:RWPBPT\%5D2.0.CO;2}{https://doi.org/10.1890/1540-9295(2005)003{[}0259:RWPBPT{]}2.0.CO;2}.
+
 \leavevmode\hypertarget{ref-Hobbs01}{}%
 Hobbs, R J, and J A Harris. 2001. ``Restoration Ecology: Repairing the
 Earth's Ecosystems in the New Millennium.'' \emph{Restoration Ecology} 9
@@ -900,6 +1014,12 @@ Water Quality and Biological Indicators in Hillsborough Bay, a Highly
 Impacted Subdivision of Tampa Bay, Florida, USA.'' \emph{Marine Coastal
 Eutrophication} Proceedings of an International Conference, Bologna,
 Italy, 21-24 March 1990:1199--1215.
+
+\leavevmode\hypertarget{ref-Meals10}{}%
+Meals, D. W., S. A. Dressing, and T. E. Davenport. 2010. ``Lag Time in
+Water Quality Response to Best Management Practices: A Review.''
+\emph{Journal of Environmental Quality} 39 (1):85--96.
+\url{https://doi.org/10.2134/jeq2009.0108}.
 
 \leavevmode\hypertarget{ref-Morrison06}{}%
 Morrison, G., E. T. Sherwood, R. Boler, and J. Barron. 2006.
@@ -925,6 +1045,10 @@ Challenges, and a Model of the Gulf of Mexico Hypoxic Zone.''
 RDCT (R Development Core Team). 2018. ``R: A language and environment
 for statistical computing, v3.5.1. R Foundation for Statistical
 Computing, Vienna, Austria.''
+
+\leavevmode\hypertarget{ref-Scheffer98}{}%
+Scheffer, M., S. Carpenter, J. A. Foley, C. Folkes, and B. Walker. 1998.
+``Catastrophic Shifts in Ecosystems.'' \emph{Nature} 413:591--96.
 
 \leavevmode\hypertarget{ref-Schiff16}{}%
 Schiff, K., P.R. Trowbridge, E.T. Sherwood, P. Tango, and R.A. Batiuk.
