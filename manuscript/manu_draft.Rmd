@@ -8,6 +8,18 @@ urlcolor: blue
 link-citations: true
 ---
 
+Marcus W. Beck ([marcusb@sccwrp.org](mailto:marcusb@sccwrp.org)), Southern California Coastal Water Research Project, Costa Mesa, CA
+
+Edward T. Sherwood ([esherwood@tbep.org](mailto:esherwood@tbep.org)), Tampa Bay Estuary Program, Tampa, FL
+
+Jessica Renee Henkel ([jessica.henkel@restorethegulf.gov](mailto:jessica.henkel@restorethegulf.gov)), Gulf Coast Ecosystem Restoration Council, New Orleans, LA
+
+Kirsten Dorans ([kdorans@mail.harvard.edu](mailto:kdorans@mail.harvard.edu)), Tulane University, New Orleans, LA
+
+Kathryn Ireland ([kathryn.b.ireland@gmail.com](mailto:kathryn.b.ireland@gmail.com)), Montana State University, Bozeman, MT
+
+Patricia Varela ([varela_patricia@yahoo.com](mailto:varela_patricia@yahoo.com)), Geosyntec Consultants, Houston, TX
+
 ```{r echo = F}
 # get current bib file
 refs <- httr::GET('https://raw.githubusercontent.com/fawda123/refs/master/refs.bib')
@@ -71,7 +83,16 @@ typecol <- c('#31a354', '#74c476' , '#c7e9c0', '#3182bd', '#9ecae1')
 spelling::spell_check_files('manuscript/manu_draft.Rmd')
 ```
 
+```{r echo = F, cache = F}
+raw <- system('git log -1', intern = TRUE)
+raw <- raw[grep('^Date', raw)]
+raw <- paste('Version', raw)
+```
+`r raw`
+
 # Abstract
+
+Habitat and water quality restoration projects are commonly used to enhance coastal resources or mitigate negative impacts of water quality stressors.  Significant resources have been exended for restoration projects, yet much less attention has focused on evaluating the outcomes beyond site-specific assessments.  This study presents an empirical framework to evaluate multiple datasets in the Tampa Bay area (Florida, USA) to identify 1) types of restoration projects that produce the greatest improvements in water quality, and 2) which time frames for different projects are most relevant for having the largest perceived benefits.  Information on the location and date of completion for 887 restoration projects from 1971 to 2017 were spatially and temporally matched with water quality records at each of 45 long-term monitoring stations in Tampa Bay.  Estimates of chlorophyll concentrations before and after the completion of one to many projects were used to develop an expectation of water quality changes from investments in different restoration activities.  Water infrastructure projects to control point sources of nutrient loading into the bay were associated with the highest likelihood of chlorophyll reduction, particularly for projects occurring prior to 1995.  Habitat restoration projects were also associated with reductions in chlorophyll, although the likelihood of reductions from the cumulative effects of these projects were less than those from infrastructure improvements.  The framework is sufficiently flexible for application to different locations and could be used to develop reasonable expectations for future restoration projects along the Gulf of Mexico.
 
 # Introduction
 
@@ -81,7 +102,7 @@ Notwithstanding these challenges, the difficulty in rigorously monitoring and un
 
 A very large, comprehensive and concerted effort to restore Gulf of Mexico coastal ecosystems is currently underway (GCERC 2013, 2016). Primary funding for this effort stems from the legal settlements resulting from the 2010 Deepwater Horizon oil spill. Funding sources include: early restoration investments that were made immediately following the spill, resource damage assessments resulting from the spill’s impacts (NRDA, 2016), a record legal settlement of civil and criminal penalties negotiated between the responsible parties and the US government with strict US congressional oversight (RESTORE Act), and matching funds from research, monitoring and restoration practitioners worldwide. These funds, equating to >$20B US, present the Gulf of Mexico community an unprecedented opportunity to revitalize regional restoration efforts that will span multiple generations (GCERC 2013, 2016). Consequently, the restoration investments being made with these funds will be highly scrutinized. Better understanding the environmental outcomes of past restoration investments will help identify how, where and when future resources should be invested so that the Gulf Coast community can achieve the highest degree of restoration success.
  
-Because of the difficulties in demonstrating restoration success, new tools are needed to help guide and support the implementation of GOM restoration activities. Here, we present an empirical framework for evaluating the influence of multiple restoration project types on water quality improvements within a GOM estuary. The framework helps synthesize routine, ambient monitoring data across various spatio-temporal scales to demonstrate how the cumulative effects of coastal restoration activities contribute towards broad estuarine water quality improvements. Data on water quality and restoration projects in the Tampa Bay area (Florida, USA) were used to demonstrate application of the analysis framework. Tampa Bay is the second largest estuarine embayment in the GOM and has been intensively monitored since the mid-1970s. The ecological context of water quality changes in the Bay is well-described [@Greening2014] and a comprehensive history of restoration projects occurring in the watershed is available, making Tampa Bay an ideal test case for demonstrating and applying a new evaluation framework. The water quality and restoration datasets were evaluated to identify: 1) the types of restoration activities that contribute to the greatest improvements in water quality, and 2) the time frames over which water quality benefits may be elucidated from synergistic restoration activities.  Changes in chlorophyll-a concentrations, a proxy for negative eutrophication effects within Tampa Bay [@Greening2014], were used as the success metric to evaluate estuarine restoration activities.  The final product is an open-source, decision support tool that will help restoration practitioners evaluate alternative scenarios for implementing future restoration strategies.
+Because of the difficulties in demonstrating restoration success, new tools are needed to help guide and support the implementation of GOM restoration activities. Here, we present an empirical framework for evaluating the influence of multiple restoration project types on water quality improvements within a GOM estuary. The framework helps synthesize routine, ambient monitoring data across various spatio-temporal scales to demonstrate how the cumulative effects of coastal restoration activities contribute towards broad estuarine water quality improvements. Data on water quality and restoration projects in the Tampa Bay area (Florida, USA) were used to demonstrate application of the analysis framework. Tampa Bay is the second largest estuarine embayment in the GOM and has been intensively monitored since the mid-1970s. The ecological context of water quality changes in the Bay is well-described [@Greening2014] and a comprehensive history of restoration projects occurring in the watershed is available, making Tampa Bay an ideal test case for demonstrating and applying a new evaluation framework. The water quality and restoration datasets were evaluated to identify: 1) the types of restoration activities that contribute to the greatest improvements in water quality, and 2) the time frames over which water quality benefits may be elucidated from synergistic restoration activities.  Changes in chlorophyll-a concentrations, a proxy for negative eutrophication effects within Tampa Bay [@Greening2014], were used as the success metric to evaluate estuarine restoration activities. 
 
 # Methods
 
