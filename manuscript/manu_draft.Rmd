@@ -128,7 +128,7 @@ Combining the restoration and water quality datasets was a critical part of deve
 
 The matching between the two datasets began with a spatial join where the Euclidean distances between each water quality station and each restoration project were quantified.  The spatial matches were used to create a ranking of project sites from each water quality station based on distance.  The distances were also grouped by the five restoration project types (i.e., habitat protection, nonpoint source control, etc.) such that the closest $n$ sites of a given project type could be identified for any water quality station (Figure \@ref(fig:spmtch)).  
 
-For each spatial match, temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each restoration project (Figure \@ref(fig:tmmtch)).  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after estimate of chlorophyll associated with each project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projects at each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
+For each spatial match, temporal matching between water quality stations and restoration projects was obtained by subsetting the water quality data within a time window before and after the completion date of each restoration project (Figure \@ref(fig:tmmtch)).  For the closest $n$ restoration sites for each of five project types, two summarized water quality estimates were obtained to quantify a before and after estimate of chlorophyll associated with each project.  The before effect was estimated as the average of observations for the year preceding the completion of a project and the after effect was estimated as the average of observations for a year period that occurred after a defined window of time after completion of a project.  Time windows that overlapped the start and end date of the water quality time series were discarded.  The final two estimates of the before and after effects of the five types of restoration projects at each water quality station were based on an average of the $n$ closest restoration sites, weighted inversely by distance from the monitoring station.
 
 Change in water quality relative to each type of restoration project was estimated as:
 
@@ -190,6 +190,10 @@ The simplicity of our approach also means that it is highly adaptable to novel c
 ## Conclusions 
 
 A long-term record of restoration activities and water quality data in Tampa Bay provided the foundation to develop a novel decision support tool for coastal restoration practitioners and managers. This new tool provided 1) a unique process to understand the associations between past restoration projects and known changes in water quality and 2) establishes an expection of water quality improvements that could result from future restoration activities contingent upon the level of investments in different activities and the required monitoring to understand downstream water quality benefits at local to watershed scales. Overall, we demonstrated a baywide association of water quality changes to different restoration activities that varied by project type, chosen parameters to estimate the results, and the spatial context of interpretation.  The flexibility of our approach has potentially broad application and extension within the Gulf Coast restoration and management community. 
+
+# Supplement
+
+Analysis and manuscript source materials available at [DOI:10.5281/zenodo.2539623](http://doi.org/10.5281/zenodo.2539623).
 
 # Figures
 
@@ -385,10 +389,10 @@ tmdf1 <- list(
 
 tmdf2 <- list(
   `Water quality` = c(1974, 2016),
-  `Water 1` = c(1991, 1996, 2001),
-  `Water 2` = c(1975, 1980, 1985),
-  `Habitat 1` = c(1981, 1986, 1991),
-  `Habitat 2` = c(2004, 2009, 2014)
+  `Water 1` = c(1995, 1996, 2001),
+  `Water 2` = c(1979, 1980, 1985),
+  `Habitat 1` = c(1985, 1986, 1991),
+  `Habitat 2` = c(2008, 2009, 2014)
   ) %>%
   enframe %>%
   unnest %>%
@@ -398,7 +402,7 @@ tmdf2 <- list(
   )
 
 tmdf3 <- data.frame(
-  Before = c(1974, 1981, 2004, 1991, 1975),
+  Before = c(1975, 1985, 2008, 1995, 1979),
   After = c(2016, 1991, 2014, 2001, 1985)
   ) %>%
   mutate(
@@ -407,10 +411,10 @@ tmdf3 <- data.frame(
 
 tmdf4 <- list(
   `Water quality` = c(1974, 2016),
-  `Water 1` = c(1991, 2001),
-  `Water 2` = c(1975, 1985),
-  `Habitat 1` = c(1981, 1991),
-  `Habitat 2` = c(2004, 2014)
+  `Water 1` = c(1995, 2001),
+  `Water 2` = c(1979, 1985),
+  `Habitat 1` = c(1985, 1991),
+  `Habitat 2` = c(2008, 2014)
   ) %>%
   enframe %>%
   unnest %>%
@@ -483,7 +487,7 @@ yrwin <- get_chgdf(wqdatsta, wqmtch, wqstatsta, restdat, wqvar = 'chla', yrdf = 
 
 # add one year prior to dtaft
 yrwin <- yrwin %>% 
-  mutate(dtaftstr = dtaft - 365)
+  mutate(dtaftstr = dtaft - (yrdf * 365))
 
 ## Map
 

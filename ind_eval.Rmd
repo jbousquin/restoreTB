@@ -240,10 +240,11 @@ renderPlot({
   # input
   yrwin <- yrwin()
   wqdatsta <- wqdatsta()
+  yrdf <- input$yrdf
   
   # add one year prior to dtaft
   toplo <- yrwin %>% 
-    mutate(dtaftstr = dtaft - 365)
+    mutate(dtaftstr = dtaft - (yrdf*365))
 
   # wq ts
   p <- ggplot() + 
