@@ -29,6 +29,6 @@ Files in `/data/` all created using `R/dat_proc.R`, unless otherwise noted
 
 # Content
 
-Evaluation of BN models: [link](http://162.243.131.102:3838/restorebayes/all_eval.Rmd)
+Evaluation of BN models: [link](http://www.fawda123.com/shiny/restorebayes/all_eval.Rmd)
 
-Evaluation of data aggregation: [link](http://162.243.131.102:3838/restorebayes/ind_eval.Rmd)
+Evaluation of data aggregation: [link](http://www.fawda123.com/shiny/restorebayes/ind_eval.Rmd)
