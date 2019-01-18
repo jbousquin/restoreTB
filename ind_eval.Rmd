@@ -1,6 +1,6 @@
 ---
-output: 
-html_document
+title: "Restoration and Water Quality Site Matching"
+output: html_document
 self_contained: yes
 runtime: shiny
 ---
