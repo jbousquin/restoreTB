@@ -623,6 +623,8 @@ plotOutput('allplo1', height = "400px") %>% withSpinner()
 ```
 
 <br>
+<br>
+<br>
 
 This plot shows overall differences in chlorophyll changes as a function of restoration project types.  The model is evaluated based on the aggregated differences across all sites given the selected number of matches and year windows.  The overall p-value is the ANOVA result testing for variation in chlorophyll differences by one or more project types and the letters in the plot show groups that are significantly different based on pairwise comparisons using adjusted p-values.  Restoration groups that do not share the same letter are significantly different. The additional text shows whether the mean chlorophyll differences within each group are significantly different from zero.  
 
