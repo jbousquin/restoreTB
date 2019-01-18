@@ -81,7 +81,7 @@ column(4,
        selectInput('sta', 'Select water quality station:', choices = sort(wqstat$stat), selected = 55)
        )
 ```
-
+<br>
 ```{r rctvs}
 # filtered wqdat by stat
 wqdatsta <- reactive({
@@ -104,7 +104,6 @@ wqstatsta <- reactive({
     filter(stat %in% sta)
   
 })
-
 ```
 
 ```{r}
@@ -131,10 +130,12 @@ output$indmap <- renderPlot({
 
   grid.arrange(p1, p2, widths = c(0.3, 0.7), ncol = 2)
   
-}, height = 300, width = 900) 
-
-plotOutput('indmap') %>% withSpinner(proxy.height = "300px")
+}, width = 900, height = 300) 
+plotOutput('indmap', width = "900px", height = "300px") %>% withSpinner()
 ```
+
+<br>
+<br>
 
 ```{r inptsmp}
 # wq year slice window
@@ -252,7 +253,7 @@ output$indtab1 <- renderPlot({
   grid.arrange(p1, p2, ncol = 2)
 
 }, width = 900, height = 650)
-plotOutput('indtab1') %>% withSpinner(proxy.height = "650px")
+plotOutput('indtab1', width = "900px", height = "650px") %>% withSpinner()
 ```
 
 ## (2) Time slices
@@ -297,7 +298,7 @@ output$indtab2 <- renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
-plotOutput('indtab2') %>% withSpinner(proxy.height = "600px")
+plotOutput('indtab2', width = "900px", height = "600px") %>% withSpinner()
 ```
 
 ## (3) Before/after avg.
@@ -338,7 +339,7 @@ output$indtab3 <- renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
-plotOutput('indtab3') %>% withSpinner(proxy.height = "600px")
+plotOutput('indtab3', width = "900px", height = "600px") %>% withSpinner()
 ```
 
 ## (4) Before/after avg. difference
@@ -383,7 +384,7 @@ output$indtab4 <- renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
-plotOutput('indtab4') %>% withSpinner(proxy.height = "600px")
+plotOutput('indtab4', width = "900px", height = "600px") %>% withSpinner()
 ```
 
 ## (5) Average of averages
@@ -434,10 +435,8 @@ output$indtab5 <- renderPlot({
   return(p)
   
 }, width = 900, height = 250) 
-plotOutput('indtab5') %>% withSpinner(proxy.height = "250px")
+plotOutput('indtab5', width = "900px", height = "250px") %>% withSpinner()
 ```
-
-<br>
 
 # Evaluation of all differences
 
@@ -620,7 +619,7 @@ output$allplo1 <- renderPlot({
   return(p1)
   
 }, height = 400)
-plotOutput('allplo1') %>% withSpinner(proxy.height = "400px")
+plotOutput('allplo1', height = "400px") %>% withSpinner()
 ```
 
 <br>
@@ -676,6 +675,6 @@ output$allplo2 <- renderPlot({
   return(p1)
   
 }, height = 450)
-plotOutput('allplo2') %>% withSpinner(proxy.height = "450px")
+plotOutput('allplo2', height = "450px") %>% withSpinner()
 ```
 
