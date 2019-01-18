@@ -1,6 +1,6 @@
 ---
 output: 
-  html_document
+html_document
 self_contained: yes
 runtime: shiny
 ---
