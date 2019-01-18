@@ -1,6 +1,9 @@
 ---
 title: "Restoration and Water Quality Site Matching"
-output: html_document
+output: 
+  html_document:
+    includes: 
+      in_header: cssloaders_in_header.html
 self_contained: yes
 runtime: shiny
 ---
@@ -38,6 +41,7 @@ library(sf)
 library(sp)
 library(gridExtra)
 library(multcompView)
+library(shinycssloaders)
 
 data(restdat)
 data(reststat)
@@ -104,7 +108,7 @@ wqstatsta <- reactive({
 ```
 
 ```{r}
-renderPlot({
+output$indmap <- renderPlot({
   
   # inputs
   wqdatsta <- wqdatsta()
@@ -127,7 +131,9 @@ renderPlot({
 
   grid.arrange(p1, p2, widths = c(0.3, 0.7), ncol = 2)
   
-}, height = 300, width = 900)
+}, height = 300, width = 900) 
+
+plotOutput('indmap') %>% withSpinner(proxy.height = "300px")
 ```
 
 ```{r inptsmp}
@@ -184,7 +190,7 @@ yrwin <- reactive({
 The water quality station is matched to the closest `r renderText({input$mtch})` projects for each project type.
 
 ```{r}
-renderPlot({
+output$indtab1 <- renderPlot({
   
   # inputs
   wqmtch <- wqmtch()
@@ -246,6 +252,7 @@ renderPlot({
   grid.arrange(p1, p2, ncol = 2)
 
 }, width = 900, height = 650)
+plotOutput('indtab1') %>% withSpinner(proxy.height = "650px")
 ```
 
 ## (2) Time slices
@@ -253,7 +260,7 @@ renderPlot({
 For each of `r renderText({input$mtch})` restoration project types, the water quality observations that occurred one year prior and `r renderText({input$yrdf})` years after the completion of the project were selected. The date of completion for each project is shown with the thicker vertical line. 
 
 ```{r}
-renderPlot({
+output$indtab2 <- renderPlot({
   
   # input
   yrwin <- yrwin()
@@ -290,13 +297,14 @@ renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
+plotOutput('indtab2') %>% withSpinner(proxy.height = "600px")
 ```
 
 ## (3) Before/after avg.
 
 The water quality observations for the year prior and `r renderText({input$yrdf})` years after the selected slices were then averaged. 
 ```{r}
-renderPlot({
+output$indtab3 <- renderPlot({
   
   # input
   yrwin <- yrwin()
@@ -330,6 +338,7 @@ renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
+plotOutput('indtab3') %>% withSpinner(proxy.height = "600px")
 ```
 
 ## (4) Before/after avg. difference
@@ -337,7 +346,7 @@ renderPlot({
 The before and after averages were then differenced.
 
 ```{r}
-renderPlot({
+output$indtab4 <- renderPlot({
   
   # input
   yrwin <- yrwin()
@@ -374,6 +383,7 @@ renderPlot({
   return(p)
   
 }, width = 900, height = 600)  
+plotOutput('indtab4') %>% withSpinner(proxy.height = "600px")
 ```
 
 ## (5) Average of averages
@@ -381,7 +391,7 @@ renderPlot({
 Then the averaged differences are averaged across the `r renderText({input$mtch})` projects per project type.
 
 ```{r}
-renderPlot({
+output$indtab5 <- renderPlot({
   
   # input
   yrwin <- yrwin()
@@ -423,8 +433,11 @@ renderPlot({
   
   return(p)
   
-}, width = 900, height = 250)  
+}, width = 900, height = 250) 
+plotOutput('indtab5') %>% withSpinner(proxy.height = "250px")
 ```
+
+<br>
 
 # Evaluation of all differences
 
@@ -570,7 +583,7 @@ difzr <- reactive({
 ```
 
 ```{r}
-renderPlot({
+output$allplo1 <- renderPlot({
   
   # input
   datdf <- datdf()
@@ -607,7 +620,7 @@ renderPlot({
   return(p1)
   
 }, height = 400)
-
+plotOutput('allplo1') %>% withSpinner(proxy.height = "400px")
 ```
 
 <br>
@@ -615,7 +628,7 @@ renderPlot({
 This plot shows overall differences in chlorophyll changes as a function of restoration project types.  The model is evaluated based on the aggregated differences across all sites given the selected number of matches and year windows.  The overall p-value is the ANOVA result testing for variation in chlorophyll differences by one or more project types and the letters in the plot show groups that are significantly different based on pairwise comparisons using adjusted p-values.  Restoration groups that do not share the same letter are significantly different. The additional text shows whether the mean chlorophyll differences within each group are significantly different from zero.  
 
 ```{r}
-renderPlot({
+output$allplo2 <- renderPlot({
   
   # input
   datdf <- datdf()
@@ -663,5 +676,6 @@ renderPlot({
   return(p1)
   
 }, height = 450)
+plotOutput('allplo2') %>% withSpinner(proxy.height = "450px")
 ```
 
