@@ -11,6 +11,7 @@ library(sf)
 library(sp)
 library(foreach)
 library(doParallel)
+library(multcompView)
 
 data(restdat)
 data(reststat)
@@ -41,7 +42,7 @@ grds <- crossing(
   resgrp = c('type')
 ) 
 
-res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
+res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'sf', 'sp', 'geosphere', 'multcompView')) %dopar% {
   
   # source R files
   source('R/get_chgdf.R')
@@ -73,6 +74,8 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
     
     restdatrnd <- restdat %>% 
       mutate(date = sample(seq(1971, 2018), size = nrow(.), replace = T))
+  
+  }
   
   if(rndtyp %in% c('loc', 'both')){
     
@@ -149,3 +152,15 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   return(out)
   
 }
+
+rndsims <- res %>% 
+  enframe %>% 
+  bind_cols(grds, .) %>% 
+  mutate(
+    mod = purrr::map(value, function(x) x[[1]]), 
+    lets = purrr::map(value, function(x) x[[2]])
+  ) %>% 
+  dplyr::select(-name, -value)
+
+stopC
+save(rndsims, file = 'data/rndsims.RData', compress = 'xz')
