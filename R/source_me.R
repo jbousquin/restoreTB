@@ -1,9 +1,11 @@
+######
+# grid search for average differences, all stations, restoration type, year window, match combos, for ind_eval
+
 library(tidyverse)
 library(lubridate)
 library(geosphere)
 library(stringi)
 library(tibble)
-library(bnlearn)
 library(scales)
 library(sf)
 library(sp)
@@ -15,37 +17,35 @@ data(reststat)
 data(wqdat)
 data(wqstat)
 
+# source R files
+source('R/get_chgdf.R')
+source('R/get_clo.R')
+
+# inputs
+yrdf <- 10
+mtch <- 10
+resgrp <- 'type'
+
+
 # setup parallel backend
 ncores <- detectCores() - 1  
 cl<-makeCluster(ncores)
 registerDoParallel(cl)
 strt<-Sys.time()
 
-# eval grid
 grds <- crossing(
-  yrdf = 1:10, 
-  mtch = 1:10, 
-  resgrp = c('top', 'type'), 
-  yrstr = c(1974, 1994, 2017), 
-  yrend = c(1974, 1994, 2017)
-)
-
-# remove cases not to evaluate
-grds <- grds %>% 
-  filter(yrend > yrstr) 
+  yrdf = c(5, 10), 
+  mtch = c(5, 10), 
+  rnd = 1:100,
+  rndtyp = c('dt', 'loc', 'both'),
+  resgrp = c('type')
+) 
 
 res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp', 'geosphere')) %dopar% {
-
+  
   # source R files
-  source('R/get_chg.R')
+  source('R/get_chgdf.R')
   source('R/get_clo.R')
-  source('R/get_dat.R')
-  source('R/get_lik.R')
-
-  # globals
-  chlspl <- 11
-  nitspl <- 0.5
-  salspl <- 26   
   
   # log
   sink('log.txt')
@@ -53,71 +53,99 @@ res <- foreach(i = 1:nrow(grds), .packages = c('tidyverse', 'bnlearn', 'sf', 'sp
   print(Sys.time()-strt)
   sink()
   
+  # restoration project type levels, labels and colors
+  typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
+  typelab <- c('Habitat\nenhance', 'Habitat\nestablish', 'Habitat\nprotect', 'Nonpoint\ncontrol', 'Point\ncontrol')
+  typecol <- c('#31a354', '#74c476' , '#c7e9c0', '#3182bd', '#9ecae1')
+  
   # grid row values
   vls <- grds[i, ]
-
+  
   # inputs
   yrdf <- vls$yrdf
   mtch <- vls$mtch
-  yrs <- c(vls$yrstr, vls$yrend)
-  resgrp <- vls$resgrp
+  rndtyp <- vls$rndtyp
   
-  # get model structure based on resgrp
-  if(resgrp == 'top')
-    modstr <- "[hab][wtr][salev|hab:wtr][chlev|hab:wtr:salev]"
-  else 
-    modstr <- "[hab_enh][hab_est][hab_pro][non_src][pnt_src][salev|hab_enh:hab_est:hab_pro:non_src:pnt_src][nilev|salev:hab_enh:hab_est:hab_pro:non_src:pnt_src][chlev|nilev]"
-
-  # create bn network object
-  net <- model2network(modstr)
-
-  # subset restoration data by years
-  restdat_sub <- restdat %>% 
-    filter(date >= yrs[1] & date <= yrs[2])
-  reststat_sub <- reststat %>% 
-    filter(id %in% restdat_sub$id)
-
-  # wq stats matched to rest stats
-  allcdat <- try({
-    get_dat(resgrp, restdat_sub, reststat_sub, wqstat, wqdat, mtch, yrdf, chlspl, nitspl, salspl)
-    })
+  restdatrnd <- restdat
+  reststatrnd <- reststat
   
-  # exit if error
-  if(inherits(allcdat, 'try-error')) return(NA)
+  if(rndtyp %in% c('dt', 'both')){
     
-  # get conditional data for bn input
-  cdat <- allcdat$cdat
+    restdatrnd <- restdat %>% 
+      mutate(date = sample(seq(1971, 2018), size = nrow(.), replace = T))
   
-  # fit simple bn model
-  cdat_mod <- cdat %>%
-    select_if(is.factor) %>%
-    dplyr::select(-stat) %>% 
-    na.omit %>%
-    data.frame %>% 
-    bn.fit(net, data = .)
+  if(rndtyp %in% c('loc', 'both')){
     
-  # get likelihood estimates from mod, bef/aft only (no salinity)
-  ests <- get_lik(cdat, cdat_mod) %>%
-    mutate(event = gsub('^wtr\\_|^hab\\_|^hab\\_enh\\_|^hab\\_est\\_|^hab\\_pro\\_|^non\\_src\\_|^pnt\\_src\\_', '', event)) %>%
-    mutate(chlev = factor(chlev, levels = c('lo', 'hi'))) %>%
-    spread(event, est) %>%
+    reststatrnd <- reststat %>% 
+      mutate(
+        lat = runif(nrow(.), min(lat), max(lat)),
+        lon = runif(nrow(.), min(lon), max(lon))
+      )
+    
+  }
+    
+  # get wqmtch
+  wqmtch <- get_clo(restdatrnd, reststatrnd, wqstat, resgrp = 'type', mtch = mtch)
+  
+  # get differences
+  wqdf <- get_chgdf(wqdat, wqmtch, wqstat, restdatrnd, wqvar = 'chla', yrdf = yrdf)
+
+  # anova model
+  mod <- aov(avedf ~ resgrp, data = wqdf)
+  
+  # get significance letters for multiple comparisons
+  modhsd <- TukeyHSD(mod) %>% 
+    .$resgrp %>% 
+    data.frame
+  pvals <- modhsd$p.adj
+  names(pvals) <- rownames(modhsd)
+  lets <- multcompLetters(pvals)
+  lets <- lets$Letters
+  lets <- lets %>% 
+    enframe('resgrp', 'lets')
+  
+  # get average and max chl chng for color mapping
+  datdf <- wqdf %>% 
+    group_by(resgrp) %>% 
     mutate(
-      chg = 100 * (aft - bef),
-      chg = round(chg, 1)
-    )
+      maxdf = 10 #max(avedf, na.rm = T)
+    ) %>% 
+    ungroup
   
-  return(ests)
+  # join lets with max dif values for labels
+  lets <- datdf %>% 
+    select(resgrp, maxdf) %>% 
+    unique %>% 
+    mutate(resgrp = as.character(resgrp)) %>% 
+    left_join(lets, by = 'resgrp')
+  
+  # test if df values diff from zero, by group
+  difzr <- datdf %>% 
+    group_by(resgrp) %>% 
+    nest %>% 
+    mutate(
+      tst = purrr::map(data, ~ t.test(x = .$avedf)),
+      pvl = purrr::map(tst, function(x){
+        
+        ifelse(x$p.value > 0.05, 'mean = 0', 
+               ifelse(x$statistic > 0, 'mean > 0', 'mean < 0'))
+        
+      }), 
+      mnest = purrr::map(tst, function(x){
+        x$estimate
+      })
+    ) %>% 
+    select(resgrp, pvl, mnest) %>% 
+    unnest %>% 
+    mutate(resgrp = as.character(resgrp)) 
+  
+  # multiplecomparison letters and diff values from difzr
+  lets <- lets %>% 
+    left_join(difzr, by = 'resgrp') %>% 
+    unite(lets, c('lets', 'pvl'), sep = ', ')
+  
+  out <- list(mod = mod, lets = lets)
+  
+  return(out)
   
 }
-
-# combine results with grds, remove scenarios that returned NA
-grdsres <- grds %>%
-  mutate(
-    res = res,
-    resgrp = factor(resgrp, levels = c('top', 'type'), labels = c('simple', 'complex'))
-    ) %>%
-  unite('yrs', yrstr, yrend, sep = '-') %>% 
-  filter(map_lgl(res, ~ !is.logical(.x))) %>% 
-  unnest
-
-save(grdsres, file = 'data/grdsres.RData', compress = 'xz')
