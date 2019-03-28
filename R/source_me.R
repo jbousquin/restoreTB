@@ -22,14 +22,8 @@ data(wqstat)
 source('R/get_chgdf.R')
 source('R/get_clo.R')
 
-# inputs
-yrdf <- 10
-mtch <- 10
-resgrp <- 'type'
-
-
 # setup parallel backend
-ncores <- detectCores() - 1  
+ncores <- detectCores() - 20 
 cl<-makeCluster(ncores)
 registerDoParallel(cl)
 strt<-Sys.time()
@@ -37,7 +31,7 @@ strt<-Sys.time()
 grds <- crossing(
   yrdf = c(5, 10), 
   mtch = c(5, 10), 
-  rnd = 1:100,
+  rnd = 1:1000,
   rndtyp = c('dt', 'loc', 'both'),
   resgrp = c('type')
 ) 
@@ -160,7 +154,7 @@ rndsims <- res %>%
     mod = purrr::map(value, function(x) x[[1]]), 
     lets = purrr::map(value, function(x) x[[2]])
   ) %>% 
-  dplyr::select(-name, -value)
+  dplyr::select(-name, -value, -mod)
 
-stopC
+stopCluster(cl)
 save(rndsims, file = 'data/rndsims.RData', compress = 'xz')
