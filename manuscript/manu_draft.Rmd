@@ -72,6 +72,7 @@ load(file = '../data/wqdat.RData')
 load(file = '../data/wqmtch.RData')
 load(file = '../data/grdavemanu.RData')
 load(file = '../data/tb_seg.RData')
+load(file = '../data/rndsims.RData')
 
 # restoration project type levels, labels and colors
 typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
@@ -1271,9 +1272,130 @@ tab <- regulartable(totab) %>%
   align(align = 'left',  part = 'all') #%>% 
   # autofit 
 tab
-
-
-
 ```
+
+```{r rndeval, eval = T}
+yrdfin <- c(5, 10)
+mtchin <- c(5, 10)
+locsin <- 'all'
+
+# baywide associations
+alldat <- grdavemanu %>% 
+  rename(datdf = value) %>% 
+  filter(yrdf %in% yrdfin & mtch %in% mtchin & locs %in% locsin) %>% 
+  mutate(
+    modbse = purrr::map(datdf, function(datdf){
+      
+      # anova model
+      mod <- aov(avedf ~ resgrp, data = datdf)
+      
+      return(mod)
+      
+    }), 
+    letsbse = purrr::pmap(list(modbse, datdf), function(modbse, datdf){
+      
+      # get significance letters for multiple comparisons
+      modhsd <- TukeyHSD(modbse) %>% 
+        .$resgrp %>% 
+        data.frame
+      pvals <- modhsd$p.adj
+      names(pvals) <- rownames(modhsd)
+      lets <- multcompLetters(pvals)
+      if('Letters' %in% names(lets))
+        lets <- lets$Letters
+      lets <- lets %>% 
+        enframe('resgrp', 'lets')
+      
+      # get average and max chl chng for color mapping
+      datdf <- datdf %>% 
+        group_by(resgrp) %>% 
+        mutate(
+          maxdf = 10 #max(avedf, na.rm = T)
+        ) %>% 
+        ungroup
+      
+      # join lets with max dif values for labels
+      lets <- datdf %>% 
+        select(resgrp, maxdf) %>% 
+        unique %>% 
+        mutate(resgrp = as.character(resgrp)) %>% 
+        left_join(lets, by = 'resgrp')
+      
+      # test if df values diff from zero, by group
+      difzr <- datdf %>% 
+        group_by(resgrp) %>% 
+        nest %>% 
+        mutate(
+          tst = purrr::map(data, ~ t.test(x = .$avedf)),
+          pvl = purrr::map(tst, function(x){
+            
+            ifelse(x$p.value > 0.05, 'mean = 0', 
+                   ifelse(x$statistic > 0, 'mean > 0', 'mean < 0'))
+            
+          }), 
+          mnest = purrr::map(tst, function(x){
+            x$estimate
+          })
+        ) %>% 
+        select(resgrp, pvl, mnest) %>% 
+        unnest %>% 
+        mutate(resgrp = as.character(resgrp)) 
+      
+      # multiplecomparison letters and diff values from difzr
+      lets <- lets %>% 
+        left_join(difzr, by = 'resgrp') %>% 
+        unite(lets, c('lets', 'pvl'), sep = ', ')
+      
+      return(lets)
+      
+    })
+  ) %>% 
+  select(yrdf, mtch, letsbse) %>% 
+  unnest %>% 
+  mutate(lets = gsub('^.*\\,\\s(.*)$','\\1', lets)) %>% 
+  select(-mnest, -maxdf)
+
+typelev <- c('hab_enh', 'hab_est', 'hab_pro', 'non_src', 'pnt_src')
+typelab <- c('Habitat enhance', 'Habitat establish', 'Habitat protect', 'Nonpoint control', 'Point control')
+
+rndsimsagg <- rndsims %>% 
+  unnest(lets) %>%
+  mutate(lets = gsub('^.*\\,\\s(.*)$','\\1', lets)) %>% 
+  group_by(yrdf, mtch, rndtyp, resgrp1, lets) %>% 
+  summarise(vl = n()) %>% 
+  group_by(yrdf, mtch, rndtyp, resgrp1) %>% 
+  mutate(
+    vl = vl / sum(vl),
+    simsel = lets[vl == max(vl)],
+    vl = round(vl, 2), 
+    vl = ifelse(vl == max(vl), as.character(paste0('**', vl, '**')), vl) 
+    ) %>% 
+  ungroup %>% 
+  spread(lets, vl, fill = 0) %>% 
+  rename(resgrp = resgrp1) %>% 
+  left_join(alldat, by = c('yrdf', 'mtch', 'resgrp')) %>% 
+  filter(rndtyp == 'both') %>% 
+  mutate(
+    agr = ifelse(simsel == lets, 'y', 'n'), 
+    resgrp = factor(resgrp, levels = typelev, labels = typelab),
+    yrdf = paste(yrdf, 'years'), 
+    mtch = paste(mtch, 'projects')
+  ) %>% 
+  unite('yrdf_mtch', yrdf, mtch, sep = ', ') %>% 
+  dplyr::select(-rndtyp, -simsel) %>% 
+  rename(
+    Combination = yrdf_mtch, 
+    `Restoration project` = resgrp, 
+    Actual = lets, 
+    Agreement = agr
+  ) %>% 
+  arrange(desc(Combination), `Restoration project`) %>% 
+  mutate(Combination = ifelse(duplicated(Combination), '', Combination))
+
+cap <- 'Results comparing water quality associations for random date and location assignments of restoration projects to those from real data. The columns "mean < 0", "mean = 0", and "mean > 0"" show the proportion of results for 1000 simulations of random dates and locations where the estimated effect had an overall decrease in observed chlorophyll (mean < 0), no change (mean = 0), or increase in chlorophyll (mean > 0).  The actual estimate of the assocation with chlorophyll change from observed data for restoration projects is also shown.  The agreement column shows whether the actual estimate is in agreement with the most frequently observed result from the random simulations (bold).'
+
+knitr::kable(rndsimsagg, caption = cap)
+```
+
 
 # References
