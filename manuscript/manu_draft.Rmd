@@ -18,7 +18,7 @@ Kirsten Dorans ([kdorans@tulane.edu](mailto:kdorans@tulane.edu)), Tulane Univers
 
 Kathryn Ireland ([kathryn.b.ireland@gmail.com](mailto:kathryn.b.ireland@gmail.com)), Montana State University, Bozeman, MT
 
-Patricia Varela ([varela_patricia@yahoo.com](mailto:varela_patricia@yahoo.com)), Geosyntec Consultants, Houston, TX
+Patricia Varela ([pvarela@geosyntec.com](mailto:pvarela@geosyntec.com)), Geosyntec Consultants Inc., Houston, TX
 
 ```{r echo = F}
 # get current bib file
