@@ -9,6 +9,9 @@ purrr
 dplyr
 stringr
 forcats
+geosphere
+stringi
+scales
 permute
 lattice
 vegan
@@ -20,12 +23,8 @@ lubridate
 survival
 Formula
 Hmisc
-maps
-bindrcpp
-patchwork
-geosphere
-stringi
-scales
 multcompView
+patchwork
 flextable
 officer
+maps

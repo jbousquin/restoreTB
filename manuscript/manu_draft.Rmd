@@ -5,6 +5,7 @@ output:
     reference_docx: my_styles.docx
 bibliography: refs.bib
 urlcolor: blue
+csl: estuaries-and-coasts.csl
 link-citations: true
 ---
 
