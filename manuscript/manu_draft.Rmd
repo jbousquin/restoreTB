@@ -213,7 +213,7 @@ Our approach is not without limitations and future research could build on the m
 
 # Supplement
 
-Data analysis frameworks, analysis code, and manuscript source materials are available at [DOI:10.5281/zenodo.2539623](http://doi.org/10.5281/zenodo.2539623).  An interactive application exploring results for Tampa Bay and individual Bay segments is available at [https://shiny.tbeptech.org/restorebayes/ind_eval.Rmd](https://shiny.tbeptech.org/restorebayes/ind_eval.Rmd).
+Data analysis frameworks, analysis code, and manuscript source materials are available at [https://doi.org/10.5281/zenodo.3243530](https://doi.org/10.5281/zenodo.3243530).  An interactive application exploring results for Tampa Bay and individual Bay segments is available at [https://shiny.tbeptech.org/restoreTB/ind_eval.Rmd](https://shiny.tbeptech.org/restoreTB/ind_eval.Rmd).
 
 # Acknowledgments
 
