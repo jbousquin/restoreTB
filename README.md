@@ -1,9 +1,11 @@
 
 # README
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2539623.svg)](https://doi.org/10.5281/zenodo.2539623)
-
 Materials for the evaluation of restoration projects in Tampa Bay.
+
+Repository DOI: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2539623.svg)](https://doi.org/10.5281/zenodo.2539623)
+
+Manuscript: <https://doi.org/10.1007/s12237-019-00619-w>
 
 # Data
 
@@ -21,14 +23,16 @@ Files in `/data/` all created using `R/dat_proc.R`, unless otherwise noted
 
 * `reststat.RData` location of restoration projects combined
 
+* `rndsims.RData` nested tibble of results for random simulations 
+
+* `tb_seg.RData` sf object of Tampa Bay segments
+
 * `wqdat.RData` TB water quality data by site, date, var, val
 
 * `wqmtch.RData` Match between water quality stations and restoration site locations, for manuscript
 
 * `wqstat.RData` TB water quality stations as lat/lon
 
-# Content
+# Shiny application
 
-Evaluation of BN models: [link](http://www.fawda123.com/shiny/restorebayes/all_eval.Rmd)
-
-Evaluation of data aggregation: [link](http://www.fawda123.com/shiny/restorebayes/ind_eval.Rmd)
+View results: [link](http://www.fawda123.com/shiny/restorebayes/ind_eval.Rmd)
