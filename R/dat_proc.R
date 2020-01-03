@@ -7,6 +7,7 @@ library(stringi)
 library(sf)
 library(sp)
 library(geosphere)
+library(dataRetrieval)
 
 # functions
 source('R/funcs.R')
